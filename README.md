@@ -2,12 +2,13 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Meilenstein 1 (Import und Brett).** Partien als PGN, FEN oder Datei laden (auch mehrere Partien pro Datei), verständliche Fehlermeldungen, Brett mit Zugliste, Navigation per Knopf und Tastatur, Brett drehen, deutsche Notation. Engine, Zugbewertung und KI folgen in den nächsten Meilensteinen.
+> **Stand: Meilenstein 2 (Engine).** Partien als PGN, FEN oder Datei laden, Brett mit Zugliste und Tastatursteuerung. Stockfish 19 (Lite, WASM) bewertet im Hintergrund jede Stellung mit Multi-PV 3. Dazu gibt es Fortschritt mit Abbrechen und Fortsetzen, einen Cache, Eval-Balken, Bewertungsverlauf und Engine-Linien. Zugkategorien und KI folgen in den nächsten Meilensteinen.
 
 ## Bedienung
 
 - **Import:** PGN einfügen (Live-Prüfung unter dem Feld), FEN im Tab „FEN“ oder eine `.pgn`-Datei ins Fenster ziehen bzw. auswählen. Enthält der Text mehrere Partien, erscheint rechts eine Auswahlliste. „Du spielst“ legt fest, welche Seite unten steht.
-- **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen.
+- **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen. Ein Klick in den Bewertungsverlauf springt zum Zug.
+- **Engine:** Startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
 
 ## Setup unter CachyOS / Arch Linux
 
@@ -36,6 +37,8 @@ Abhängigkeiten installieren:
 ```bash
 pnpm install
 ```
+
+Hinweis: `pnpm-workspace.yaml` schaltet das `postinstall`-Skript des Pakets `stockfish` bewusst ab. Es würde nur Verknüpfungen auf die 99-MB-Vollversion anlegen, die App nutzt die Lite-Version.
 
 ## Starten
 
@@ -73,6 +76,9 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
 - Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
 - Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
+- **Analysedauer:** Stockfish läuft als Lite-Version mit nur einem Thread im WebView. Die Beispielpartie (34 Stellungen, Tiefe 20, 3 Linien) dauert etwa 3 Minuten, längere Partien entsprechend länger. Die Tiefe lässt sich beim Import wählen (14 / 20 / 26). Schneller wird es mit dem nativen Stockfish (Version 3).
+- **Früher Stopp bei Matt:** Hat die beste Linie ein erzwungenes Matt, endet die Suche, sobald eine Iteration mit mindestens Tiefe `max(10, 2 × Mattlänge + 6)` vollständig ist. Weiteres Rechnen würde nur die Nebenlinien verfeinern und dauert z. B. bei Matt in 1 über eine Minute. Die angezeigte Tiefe ist dann die tatsächlich gerechnete.
+- Bewertungen werden nur im Arbeitsspeicher zwischengespeichert, nicht über einen Neustart hinweg.
 - Gebaut und getestet wird vorerst nur unter Linux.
 
 ## Lizenzhinweise
@@ -80,4 +86,5 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - Schriften: IBM Plex (SIL Open Font License), lokal gebündelt über `@fontsource`.
 - Figuren: SVG-Satz aus `react-chessboard` (MIT), im Stil der Cburnett-Figuren von Wikimedia Commons.
 - Schachlogik: `chess.js` (BSD-2-Clause).
+- **Engine: Stockfish.js 19 (GPL-3.0)**, gebündelt aus dem npm-Paket `stockfish`. Wer die App mit Stockfish weitergibt, muss die GPL-3.0 einhalten (Quelltext mitliefern, GPL-kompatible Lizenz).
 - Beispielpartie `src/test/fixtures/opera-game.pgn`: Morphy – Herzog von Braunschweig & Graf Isouard, Paris 1858 (gemeinfrei).
