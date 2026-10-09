@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Meilenstein 3 (Klassifizierung).** Partien laden, Stockfish 19 (Lite, WASM) bewertet jede Stellung. Jeder Zug bekommt eine Kategorie (Brillant bis Patzer, Theorie aus dem Lichess-Eröffnungsbuch). Dazu gibt es Genauigkeit pro Spieler und Phase, Statistik, Filter, Pfeile und ein Kategorie-Badge auf dem Brett sowie Marker im Bewertungsverlauf. KI-Erklärungen folgen in Meilenstein 4.
+> **Stand: Meilenstein 4 (KI).** Partien laden, Stockfish 19 (Lite, WASM) bewertet jede Stellung, jeder Zug wird klassifiziert (Brillant bis Patzer, Theorie). Ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge (Was / Warum / Aufbauen), auf Wunsch ausführlicher oder aus Sicht des Gegners. Die Einstellungen sind vollständig, der API-Key liegt im Schlüsselbund des Systems. Zusammenfassung und Feinschliff folgen in Meilenstein 5.
 
 ## Bedienung
 
@@ -10,24 +10,37 @@ Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stel
 - **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen. Ein Klick in den Bewertungsverlauf springt zum Zug.
 - **Engine:** Startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
 
+## KI einrichten
+
+1. **Einstellungen → KI-Anbindung:** Voreinstellung wählen (OpenAI, OpenRouter, Ollama, LM Studio oder Eigener), dann Base-URL, API-Key und Modellname eintragen. Für Ollama und LM Studio bleibt der Key leer.
+2. **„Verbindung testen“** schickt eine Mini-Anfrage und zeigt die Antwortzeit oder einen verständlichen Fehler (Key falsch, Modell unbekannt, nicht erreichbar …).
+3. **Speichern.** Danach erklärt die KI nach jeder Engine-Analyse automatisch die ausgewählten Züge („Erklärungen für“ beim Import), in Paketen zu 7 Zügen.
+
+**Der API-Key** liegt im Schlüsselbund des Systems (Secret Service: gnome-keyring oder KWallet), getrennt pro Endpunkt (Origin). Wechselst du die Base-URL, wird ein anderer Key verwendet oder keiner, sodass ein Key nie an einen anderen Server geht. Er steht nicht in der Einstellungsdatei und wird nie geloggt.
+
+**Was das LLM bekommt:** nur Fakten aus Stockfish und chess.js. Das sind Zug, Kategorie, FEN davor und danach, Bestzug, Gewinnchancen, Hauptvariante (höchstens 6 Halbzüge), Materialänderung und Flags (Schach, Matt, Schlag, Opfer). Der System-Prompt verbietet erfundene Züge, Varianten und Bewertungen. Antworten werden mit zod geprüft und bei Bedarf einmal automatisch wiederholt. Lehnt ein Endpunkt `response_format: json_object` ab, fragt die App ohne JSON-Modus erneut.
+
+**„Unbemerkt gut gespielt“:** Spielst du einen großartigen oder brillanten Zug und verlierst in deinen nächsten zwei Zügen mindestens 5 Prozentpunkte Gewinnchance, zeigt der Coach am guten Zug einen Hinweis.
+
 ## Wie die Züge eingeteilt werden
 
 Alle Werte sind Gewinnchancen in Prozent aus Sicht des Ziehenden, berechnet aus der Stockfish-Bewertung (`src/classification/`). Chess.com legt seine Regeln nicht offen; die Regeln hier sind Näherungen, alle Schwellen stehen in `DEFAULT_CLASSIFICATION`.
 
-| Kategorie | Regel |
-|---|---|
-| Theorie | Stellung nach dem Zug steht im Lichess-Eröffnungsbuch, und die Partie war bis dahin ununterbrochen im Buch. Gezählt werden nur benannte Buchstellungen. |
-| Beste | gespielter Zug = Engine-Zug 1 |
-| Ausgezeichnet / Gut | Verlust ≤ 2 / < 5 |
-| Ungenauigkeit / Fehler / Patzer | Verlust ab 5 / 10 / 20 (später in den Einstellungen änderbar) |
-| Verpasst | Der Gegner hat vorher ≥ 10 verloren, der Bestzug hätte klar gewonnen (≥ 80), und du verlierst ≥ 10. |
-| Großartig | Beste/Ausgezeichnet. Die beste Engine-Alternative (ein anderer Zug) ist ≥ 10 schlechter, und die Stellung war nicht entschieden (zwischen 10 und 90). |
-| Brillant | Beste/Ausgezeichnet mit Figurenopfer (Materialverlust ≥ 3 entlang der Hauptvariante, nicht sofort zurückgewonnen). Danach mindestens 50, und vorher nicht entschieden (< 90). |
+| Kategorie                       | Regel                                                                                                                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Theorie                         | Stellung nach dem Zug steht im Lichess-Eröffnungsbuch, und die Partie war bis dahin ununterbrochen im Buch. Gezählt werden nur benannte Buchstellungen.                       |
+| Beste                           | gespielter Zug = Engine-Zug 1                                                                                                                                                 |
+| Ausgezeichnet / Gut             | Verlust ≤ 2 / < 5                                                                                                                                                             |
+| Ungenauigkeit / Fehler / Patzer | Verlust ab 5 / 10 / 20 (später in den Einstellungen änderbar)                                                                                                                 |
+| Verpasst                        | Der Gegner hat vorher ≥ 10 verloren, der Bestzug hätte klar gewonnen (≥ 80), und du verlierst ≥ 10.                                                                           |
+| Großartig                       | Beste/Ausgezeichnet. Die beste Engine-Alternative (ein anderer Zug) ist ≥ 10 schlechter, und die Stellung war nicht entschieden (zwischen 10 und 90).                         |
+| Brillant                        | Beste/Ausgezeichnet mit Figurenopfer (Materialverlust ≥ 3 entlang der Hauptvariante, nicht sofort zurückgewonnen). Danach mindestens 50, und vorher nicht entschieden (< 90). |
 
 **Anpassungen gegenüber dem Projektdokument** (alle mit Tests):
 
 - **Brillant bei Matt:** Mit der wörtlichen Regel wäre 16. Db8+ nie brillant, weil Weiß vorher schon gewinnt (Matt in 2 = 100). Neu gilt deshalb: Führt das Opfer zu einem erzwungenen Matt, während der zweitbeste Zug kein Matt erzwingt, zählt die Stellung nicht als „ohnehin entschieden“. Damit ist 16. Db8+ brillant (Soll-Test mit echten Stockfish-Daten, Tiefe 20).
 - **Großartig:** Verglichen wird der gespielte Zug mit der besten Alternative, nicht stur Linie 1 mit Linie 2.
+- **Opfer-Schwelle 2 statt 3:** Auf Wunsch gesenkt, damit auch Figur-gegen-Bauer-Opfer wie Lxh7+ zählen.
 - **Opfer an der Fenstergrenze:** Die direkte Antwort auf einen gegnerischen Schlagzug wird auch hinter dem 8-Halbzug-Fenster gelesen. Sonst sähe ein Damentausch an der Grenze wie ein Opfer aus.
 
 **Spielphasen** (für die Genauigkeit je Phase, angelehnt an Lichess): Endspiel ab höchstens 6 Figuren ohne Bauern und Könige, Eröffnung bis Zug 10, dazwischen Mittelspiel.
@@ -95,8 +108,12 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 
 - **NVIDIA + Wayland:** WebKitGTK stürzt dort sonst mit „Error 71 (Protokollfehler)“ ab. Die App setzt deshalb unter Linux beim Start automatisch `WEBKIT_DISABLE_DMABUF_RENDERER=1`, sofern die Variable nicht schon gesetzt ist (`src-tauri/src/main.rs`).
 - **TypeScript 6.0 statt 7:** `typescript-eslint` unterstützt TypeScript 7 noch nicht. Ein Wechsel ist geplant, sobald es unterstützt wird.
-- Die Content-Security-Policy (`csp`) ist noch nicht gesetzt. Sie kommt mit der KI-Anbindung in Meilenstein 4.
-- Nur Deutsch, nur dunkles Farbschema. Die Notation ist fest auf Deutsch, umschaltbar wird sie mit den Einstellungen in Meilenstein 4.
+- **Content-Security-Policy:** In `src-tauri/tauri.conf.json` ist sie streng gesetzt (nur eigene Dateien, WASM erlaubt, Netzwerk nur über das Tauri-HTTP-Plugin). Der Dev-Modus nutzt eine eigene, lockerere `devCsp` für Vites Hot-Reload. `style-src` ist von Tauris automatischen Nonces ausgenommen, weil React und react-chessboard Inline-Styles nutzen.
+- **HTTP-Freigabe:** Die App darf `https://` beliebig sowie `http://localhost` und `http://127.0.0.1` ansprechen (`src-tauri/capabilities/default.json`). Ein LLM-Server im Heimnetz über `http://192.168…` ist damit nicht erreichbar.
+- Im Browser-Modus (`pnpm dev` ohne Tauri) gibt es keinen Schlüsselbund: Der Key gilt dort nur bis zum Neuladen. Außerdem können CORS-Regeln Anfragen blockieren.
+- Erklärungen werden nur im Arbeitsspeicher gehalten, nicht gespeichert (kommt mit der Bibliothek in Meilenstein 6).
+- Die Einstellung „Threads“ ist ausgegraut: Die eingebaute Lite-Engine nutzt einen Thread.
+- Nur Deutsch, nur dunkles Farbschema.
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
 - Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
 - Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
@@ -104,7 +121,6 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **Früher Stopp bei Matt:** Hat die beste Linie ein erzwungenes Matt, endet die Suche, sobald eine Iteration mit mindestens Tiefe `max(10, 2 × Mattlänge + 6)` vollständig ist. Weiteres Rechnen würde nur die Nebenlinien verfeinern und dauert z. B. bei Matt in 1 über eine Minute. Die angezeigte Tiefe ist dann die tatsächlich gerechnete.
 - Bewertungen werden nur im Arbeitsspeicher zwischengespeichert, nicht über einen Neustart hinweg.
 - Eröffnungsnamen kommen aus dem Lichess-Buch und sind englisch (z. B. „Philidor Defense“).
-- Ein Figurenopfer gegen einen Bauern (z. B. Lxh7+, netto −2) zählt nach der Regel „≥ 3“ nicht als Opfer, ein solcher Zug wird also nicht brillant.
 - Mit geringer Tiefe (z. B. 14) bewertet Stockfish manche Stellungen spürbar anders als mit Tiefe 20. Das ändert auch die Kategorien.
 - Gebaut und getestet wird vorerst nur unter Linux.
 
