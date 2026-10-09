@@ -90,8 +90,7 @@
       "label": "Coach und Zusammenfassung",
       "coach": "Coach",
       "chat": "Chat",
-      "summary": "Zusammenfassung",
-      "chatPlaceholder": "Fragen zur Stellung stellen."
+      "summary": "Zusammenfassung"
     },
     "evalBar": {
       "label": "Bewertungsbalken: {{eval}}",
@@ -203,9 +202,24 @@
       "meta": "{{place}} · {{moves}} · {{result}}"
     },
     "sources": {
-      "label": "Weitere Quellen",
+      "label": "Von Lichess oder Chess.com laden",
       "title": "Von Lichess oder Chess.com laden",
-      "text": "Per Benutzername, ohne Einfügen"
+      "text": "Lädt deine letzten 20 Partien per Benutzername.",
+      "platformLabel": "Plattform",
+      "lichess": "Lichess",
+      "chesscom": "Chess.com",
+      "username": "Benutzername",
+      "load": "Partien laden",
+      "loading": "Lade …",
+      "loaded": "{{platform}} · {{username}} ({{count}} Partien)",
+      "errors": {
+        "invalidUser": "Bitte einen gültigen Benutzernamen eingeben (Buchstaben, Ziffern, _ und -).",
+        "notFound": "Diesen Benutzer gibt es dort nicht.",
+        "rateLimited": "Zu viele Anfragen. Bitte kurz warten und erneut versuchen.",
+        "unreachable": "Die Plattform ist nicht erreichbar. Besteht eine Internetverbindung?",
+        "noGames": "Für diesen Benutzer wurden keine Partien gefunden.",
+        "badResponse": "Die Antwort der Plattform war nicht verwertbar."
+      }
     },
     "depth": {
       "label": "Engine-Tiefe",
@@ -235,8 +249,50 @@
   "bibliothek": {
     "title": "Bibliothek",
     "subtitle": "Analysierte Partien liegen lokal auf diesem Rechner. Nichts wird doppelt berechnet.",
-    "banner": "Platzhalter: Hier erscheinen später deine lokal gespeicherten Partien.",
-    "placeholder": "Noch keine Partien gespeichert."
+    "count_one": "{{count}} Partie",
+    "count_other": "{{count}} Partien",
+    "averageAccuracy": "Ø Genauigkeit",
+    "searchLabel": "Partien durchsuchen",
+    "searchPlaceholder": "Eröffnung, Spieler oder Titel suchen …",
+    "filterLabel": "Filter",
+    "filters": {
+      "all": "Alle",
+      "white": "Als Weiß",
+      "black": "Als Schwarz",
+      "losses": "Niederlagen"
+    },
+    "sortLabel": "Sortierung",
+    "sort": {
+      "newest": "Neueste zuerst",
+      "accuracy": "Genauigkeit",
+      "blunders": "Meiste Patzer"
+    },
+    "tableLabel": "Analysierte Partien",
+    "columns": {
+      "date": "Datum",
+      "game": "Partie",
+      "color": "Farbe",
+      "result": "Ergebnis",
+      "accuracy": "Genauigkeit",
+      "errors": "Fehler · Patzer",
+      "actions": "Aktionen"
+    },
+    "outcome": {
+      "win": "Sieg",
+      "loss": "Niederlage",
+      "draw": "Remis",
+      "open": "offen"
+    },
+    "open": "Öffnen",
+    "delete": "Partie löschen",
+    "confirmDelete": "Wirklich löschen?",
+    "confirmYes": "Löschen",
+    "confirmNo": "Abbrechen",
+    "emptyTitle": "Noch keine Partien",
+    "emptyText": "Jede Partie, die die Engine vollständig bewertet hat, landet automatisch hier.",
+    "noMatches": "Keine Partie passt zu Suche und Filter.",
+    "untitled": "Partie ohne Namen",
+    "openFailed": "Die Partie konnte nicht geöffnet werden."
   },
   "einstellungen": {
     "title": "Einstellungen",
@@ -304,7 +360,6 @@
       "scheme": "Farbschema",
       "dark": "Dunkel",
       "light": "Hell",
-      "lightLater": "Hell kommt in Version 2.",
       "notation": "Notation",
       "notationDe": "Deutsch (D, T, L, S)",
       "notationEn": "Englisch (Q, R, B, N)",
@@ -465,5 +520,21 @@
   },
   "a11y": {
     "skipToContent": "Zum Inhalt springen"
+  },
+  "chat": {
+    "title": "Frage zur Stellung",
+    "hint": "bekommt Engine-Daten",
+    "intro": "Frag etwas zur angezeigten Stellung, z. B. „Warum ist dieser Zug schlecht?“ oder „Was droht hier?“. Die KI bekommt dazu die Engine-Bewertung dieser Stellung.",
+    "inputLabel": "Frage zur Stellung",
+    "placeholder": "Frage zur Stellung stellen …",
+    "send": "Frage senden",
+    "pending": "Die KI denkt nach …",
+    "context": "zu {{move}}",
+    "contextStart": "zur Ausgangsstellung",
+    "you": "Du",
+    "coach": "Coach",
+    "errors": {
+      "noEval": "Für diese Stellung liegt noch keine Engine-Bewertung vor. Warte, bis die Engine sie berechnet hat."
+    }
   }
 }
