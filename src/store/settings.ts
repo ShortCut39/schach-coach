@@ -35,9 +35,17 @@ export const settingsSchema = z.object({
     .object({ inaccuracy: threshold, mistake: threshold, blunder: threshold })
     .refine((t) => t.inaccuracy < t.mistake && t.mistake < t.blunder)
     .catch(DEFAULT_THRESHOLDS),
+  colorScheme: z.enum(['dark', 'light']).catch('dark'),
   notation: z.enum(['de', 'en']).catch('de'),
   boardTheme: z.enum(['standard', 'wood', 'sage']).catch('standard'),
   showArrows: z.boolean().catch(true),
+  /** Zuletzt genutztes Konto für den Online-Import */
+  online: z
+    .object({
+      platform: z.enum(['lichess', 'chesscom']).catch('lichess'),
+      username: z.string().catch(''),
+    })
+    .catch({ platform: 'lichess', username: '' }),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -63,10 +71,17 @@ export function pickSettings(state: Settings): Settings {
     level: state.level,
     explainScope: state.explainScope,
     thresholds: state.thresholds,
+    colorScheme: state.colorScheme,
     notation: state.notation,
     boardTheme: state.boardTheme,
     showArrows: state.showArrows,
+    online: state.online,
   });
+}
+
+/** Setzt das Farbschema auf dem Dokument (`data-theme`), damit tokens.css umschaltet. */
+export function applyColorScheme(scheme: Settings['colorScheme']): void {
+  document.documentElement.dataset.theme = scheme;
 }
 
 export const useSettings = create<SettingsState>()((set) => ({
@@ -75,13 +90,16 @@ export const useSettings = create<SettingsState>()((set) => ({
   load: async () => {
     try {
       const raw = await getSettingsStorage().get(STORAGE_KEY);
-      set({ ...settingsSchema.parse(raw ?? {}), loaded: true });
+      const loaded = settingsSchema.parse(raw ?? {});
+      applyColorScheme(loaded.colorScheme);
+      set({ ...loaded, loaded: true });
     } catch {
       set({ loaded: true });
     }
   },
   save: async (next) => {
     const valid = settingsSchema.parse(next);
+    applyColorScheme(valid.colorScheme);
     set(valid);
     await getSettingsStorage().set(STORAGE_KEY, valid);
   },

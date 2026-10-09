@@ -468,28 +468,15 @@ export function EinstellungenScreen() {
           <div className="flex flex-wrap gap-x-7 gap-y-4">
             <div>
               <FieldLabel>{t('einstellungen.darstellung.scheme')}</FieldLabel>
-              <div
-                role="group"
-                aria-label={t('einstellungen.darstellung.scheme')}
-                className="inline-flex rounded-control border border-border-chip bg-bg p-[3px]"
-              >
-                <button
-                  type="button"
-                  aria-pressed="true"
-                  className="min-h-10 rounded-small bg-accent-bg px-[18px] text-sm font-semibold text-accent-text"
-                >
-                  {t('einstellungen.darstellung.dark')}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed="false"
-                  disabled
-                  title={t('einstellungen.darstellung.lightLater')}
-                  className="min-h-10 rounded-small px-[18px] text-sm font-medium text-faint"
-                >
-                  {t('einstellungen.darstellung.light')}
-                </button>
-              </div>
+              <Segmented
+                label={t('einstellungen.darstellung.scheme')}
+                value={draft.colorScheme}
+                onChange={(colorScheme) => update({ colorScheme })}
+                options={[
+                  { value: 'dark', label: t('einstellungen.darstellung.dark') },
+                  { value: 'light', label: t('einstellungen.darstellung.light') },
+                ]}
+              />
             </div>
             <SelectField
               id={ids.notation}

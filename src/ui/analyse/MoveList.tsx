@@ -77,7 +77,7 @@ export function MoveList({ game, analyses }: MoveListProps) {
         }
         className={`flex min-h-8 items-center gap-1.5 rounded-[7px] px-1.5 text-left text-[13px] font-semibold ${
           active
-            ? 'bg-move-active-bg text-white ring-1 ring-move-active-ring ring-inset'
+            ? 'bg-move-active-bg text-move-active-text ring-1 ring-move-active-ring ring-inset'
             : 'text-body hover:bg-accent-bg'
         } ${dimmed ? 'opacity-35' : ''}`}
       >

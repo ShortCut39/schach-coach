@@ -29,6 +29,7 @@
   --sc-toggle-on: #e9edf3;
   --sc-move-active-bg: #232b4d;
   --sc-move-active-ring: #5a69c9;
+  --sc-move-active-text: #ffffff;
   --sc-piece-chip-white: #ffffff;
   --sc-piece-chip-black: #17120d;
   --sc-piece-chip-border: #5a6270;
@@ -37,7 +38,8 @@
   --sc-text: #dde3ec;
   --sc-text-body: #cdd4df;
   --sc-text-muted: #8791a1;
-  --sc-text-faint: #6c7686;
+  /* Ursprünglich #6c7686, aufgehellt für WCAG AA (≥ 4,5:1 auf allen Flächen) */
+  --sc-text-faint: #7f8999;
 
   /* Akzent und Status */
   --sc-accent: #7c8cff;
@@ -45,6 +47,11 @@
   --sc-accent-bg: #1a2030;
   --sc-on-accent: #0b0e13;
   --sc-success: #4ade80;
+  /* Ergebnis-Badges der Bibliothek (aus dem Mockup) */
+  --sc-win-bg: #12302a;
+  --sc-win-text: #7ce6b5;
+  --sc-loss-bg: #331a1a;
+  --sc-loss-text: #ff9b92;
   /* Aus dem Mockup abgeleitet (Bibliothek, „Niederlage“): gut lesbares Rot für Fehlermeldungen */
   --sc-danger: #ff9b92;
 
@@ -64,6 +71,8 @@
   /* Eval-Balken und Bewertungsverlauf (aus dem Mockup) */
   --sc-eval-white: #e9edf3;
   --sc-eval-black: #232b38;
+  --sc-eval-on-white: #0b0e13;
+  --sc-eval-on-black: #dde3ec;
   --sc-graph-area: #cfd6e2;
   --sc-graph-midline: #3a4352;
   --sc-graph-cursor: rgba(124, 140, 255, 0.8);
@@ -109,6 +118,59 @@
   --sc-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
+/*
+ * Helles Farbschema (Einstellungen → Darstellung → Farbschema).
+ * Nur Flächen, Rahmen, Text und Akzent ändern sich; Brett- und Kategoriefarben bleiben gleich.
+ * Alle Texttöne erreichen WCAG AA (≥ 4,5:1) auf den hellen Flächen.
+ */
+:root[data-theme='light'] {
+  --sc-bg: #f4f6f9;
+  --sc-header: #ffffff;
+  --sc-panel: #ffffff;
+  --sc-panel-sub: #f7f8fb;
+
+  --sc-border: #dfe3ea;
+  --sc-border-input: #c9d0db;
+  --sc-border-chip: #d9dee6;
+  --sc-border-accent: #b9c0f2;
+  --sc-info-bg: #eef0ff;
+  --sc-info-border: #c9cff5;
+  --sc-info-text: #3843a8;
+  --sc-divider: #e8ebf0;
+  --sc-track: #e3e7ee;
+  --sc-button-secondary: #eef1f6;
+  --sc-control-text: #3a4352;
+  --sc-toggle-on: #1f2633;
+  --sc-move-active-bg: #e3e7ff;
+  --sc-move-active-ring: #6f7dea;
+  --sc-move-active-text: #1b2230;
+
+  --sc-text: #1b2230;
+  --sc-text-body: #2b3442;
+  --sc-text-muted: #556070;
+  --sc-text-faint: #5e6878;
+
+  --sc-accent: #4f5fd6;
+  --sc-accent-text: #3b49c4;
+  --sc-accent-bg: #e8ebff;
+  --sc-on-accent: #ffffff;
+  --sc-success: #15803d;
+  --sc-danger: #b42318;
+  --sc-win-bg: #dcfce7;
+  --sc-win-text: #166534;
+  --sc-loss-bg: #fee4e2;
+  --sc-loss-text: #b42318;
+
+  --sc-board-shadow: 0 0 0 1px #dfe3ea, 0 10px 24px rgba(20, 30, 50, 0.15);
+  --sc-eval-white: #ffffff;
+  --sc-eval-black: #3a4352;
+  --sc-eval-on-black: #ffffff;
+  --sc-graph-area: #c9d1e3;
+  --sc-graph-midline: #b8c0cd;
+  --sc-graph-cursor: rgba(79, 95, 214, 0.8);
+  --sc-line-text: #3a4352;
+}
+
 @theme inline {
   --color-bg: var(--sc-bg);
   --color-header: var(--sc-header);
@@ -129,6 +191,7 @@
   --color-toggle-on: var(--sc-toggle-on);
   --color-move-active-bg: var(--sc-move-active-bg);
   --color-move-active-ring: var(--sc-move-active-ring);
+  --color-move-active-text: var(--sc-move-active-text);
   --color-piece-chip-white: var(--sc-piece-chip-white);
   --color-piece-chip-black: var(--sc-piece-chip-black);
   --color-piece-chip-border: var(--sc-piece-chip-border);
@@ -144,9 +207,15 @@
   --color-on-accent: var(--sc-on-accent);
   --color-success: var(--sc-success);
   --color-danger: var(--sc-danger);
+  --color-win-bg: var(--sc-win-bg);
+  --color-win-text: var(--sc-win-text);
+  --color-loss-bg: var(--sc-loss-bg);
+  --color-loss-text: var(--sc-loss-text);
 
   --color-eval-white: var(--sc-eval-white);
   --color-eval-black: var(--sc-eval-black);
+  --color-eval-on-white: var(--sc-eval-on-white);
+  --color-eval-on-black: var(--sc-eval-on-black);
   --color-graph-area: var(--sc-graph-area);
   --color-graph-midline: var(--sc-graph-midline);
   --color-graph-cursor: var(--sc-graph-cursor);

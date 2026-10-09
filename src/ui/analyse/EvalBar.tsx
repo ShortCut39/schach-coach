@@ -39,7 +39,7 @@ export function EvalBar({ evaluation, orientation }: EvalBarProps) {
         <div
           className={`absolute inset-x-0 text-center font-mono text-[10.5px] font-semibold ${
             labelAtBottom ? 'bottom-1.5' : 'top-1.5'
-          } ${whiteAhead ? 'text-on-accent' : 'text-text'}`}
+          } ${whiteAhead ? 'text-eval-on-white' : 'text-eval-on-black'}`}
         >
           {text.replace(/^\+/, '')}
         </div>
