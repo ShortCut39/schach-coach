@@ -115,7 +115,11 @@
         "counters": "Die Zugzähler am Ende der FEN sind ungültig.",
         "other": "Die FEN ist ungültig."
       },
-      "file": "Die Datei konnte nicht gelesen werden."
+      "file": {
+        "unreadable": "Die Datei konnte nicht gelesen werden.",
+        "unsupported": "Diese Datei kann nicht geladen werden. Erlaubt sind .pgn, .txt und .fen.",
+        "tooLarge": "Die Datei ist zu groß (höchstens 20 MB)."
+      }
     },
     "userColor": "Du spielst",
     "analyse": "Analysieren",

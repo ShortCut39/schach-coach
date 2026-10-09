@@ -5,13 +5,16 @@ import { IconUpload } from '../shared/icons';
 
 interface DropZoneProps {
   onFile: (file: File) => void;
+  /** Hervorhebung von außen, z. B. wenn Tauri eine Datei über dem Fenster meldet */
+  active?: boolean;
 }
 
 /** Ablagefläche für PGN-Dateien mit zusätzlichem Datei-Auswahl-Knopf. */
-export function DropZone({ onFile }: DropZoneProps) {
+export function DropZone({ onFile, active: externalActive = false }: DropZoneProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [active, setActive] = useState(false);
+  const [htmlActive, setActive] = useState(false);
+  const active = htmlActive || externalActive;
   const titleId = useId();
 
   function handleDrop(event: DragEvent) {

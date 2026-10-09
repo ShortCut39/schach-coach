@@ -9,6 +9,7 @@ import { DropZone } from '../import/DropZone';
 import { GameList } from '../import/GameList';
 import { ValidationMessage } from '../import/ValidationMessage';
 import { evaluateImport, loadableSource, type InputTab } from '../import/evaluate';
+import { useNativeFileDrop, type FileReadError } from '../import/nativeFileDrop';
 import { Button } from '../shared/Button';
 import { FieldLabel } from '../shared/FieldLabel';
 import { PageHeader } from '../shared/PageHeader';
@@ -23,7 +24,7 @@ export function ImportScreen() {
 
   const { tab, pgnText, fenText, selected, userColor, fileName, update } = useImportDraft();
   const resetDraft = useImportDraft((s) => s.reset);
-  const [fileError, setFileError] = useState(false);
+  const [fileError, setFileError] = useState<FileReadError>();
   const texts: Record<InputTab, string> = { pgn: pgnText, fen: fenText };
 
   const inputTab: InputTab = tab === 'fen' ? 'fen' : 'pgn';
@@ -45,20 +46,31 @@ export function ImportScreen() {
     update({ [textKey[inputTab]]: '', [textKey[target]]: texts[inputTab], tab: target });
   }
 
+  function loadFileContent(name: string, bytes: ArrayBuffer) {
+    const content = decodeText(bytes);
+    const target: InputTab = detectInput(content) === 'fen' ? 'fen' : 'pgn';
+    update({ [textKey[target]]: content, selected: 0, fileName: name, tab: target });
+    setFileError(undefined);
+  }
+
+  /** Datei aus dem Auswahldialog oder einem HTML5-Drop (Browser-Modus) */
   async function handleFile(file: File) {
     try {
-      const content = decodeText(await file.arrayBuffer());
-      const target: InputTab = detectInput(content) === 'fen' ? 'fen' : 'pgn';
-      update({ [textKey[target]]: content, selected: 0, fileName: file.name, tab: target });
-      setFileError(false);
+      loadFileContent(file.name, await file.arrayBuffer());
     } catch {
-      setFileError(true);
+      setFileError('unreadable');
     }
   }
 
+  /** In der Desktop-App: Datei irgendwo auf dem Import-Screen abgelegt */
+  const nativeDropActive = useNativeFileDrop((result) => {
+    if (result.ok) loadFileContent(result.name, result.bytes);
+    else setFileError(result.error);
+  });
+
   function reset() {
     resetDraft();
-    setFileError(false);
+    setFileError(undefined);
   }
 
   function analyse() {
@@ -98,7 +110,7 @@ export function ImportScreen() {
           {tab === 'datei' ? (
             <div role="tabpanel" aria-labelledby="import-tab-datei" className="flex flex-col gap-4">
               <p className="text-body">{t('import.fileTabText')}</p>
-              <DropZone onFile={handleFile} />
+              <DropZone onFile={handleFile} active={nativeDropActive} />
             </div>
           ) : (
             <div role="tabpanel" aria-labelledby={`import-tab-${tab}`}>
@@ -136,7 +148,7 @@ export function ImportScreen() {
           {fileError && (
             <p role="alert" className="flex items-center gap-2 text-[13px] font-medium text-danger">
               <IconAlert />
-              {t('import.errors.file')}
+              {t(`import.errors.file.${fileError}`)}
             </p>
           )}
 
@@ -162,7 +174,7 @@ export function ImportScreen() {
         </section>
 
         <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-4">
-          {tab !== 'datei' && <DropZone onFile={handleFile} />}
+          {tab !== 'datei' && <DropZone onFile={handleFile} active={nativeDropActive} />}
 
           {games.length > 1 && (
             <GameList
