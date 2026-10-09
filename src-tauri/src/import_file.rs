@@ -87,3 +87,19 @@ mod tests {
         assert_eq!(read_checked(&dir), Err(ERR_UNREADABLE));
     }
 }
+
+/// Schreibt einen Export (Markdown) an den Pfad, den der Nutzer im Speichern-Dialog gewählt hat.
+/// Erlaubt ist nur die Endung `.md`.
+#[tauri::command]
+pub async fn write_export_file(path: String, content: String) -> Result<(), String> {
+    let path = Path::new(&path);
+    let is_markdown = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("md"))
+        .unwrap_or(false);
+    if !is_markdown {
+        return Err(ERR_UNSUPPORTED.into());
+    }
+    std::fs::write(path, content).map_err(|_| ERR_UNREADABLE.to_string())
+}

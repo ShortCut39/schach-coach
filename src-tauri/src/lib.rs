@@ -4,6 +4,7 @@ mod secrets;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
@@ -18,6 +19,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             import_file::read_import_file,
+            import_file::write_export_file,
             secrets::api_key_available,
             secrets::api_key_get,
             secrets::api_key_set
