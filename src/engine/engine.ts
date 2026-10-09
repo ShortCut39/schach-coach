@@ -28,7 +28,14 @@ export class EngineError extends Error {
 
 const INIT_TIMEOUT_MS = 30_000;
 /** Großer Hash beschleunigt die Analyse aufeinanderfolgender Stellungen. */
-const HASH_MB = 64;
+const DEFAULT_HASH_MB = 64;
+
+export interface EngineOptions {
+  /** Hash-Tabelle in MB */
+  hashMb?: number;
+  /** Threads pro Engine-Prozess (die App rechnet lieber mehrere Stellungen parallel) */
+  threads?: number;
+}
 
 /**
  * Früher Stopp bei erzwungenem Matt: Hat die beste Linie ein Matt und ist eine Iteration
@@ -60,7 +67,7 @@ export class UciEngine {
   }
 
   /** Startet die Engine: `uci` → Name + `uciok`, dann Hash setzen und auf `readyok` warten. */
-  async init(timeoutMs = INIT_TIMEOUT_MS): Promise<void> {
+  async init(timeoutMs = INIT_TIMEOUT_MS, options: EngineOptions = {}): Promise<void> {
     await this.exchange(
       'uci',
       (line) => {
@@ -69,7 +76,10 @@ export class UciEngine {
       },
       timeoutMs,
     );
-    this.transport.send(`setoption name Hash value ${HASH_MB}`);
+    this.transport.send(`setoption name Hash value ${options.hashMb ?? DEFAULT_HASH_MB}`);
+    if (options.threads && options.threads > 1) {
+      this.transport.send(`setoption name Threads value ${options.threads}`);
+    }
     await this.ready(timeoutMs);
   }
 

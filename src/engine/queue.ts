@@ -29,28 +29,34 @@ export interface QueueCallbacks {
 }
 
 /**
- * Bewertet Stellungen der Reihe nach. Bereits bekannte Stellungen kommen aus dem Cache,
- * Matt/Patt wird ohne Engine erkannt. Abbrechen über `signal`.
+ * Bewertet Stellungen. Mit mehreren Engines rechnen diese parallel: Jede holt sich die nächste
+ * offene Stellung aus einer gemeinsamen Warteschlange (Ergebnisse kommen daher nicht in
+ * Reihenfolge). Bereits bekannte Stellungen kommen aus dem Cache, Matt/Patt wird ohne Engine
+ * erkannt. Abbrechen über `signal` stoppt alle Engines.
  *
  * @returns `'done'` oder `'aborted'`
  */
 export async function analysePositions(
-  engine: SearchEngine,
+  engines: SearchEngine | readonly SearchEngine[],
   cache: EvalCache,
   fens: readonly string[],
   settings: SearchSettings,
   callbacks: QueueCallbacks,
   signal: AbortSignal,
 ): Promise<'done' | 'aborted'> {
+  const pool = Array.isArray(engines) ? engines : [engines as SearchEngine];
   const total = fens.length;
   let done = 0;
-  const onAbort = () => engine.stop();
+  let next = 0;
+  let aborted = false;
+  const onAbort = () => pool.forEach((engine) => engine.stop());
   signal.addEventListener('abort', onAbort);
 
-  try {
-    for (const [index, fen] of fens.entries()) {
-      if (signal.aborted) return 'aborted';
-
+  async function worker(engine: SearchEngine): Promise<void> {
+    while (!aborted && !signal.aborted && next < total) {
+      const index = next++;
+      const fen = fens[index];
+      if (fen === undefined) return;
       let evaluation = cache.get(fen, settings);
       if (!evaluation) {
         const terminal = terminalState(fen);
@@ -61,17 +67,23 @@ export async function analysePositions(
           const result = await engine.search(fen, settings, (depth) =>
             callbacks.onProgress({ done, total, current: index, depth }),
           );
-          if (result.aborted || signal.aborted) return 'aborted';
+          if (result.aborted || signal.aborted) {
+            aborted = true;
+            return;
+          }
           evaluation = { fen, ...settings, lines: result.lines };
         }
         cache.set(evaluation);
       }
-
       done++;
       callbacks.onPosition(index, evaluation);
       callbacks.onProgress({ done, total, current: null, depth: null });
     }
-    return 'done';
+  }
+
+  try {
+    await Promise.all(pool.map(worker));
+    return aborted || signal.aborted ? 'aborted' : 'done';
   } finally {
     signal.removeEventListener('abort', onAbort);
   }

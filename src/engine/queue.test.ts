@@ -93,4 +93,23 @@ describe('analysePositions', () => {
     expect(positions.map(([i]) => i)).toEqual([0]);
     expect(cache.size).toBe(1);
   });
+
+  it('verteilt die Stellungen auf mehrere Engines', async () => {
+    const a = new FakeEngine();
+    const b = new FakeEngine();
+    const positions: number[] = [];
+    const outcome = await analysePositions(
+      [a, b],
+      new EvalCache(),
+      [START, AFTER_E4, START.replace(' 0 1', ' 0 2'), AFTER_E4.replace(' 0 1', ' 0 2')],
+      settings,
+      { onPosition: (i) => positions.push(i), onProgress: () => {} },
+      new AbortController().signal,
+    );
+    expect(outcome).toBe('done');
+    expect(positions.sort()).toEqual([0, 1, 2, 3]);
+    expect(a.calls.length).toBeGreaterThan(0);
+    expect(b.calls.length).toBeGreaterThan(0);
+    expect(a.calls.length + b.calls.length).toBe(4);
+  });
 });

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 /**
- * Echter Stockfish (Lite, single-threaded) als Node-Kindprozess – nur für Tests und Werkzeuge.
+ * Echter Stockfish als Node-Kindprozess – Lite-WASM oder die native Binary – nur für Tests und Werkzeuge.
  * Tests, die das nutzen, brauchen `// @vitest-environment node`.
  */
 import { spawn } from 'node:child_process';
@@ -12,8 +12,15 @@ const ENGINE = fileURLToPath(
   new URL('../../node_modules/stockfish/bin/stockfish-19-lite-single.js', import.meta.url),
 );
 
-export function processTransport(): EngineTransport {
-  const child = spawn(process.execPath, [ENGINE], { stdio: ['pipe', 'pipe', 'ignore'] });
+/** Native Engine (Sidecar-Binary), falls mit `pnpm fetch:engine` geladen */
+export const NATIVE_ENGINE = fileURLToPath(
+  new URL('../../src-tauri/binaries/stockfish-x86_64-unknown-linux-gnu', import.meta.url),
+);
+
+export function processTransport(native = false): EngineTransport {
+  const child = native
+    ? spawn(NATIVE_ENGINE, [], { stdio: ['pipe', 'pipe', 'ignore'] })
+    : spawn(process.execPath, [ENGINE], { stdio: ['pipe', 'pipe', 'ignore'] });
   const lines = createInterface({ input: child.stdout });
   return {
     send: (command) => child.stdin.write(`${command}\n`),
