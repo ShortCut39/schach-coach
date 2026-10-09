@@ -8,7 +8,10 @@ import { useNavigation } from '../../store/navigation';
 import type { ExplainScope } from '../../llm/selection';
 import { analyseAndExplain } from '../../store/pipeline';
 import { useSettings } from '../../store/settings';
+import { summarizePgn } from '../../chess/pgn';
+import { colorOfUser } from '../../online/fetchGames';
 import { DropZone } from '../import/DropZone';
+import { OnlineImport } from '../import/OnlineImport';
 import { ProgressCard } from '../import/ProgressCard';
 import { GameList } from '../import/GameList';
 import { ValidationMessage } from '../import/ValidationMessage';
@@ -18,7 +21,6 @@ import { Button } from '../shared/Button';
 import { FieldLabel } from '../shared/FieldLabel';
 import { PageHeader } from '../shared/PageHeader';
 import { Segmented } from '../shared/Segmented';
-import { VersionBadge } from '../shared/VersionBadge';
 import { IconAlert, IconFile } from '../shared/icons';
 
 export function ImportScreen() {
@@ -59,7 +61,13 @@ export function ImportScreen() {
   function loadFileContent(name: string, bytes: ArrayBuffer) {
     const content = decodeText(bytes);
     const target: InputTab = detectInput(content) === 'fen' ? 'fen' : 'pgn';
-    update({ [textKey[target]]: content, selected: 0, fileName: name, tab: target });
+    update({
+      [textKey[target]]: content,
+      selected: 0,
+      fileName: name,
+      tab: target,
+      onlineUser: null,
+    });
     setFileError(undefined);
   }
 
@@ -77,6 +85,31 @@ export function ImportScreen() {
     if (result.ok) loadFileContent(result.name, result.bytes);
     else setFileError(result.error);
   });
+
+  /** Farbe des Nutzers in Partie `index` erkennen (nur nach Online-Import mit Benutzername) */
+  function userColorIn(text: string, index: number, username: string | null) {
+    if (!username) return undefined;
+    const game = summarizePgn(text)[index];
+    return game ? colorOfUser(game.headers, username) : undefined;
+  }
+
+  function loadOnline(pgn: string, label: string, username: string) {
+    const color = userColorIn(pgn, 0, username);
+    update({
+      pgnText: pgn,
+      tab: 'pgn',
+      selected: 0,
+      fileName: label,
+      onlineUser: username,
+      ...(color ? { userColor: color } : {}),
+    });
+    setFileError(undefined);
+  }
+
+  function selectGame(index: number) {
+    const color = userColorIn(pgnText, index, useImportDraft.getState().onlineUser);
+    update({ selected: index, ...(color ? { userColor: color } : {}) });
+  }
 
   function reset() {
     resetDraft();
@@ -235,23 +268,13 @@ export function ImportScreen() {
             <GameList
               games={games}
               selected={evaluation.kind === 'pgn' ? evaluation.selected : 0}
-              onSelect={(index) => update({ selected: index })}
+              onSelect={selectGame}
             />
           )}
 
           <ProgressCard />
 
-          <section
-            aria-label={t('import.sources.label')}
-            aria-disabled="true"
-            className="flex items-center gap-3 rounded-panel border border-divider bg-panel-sub px-4 py-3.5 text-faint"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-muted">{t('import.sources.title')}</div>
-              <div className="text-[13px]">{t('import.sources.text')}</div>
-            </div>
-            <VersionBadge version={2} />
-          </section>
+          <OnlineImport onLoaded={loadOnline} />
         </div>
       </div>
     </main>

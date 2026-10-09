@@ -14,6 +14,8 @@ interface ImportDraftState {
   fileName: string | undefined;
   /** Engine-Tiefe für diese Analyse; `null` = Wert aus den Einstellungen */
   depth: number | null;
+  /** Benutzername des Online-Imports (für „Du spielst“ automatisch) */
+  onlineUser: string | null;
   /** Erklärungsumfang; `null` = Wert aus den Einstellungen */
   explainScope: ExplainScope | null;
   update: (patch: Partial<Omit<ImportDraftState, 'update' | 'reset'>>) => void;
@@ -29,6 +31,7 @@ const initial = {
   fileName: undefined,
   depth: null as number | null,
   explainScope: null as ExplainScope | null,
+  onlineUser: null as string | null,
 };
 
 export const useImportDraft = create<ImportDraftState>()((set) => ({
