@@ -1,0 +1,4 @@
+# stockfish: Das postinstall-Skript legt nur Verknüpfungen auf die große 99-MB-Engine an.
+# Wir laden die Lite-Version direkt aus node_modules/stockfish/bin, das Skript wird nicht gebraucht.
+allowBuilds:
+  stockfish: false

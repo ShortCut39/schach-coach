@@ -25,6 +25,7 @@
     "react-chessboard": "^5.12.1",
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.16",
+    "stockfish": "^19.0.0",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
