@@ -20,7 +20,6 @@ import { useGameAnalysis } from '../analyse/useGameAnalysis';
 import { colorName } from '../chessText';
 import { Button } from '../shared/Button';
 import { Panel } from '../shared/Panel';
-import { handleTabKeys } from '../shared/tabKeys';
 import { VersionBadge } from '../shared/VersionBadge';
 import { AccuracyCard } from './AccuracyCard';
 import { buildMarkdown, exportFileName } from './markdown';
@@ -31,47 +30,21 @@ import { TurningPoints } from './TurningPoints';
 
 const NO_ENTRIES: Record<number, PlyExplanations> = {};
 
-/** Umschalter „Brett | Zusammenfassung“ (wie im Mockup). */
-export function ViewSwitch() {
-  const { t } = useTranslation();
-  const view = useNavigation((s) => s.analyseView);
-  const setView = useNavigation((s) => s.setAnalyseView);
-  return (
-    <div
-      role="tablist"
-      aria-label={t('summary.viewLabel')}
-      onKeyDown={(event) => handleTabKeys(event, ['board', 'summary'] as const, view, setView)}
-      className="inline-flex rounded-control border border-border-chip bg-panel p-[3px]"
-    >
-      {(['board', 'summary'] as const).map((id) => (
-        <button
-          key={id}
-          type="button"
-          role="tab"
-          aria-selected={view === id}
-          tabIndex={view === id ? undefined : -1}
-          onClick={() => setView(id)}
-          className={`min-h-[38px] rounded-small px-[18px] text-[13.5px] ${
-            view === id
-              ? 'bg-accent-bg font-semibold text-accent-text'
-              : 'font-medium text-muted hover:text-text'
-          }`}
-        >
-          {t(id === 'board' ? 'summary.board' : 'summary.summary')}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function Empty({ text }: { text: string }) {
   const { t } = useTranslation();
+  const setView = useNavigation((s) => s.setAnalyseView);
   return (
     <main id="main" className="flex flex-col gap-5 px-5 pt-6 pb-10">
-      <ViewSwitch />
-      <Panel className="flex max-w-[560px] flex-col gap-2">
+      <Panel className="flex max-w-[560px] flex-col items-start gap-2">
         <h1 className="text-lg font-semibold">{t('summary.emptyTitle')}</h1>
         <p className="text-muted">{text}</p>
+        <Button
+          variant="primary"
+          className="mt-1 min-h-hit px-[18px] text-sm"
+          onClick={() => setView('board')}
+        >
+          {t('summary.backToBoard')}
+        </Button>
       </Panel>
     </main>
   );
@@ -147,9 +120,6 @@ function SummaryContent({ game }: { game: Game }) {
     <main id="main" className="flex flex-col gap-5 px-5 pt-6 pb-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="mb-3">
-            <ViewSwitch />
-          </div>
           <h1 className="text-[26px] font-bold tracking-[-0.01em]">{t('summary.title')}</h1>
           <div className="mt-0.5 text-muted">{subtitle}</div>
         </div>

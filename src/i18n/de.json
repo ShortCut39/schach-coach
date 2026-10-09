@@ -461,9 +461,6 @@
     "all": "Alle Züge"
   },
   "summary": {
-    "viewLabel": "Analyse-Ansicht",
-    "board": "Brett",
-    "summary": "Zusammenfassung",
     "title": "Zusammenfassung der Partie",
     "subtitleYou": "Du spielst {{color}}",
     "export": "Als Markdown exportieren",

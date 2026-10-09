@@ -1,6 +1,17 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/*
+ * Native Bedienelemente (Auswahllisten, Zahlenfelder, aufgeklappte Listen) im passenden Farbschema.
+ * Ohne das zeichnet WebKitGTK sie als helle GTK-Elemente – helle Schrift auf weißem Grund.
+ */
+:root {
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
 @layer base {
   html,
   body,
@@ -39,6 +50,37 @@
     outline: 2px solid var(--sc-accent);
     outline-offset: 2px;
   }
+}
+
+/*
+ * Auswahllisten selbst zeichnen (WebKitGTK ignoriert sonst Hintergrund und Schriftfarbe).
+ * Bewusst außerhalb der Tailwind-Ebenen, damit der Platz für den Pfeil nicht von px-* überschrieben wird.
+ * Pfeilfarbe = „gedämpft“ des jeweiligen Farbschemas (#8791a1 dunkel, #556070 hell).
+ */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238791a1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+:root[data-theme='light'] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23556070' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+option {
+  background-color: var(--sc-panel);
+  color: var(--sc-text);
+}
+
+/* Zahlenfelder ohne native Pfeil-Knöpfe (Werte ändern sich weiter mit ↑/↓) */
+input[type='number'] {
+  appearance: textfield;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
 }
 
 /* Weniger Bewegung, wenn das System es wünscht */
