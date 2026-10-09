@@ -138,6 +138,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
             after,
             notation,
             factLabels,
+            context.userColor,
             result.unnoticed.has(ply),
           )
         : null;
@@ -220,6 +221,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
         after,
         settings.notation,
         labels(),
+        context.userColor,
         result.unnoticed.has(ply),
       );
       const kind = mode === 'detailed' ? 'detailed' : 'opponent';

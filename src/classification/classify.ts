@@ -127,7 +127,8 @@ export function classifyPly(
     winAfter,
     winLoss,
     accuracy: moveAccuracy(winLoss),
-    isSacrifice: sacrifice,
+    // Nur ein echtes Opfer, wenn der Zug kein Fehler ist – sonst ist es einfach verlorenes Material
+    isSacrifice: sacrifice && winLoss < config.inaccuracy,
     bestMove,
   };
 }

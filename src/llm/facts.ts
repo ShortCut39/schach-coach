@@ -6,6 +6,7 @@ import { materialBalance } from '../classification/material';
 import type { Category, PlyAnalysis } from '../classification/types';
 import { formatLineEval, formatPositionEval } from '../engine/evalFormat';
 import type { PositionEval } from '../engine/types';
+import { describeLine, describeUci, piecesInDanger } from './describe';
 
 /** Höchstens so viele Halbzüge einer Variante gehen an das LLM (Projektdokument: 6). */
 export const MAX_VARIATION_PLIES = 6;
@@ -25,16 +26,34 @@ export interface MoveFacts {
   ply: number;
   zugnummer: string;
   farbe: string;
+  /** Wer hat gezogen: der Nutzer („du“) oder sein Gegner */
+  wer: 'du' | 'gegner';
   zug: string;
+  /** z. B. „Dame d8 zieht nach h4“ */
+  zug_in_worten: string | null;
   kategorie: string;
   fen_davor: string;
   fen_danach: string;
   bester_zug: string | null;
+  /** nur, wenn ein anderer Zug besser war */
+  bester_zug_in_worten: string | null;
   gewinnchance_davor: number;
   gewinnchance_danach: number;
   bewertung_danach: string | null;
   hauptvariante_nach_zug: string[];
+  /** Antwort des Gegners und Fortsetzung in Worten, z. B. „Weiß: Springer f3 schlägt Dame h4“ */
+  hauptvariante_in_worten: string[];
   variante_mit_bestzug: string[] | null;
+  variante_mit_bestzug_in_worten: string[] | null;
+  /** Figuren (ohne Bauern/König), die angegriffen und ungedeckt sind oder von Billigerem angegriffen werden */
+  vor_dem_zug: {
+    figuren_des_ziehenden_in_gefahr: string[];
+    figuren_des_gegners_in_gefahr: string[];
+  };
+  nach_dem_zug: {
+    figuren_des_ziehenden_in_gefahr: string[];
+    figuren_des_gegners_in_gefahr: string[];
+  };
   material: { durch_zug: number; nach_hauptvariante: number };
   flags: { schach: boolean; matt: boolean; schlag: boolean; opfer: boolean };
   hinweis?: string;
@@ -64,8 +83,10 @@ export function buildMoveFacts(
   after: PositionEval,
   notation: NotationStyle,
   labels: FactLabels,
+  userColor: Color,
   unnoticed = false,
 ): MoveFacts {
+  const opponent: Color = ply.color === 'w' ? 'b' : 'w';
   const fmt = (moves: string[]) => moves.map((m) => formatSan(m, notation));
   const continuation = after.terminal
     ? []
@@ -77,20 +98,36 @@ export function buildMoveFacts(
     ply: ply.index,
     zugnummer: formatMoveNumber(ply.moveNumber, ply.color),
     farbe: labels.color[ply.color],
+    wer: ply.color === userColor ? 'du' : 'gegner',
     zug: formatSan(ply.san, notation),
+    zug_in_worten: describeUci(ply.fenBefore, ply.uci),
     kategorie: labels.category[analysis.category],
     fen_davor: ply.fenBefore,
     fen_danach: ply.fenAfter,
     bester_zug: analysis.bestMove
       ? (fmt(uciLineToSan(ply.fenBefore, [analysis.bestMove]))[0] ?? null)
       : null,
+    bester_zug_in_worten:
+      !playedBest && analysis.bestMove ? describeUci(ply.fenBefore, analysis.bestMove) : null,
     gewinnchance_davor: Math.round(analysis.winBefore),
     gewinnchance_danach: Math.round(analysis.winAfter),
     bewertung_danach: formatPositionEval(after) ?? null,
     hauptvariante_nach_zug: fmt(uciLineToSan(ply.fenAfter, continuation)),
+    hauptvariante_in_worten: describeLine(ply.fenAfter, continuation),
     variante_mit_bestzug: playedBest
       ? null
       : fmt(uciLineToSan(ply.fenBefore, bestLine.slice(0, MAX_VARIATION_PLIES))),
+    variante_mit_bestzug_in_worten: playedBest
+      ? null
+      : describeLine(ply.fenBefore, bestLine.slice(0, MAX_VARIATION_PLIES)),
+    vor_dem_zug: {
+      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenBefore, ply.color),
+      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenBefore, opponent),
+    },
+    nach_dem_zug: {
+      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenAfter, ply.color),
+      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenAfter, opponent),
+    },
     material: {
       durch_zug: materialChange(ply.fenBefore, [ply.uci], ply.color),
       nach_hauptvariante: materialChange(ply.fenBefore, [ply.uci, ...continuation], ply.color),
@@ -112,7 +149,8 @@ export interface PositionFacts {
   fen: string;
   am_zug: string;
   bewertung: string | null;
-  engine_linien: { bewertung: string; zuege: string[] }[];
+  engine_linien: { bewertung: string; zuege: string[]; in_worten: string[] }[];
+  figuren_in_gefahr: { weiss: string[]; schwarz: string[] };
 }
 
 export function buildPositionFacts(
@@ -130,6 +168,8 @@ export function buildPositionFacts(
     engine_linien: evaluation.lines.map((line) => ({
       bewertung: formatLineEval(line),
       zuege: uciLineToSan(fen, line.pv, MAX_VARIATION_PLIES).map((m) => formatSan(m, notation)),
+      in_worten: describeLine(fen, line.pv.slice(0, MAX_VARIATION_PLIES)),
     })),
+    figuren_in_gefahr: { weiss: piecesInDanger(fen, 'w'), schwarz: piecesInDanger(fen, 'b') },
   };
 }

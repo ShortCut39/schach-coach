@@ -203,3 +203,16 @@ describe('classifyPly – Brillant', () => {
     expect(classify(before, after, qb8)?.category).toBe('best');
   });
 });
+
+describe('classifyPly – Opfer-Flag', () => {
+  it('markiert verlorenes Material bei einem Fehler nicht als Opfer', () => {
+    const BEFORE = '4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 16';
+    const AFTER = '1Q2kb1r/p2n1ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 b k - 1 16';
+    const p = ply({ uci: 'b3b8', fenBefore: BEFORE, fenAfter: AFTER, moveNumber: 16 });
+    const before = evalOf(BEFORE, line(1, { cp: 150 }, ['b3c3']), line(2, { cp: 140 }, ['b3b8']));
+    const after = evalOf(AFTER, line(1, { cp: -600 }, ['d7b8', 'd1d8']));
+    const result = classify(before, after, p);
+    expect(result?.category).toBe('blunder');
+    expect(result?.isSacrifice).toBe(false);
+  });
+});

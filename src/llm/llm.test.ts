@@ -64,7 +64,16 @@ describe('buildMoveFacts (echte Engine-Daten)', () => {
   it('enthält für 16. Db8+ nur Daten aus Engine und chess.js', () => {
     const { game, evals, analyses } = opera();
     const ply = game.plies[30]!;
-    const facts = buildMoveFacts(ply, analyses[30]!, evals[30]!, evals[31]!, 'de', labels, true);
+    const facts = buildMoveFacts(
+      ply,
+      analyses[30]!,
+      evals[30]!,
+      evals[31]!,
+      'de',
+      labels,
+      'w',
+      true,
+    );
     expect(facts).toMatchObject({
       ply: 30,
       zugnummer: '16.',
@@ -92,6 +101,7 @@ describe('buildMoveFacts (echte Engine-Daten)', () => {
       evals[18]!,
       'de',
       labels,
+      'w',
     );
     expect(facts.zug).toBe('b5');
     expect(facts.kategorie).toBe('MISTAKE');
@@ -120,6 +130,7 @@ describe('Prompts', () => {
       evals[31]!,
       'de',
       labels,
+      'w',
     );
     const [, user] = batchMessages([facts], 'club', 'de');
     expect(user?.content).toContain('"zug": "Db8+"');

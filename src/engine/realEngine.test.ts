@@ -4,36 +4,13 @@
  * Integrationstest mit dem echten Stockfish (Lite, single-threaded) als Node-Kindprozess.
  * Prüft, dass Wrapper und Warteschlange mit der echten UCI-Ausgabe funktionieren.
  */
-import { spawn } from 'node:child_process';
-import { createInterface } from 'node:readline';
-import { fileURLToPath } from 'node:url';
+import { processTransport } from '../test/processEngine';
 import { parsePgnGame } from '../chess/pgn';
 import { operaGame } from '../test/fixtures';
 import { EvalCache } from './cache';
-import { UciEngine, type EngineTransport } from './engine';
+import { UciEngine } from './engine';
 import { analysePositions } from './queue';
 import type { PositionEval } from './types';
-
-const ENGINE = fileURLToPath(
-  new URL('../../node_modules/stockfish/bin/stockfish-19-lite-single.js', import.meta.url),
-);
-
-function processTransport(): EngineTransport {
-  const child = spawn(process.execPath, [ENGINE], { stdio: ['pipe', 'pipe', 'ignore'] });
-  const lines = createInterface({ input: child.stdout });
-  return {
-    send: (command) => child.stdin.write(`${command}\n`),
-    onLine: (listener) => {
-      lines.on('line', listener);
-      return () => lines.off('line', listener);
-    },
-    onError: (listener) => {
-      child.on('error', listener);
-      return () => child.off('error', listener);
-    },
-    terminate: () => child.kill(),
-  };
-}
 
 describe('echter Stockfish', () => {
   let engine: UciEngine;

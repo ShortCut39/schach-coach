@@ -96,6 +96,7 @@ export interface PlyAnalysis {
   winLoss: number;
   /** Genauigkeit dieses Zugs, 0..100 */
   accuracy: number;
+  /** Figurenopfer ohne Fehler (Material gegeben, aber Verlust an Gewinnchance unter der Ungenauigkeitsschwelle) */
   isSacrifice: boolean;
   /** Bester Engine-Zug in der Stellung davor (UCI) */
   bestMove: string | undefined;
