@@ -1,12 +1,18 @@
 import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { positionWhiteWinChance } from '../../classification/winChance';
+import type { Category, PlyAnalysis } from '../../classification/types';
 import type { PositionEval } from '../../engine/types';
+import { categoryColors } from '../categoryStyle';
 import { useAnalysis } from '../../store/analysis';
 import { AnalysisProgress } from './AnalysisProgress';
 
+/** Kategorien, die im Verlauf markiert werden (laut Projektdokument) */
+const MARKED: ReadonlySet<Category> = new Set(['great', 'brilliant', 'blunder']);
+
 interface EvalGraphProps {
   evals: (PositionEval | undefined)[];
+  analyses: (PlyAnalysis | undefined)[];
   /** Anzahl Halbzüge der Partie (Stellungen = Halbzüge + 1) */
   plyCount: number;
   /** Aktuell angezeigter Halbzug, -1 = Ausgangsstellung */
@@ -18,7 +24,7 @@ interface EvalGraphProps {
  * Bewertungsverlauf: helle Fläche = Weiß im Vorteil (Gewinnchance von Weiß),
  * gestrichelte Mittellinie = ausgeglichen, senkrechter Strich = aktuelle Stellung.
  */
-export function EvalGraph({ evals, plyCount, current, onSelect }: EvalGraphProps) {
+export function EvalGraph({ evals, analyses, plyCount, current, onSelect }: EvalGraphProps) {
   const { t } = useTranslation();
   const status = useAnalysis((s) => s.status);
   const span = Math.max(plyCount, 1);
@@ -34,6 +40,12 @@ export function EvalGraph({ evals, plyCount, current, onSelect }: EvalGraphProps
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
     .join(' ');
   const area = first && last ? `M${first.x} 100 ${line.replace(/^M/, 'L')} L${last.x} 100 Z` : '';
+
+  const markers = analyses.flatMap((analysis, plyIndex) => {
+    const win = positionWhiteWinChance(evals[plyIndex + 1]);
+    if (!analysis || !MARKED.has(analysis.category) || win === undefined) return [];
+    return [{ plyIndex, category: analysis.category, x: x(plyIndex + 1), y: 100 - win }];
+  });
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -61,7 +73,7 @@ export function EvalGraph({ evals, plyCount, current, onSelect }: EvalGraphProps
       </div>
       <div
         role="img"
-        aria-label={t('analyse.graph.label', { count: plyCount })}
+        aria-label={`${t('analyse.graph.label', { count: plyCount })} ${t('analyse.graph.markers')}`}
         onClick={handleClick}
         className="relative h-[110px] cursor-pointer overflow-hidden rounded-small bg-bg"
       >
@@ -97,6 +109,18 @@ export function EvalGraph({ evals, plyCount, current, onSelect }: EvalGraphProps
           className="absolute inset-y-0 w-0.5 bg-graph-cursor"
           style={{ left: `calc(${x(current + 1)}% - 1px)` }}
         />
+        {markers.map((marker) => (
+          <span
+            key={marker.plyIndex}
+            aria-hidden="true"
+            className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-bg"
+            style={{
+              left: `${marker.x}%`,
+              top: `${Math.min(Math.max(marker.y, 6), 94)}%`,
+              background: categoryColors(marker.category).background,
+            }}
+          />
+        ))}
         {points.length === 0 && (
           <p className="absolute inset-0 flex items-center justify-center px-4 text-center text-[13px] text-faint">
             {t('analyse.graph.empty')}

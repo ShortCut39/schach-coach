@@ -35,30 +35,33 @@ describe('Import → Analyse', () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Analysieren' }));
-    const board = screen.getByRole('img', { name: 'Ausgangsstellung' });
+    const board = screen.getByRole('img', { name: /^Ausgangsstellung/ });
     expect(board).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '16. Db8+' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '9… b5' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^16\. Db8\+/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^9… b5/ })).toBeInTheDocument();
 
     press('End');
-    expect(screen.getByRole('img', { name: 'Stellung nach 17. Td8#' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /^Stellung nach 17\. Td8#/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ein Zug vor' })).toBeDisabled();
 
     press('ArrowLeft');
-    expect(screen.getByRole('img', { name: 'Stellung nach 16… Sxb8' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /^Stellung nach 16… Sxb8/ })).toBeInTheDocument();
     press('ArrowLeft');
     expect(useGame.getState().source?.kind === 'game' && useGame.getState().current).toBe(30);
     const state = useGame.getState();
     expect(state.source?.kind === 'game' && state.source.plies[30]?.fenAfter).toBe(FEN_AFTER_QB8);
 
     press('Home');
-    expect(screen.getByRole('img', { name: 'Ausgangsstellung' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /^Ausgangsstellung/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Ein Zug vor' }));
-    expect(screen.getByRole('img', { name: 'Stellung nach 1. e4' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /^Stellung nach 1\. e4/ })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '7. Db3' }));
-    expect(screen.getByRole('button', { name: '7. Db3' })).toHaveAttribute('aria-current', 'step');
+    fireEvent.click(screen.getByRole('button', { name: /^7\. Db3/ }));
+    expect(screen.getByRole('button', { name: /^7\. Db3/ })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
 
     expect(useGame.getState().orientation).toBe('white');
     press('f');
@@ -148,6 +151,20 @@ describe('Import → Analyse', () => {
 
     press('End');
     expect(within(lines).getByText('vor 17. Td8#')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '17. Td8#' })).toHaveTextContent('#');
+    expect(screen.getByRole('button', { name: /^17\. Td8#/ })).toHaveTextContent('#');
+
+    // Klassifizierung: Theorie für die ersten Züge, Statistik und Genauigkeit sichtbar
+    expect(await screen.findByRole('button', { name: '1. e4, Theorie' })).toBeInTheDocument();
+    const stats = screen.getByRole('heading', { name: 'Statistik' }).closest('section');
+    if (!stats) throw new Error('Statistik fehlt');
+    expect(within(stats).getByRole('rowheader', { name: /Theorie/ })).toBeInTheDocument();
+    expect(within(stats).getByText('Genauigkeit')).toBeInTheDocument();
+
+    // Filter „Nur meine“ blendet die Züge des Gegners aus der Hervorhebung
+    fireEvent.click(screen.getByRole('button', { name: 'Nur meine' }));
+    expect(screen.getByRole('button', { name: 'Nur meine' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

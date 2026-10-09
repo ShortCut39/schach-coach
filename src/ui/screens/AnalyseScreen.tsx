@@ -6,7 +6,9 @@ import { positionsOf } from '../../store/analysis';
 import { selectCurrentFen, selectCurrentPly, useGame } from '../../store/game';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
+import { arrowsFor } from '../analyse/arrows';
 import { BoardControls } from '../analyse/BoardControls';
+import { BoardOverlay } from '../analyse/BoardOverlay';
 import { AnalysisProgress } from '../analyse/AnalysisProgress';
 import { BoardView } from '../analyse/BoardView';
 import { EngineLines } from '../analyse/EngineLines';
@@ -16,6 +18,8 @@ import { MoveList } from '../analyse/MoveList';
 import { PlayerRow } from '../analyse/PlayerRow';
 import { PositionInfo } from '../analyse/PositionInfo';
 import { SidePanel } from '../analyse/SidePanel';
+import { StatsPanel } from '../analyse/StatsPanel';
+import { useGameAnalysis } from '../analyse/useGameAnalysis';
 import { useBoardKeyboard } from '../analyse/useBoardKeyboard';
 import { useCurrentEvals } from '../analyse/useAnalysisFor';
 import { KnightIcon } from '../shared/KnightIcon';
@@ -64,6 +68,8 @@ function AnalyseLayout() {
   const { first, prev, next, last, flip, goTo } = useGame.getState();
   const notation = useSettings((s) => s.notation);
   const evals = useCurrentEvals();
+  const showArrows = useSettings((s) => s.showArrows);
+  const analysis = useGameAnalysis();
 
   if (!source || !fen) return null;
 
@@ -72,15 +78,32 @@ function AnalyseLayout() {
   const topColor: Color = orientation === 'white' ? 'b' : 'w';
   const bottomColor: Color = topColor === 'w' ? 'b' : 'w';
   const playerName = (color: Color) => headerValue(headers, color === 'w' ? 'White' : 'Black');
-  const opening = [headerValue(headers, 'Opening'), headerValue(headers, 'ECO')]
+  // Eröffnung aus der PGN, sonst aus dem Eröffnungsbuch (Namen dort auf Englisch)
+  const opening = [
+    headerValue(headers, 'Opening') ?? analysis.opening?.name,
+    headerValue(headers, 'ECO') ?? analysis.opening?.eco,
+  ]
     .filter(Boolean)
     .join(' · ');
 
-  const boardLabel = ply
-    ? t('analyse.board.positionAfter', {
-        move: `${formatMoveNumber(ply.moveNumber, ply.color)} ${formatSan(ply.san, notation)}`,
-      })
-    : t('analyse.board.positionStart');
+  const plyAnalysis = ply ? analysis.plies[ply.index] : undefined;
+  const boardLabel = [
+    ply
+      ? t('analyse.board.positionAfter', {
+          move: `${formatMoveNumber(ply.moveNumber, ply.color)} ${formatSan(ply.san, notation)}`,
+        })
+      : t('analyse.board.positionStart'),
+    plyAnalysis && t(`categories.${plyAnalysis.category}`),
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const overlay = (
+    <BoardOverlay
+      orientation={orientation}
+      arrows={showArrows ? arrowsFor(ply, plyAnalysis, evals[current + 1]) : []}
+      badge={ply && plyAnalysis && { square: ply.to, category: plyAnalysis.category }}
+    />
+  );
 
   // Engine-Linien zeigen, was vor dem aktuellen Zug am besten war (wie im Mockup „vor 16. Zug“)
   const fens = positionsOf(source);
@@ -99,7 +122,14 @@ function AnalyseLayout() {
       <h1 className="sr-only">{t('analyse.title')}</h1>
 
       <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4">
-        {source.kind === 'game' ? <MoveList game={source} /> : <PositionInfo position={source} />}
+        {source.kind === 'game' ? (
+          <>
+            <MoveList game={source} analyses={analysis.plies} />
+            <StatsPanel game={source} analyses={analysis.plies} userColor={userColor} />
+          </>
+        ) : (
+          <PositionInfo position={source} />
+        )}
       </aside>
 
       <section
@@ -123,6 +153,7 @@ function AnalyseLayout() {
               orientation={orientation}
               lastMove={ply && { from: ply.from, to: ply.to }}
               label={boardLabel}
+              overlay={overlay}
             />
           </div>
           <EvalBar evaluation={evals[current + 1]} orientation={orientation} />
@@ -144,7 +175,13 @@ function AnalyseLayout() {
           }
         />
         {source.kind === 'game' && (
-          <EvalGraph evals={evals} plyCount={plyCount} current={current} onSelect={goTo} />
+          <EvalGraph
+            evals={evals}
+            analyses={analysis.plies}
+            plyCount={plyCount}
+            current={current}
+            onSelect={goTo}
+          />
         )}
       </section>
 

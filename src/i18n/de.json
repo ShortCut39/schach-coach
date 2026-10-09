@@ -43,7 +43,16 @@
       "black": "Schwarz",
       "tableLabel": "Zugliste",
       "start": "Ausgangsstellung",
-      "evalHint": "Eval = Weiß-Sicht"
+      "evalHint": "Eval = Weiß-Sicht",
+      "filterLabel": "Filter",
+      "filters": {
+        "all": "Alle",
+        "mine": "Nur meine",
+        "errors": "Fehler",
+        "good": "Gute Züge"
+      },
+      "cellLabel": "{{move}}, {{category}}",
+      "filterEmpty": "Keine Züge für diesen Filter."
     },
     "players": {
       "you": "Du",
@@ -52,7 +61,15 @@
     "board": {
       "label": "Brett",
       "positionStart": "Ausgangsstellung",
-      "positionAfter": "Stellung nach {{move}}"
+      "positionAfter": "Stellung nach {{move}}",
+      "arrowsLabel": "Pfeile: {{arrows}}",
+      "arrows": {
+        "played": "gespielter Zug",
+        "best": "Bestzug",
+        "reply": "Antwort des Gegners",
+        "continuation": "Fortsetzung"
+      },
+      "badge": "{{category}} auf {{square}}"
     },
     "controls": {
       "label": "Brettsteuerung",
@@ -86,7 +103,8 @@
       "label": "Bewertungsverlauf über {{count}} Halbzüge. Klick springt zum Zug.",
       "plies_one": "{{count}} Halbzug",
       "plies_other": "{{count}} Halbzüge",
-      "empty": "Die Kurve füllt sich, während die Engine rechnet."
+      "empty": "Die Kurve füllt sich, während die Engine rechnet.",
+      "markers": "Markierungen: Großartig, Brillant und Patzer"
     },
     "engine": {
       "title": "Engine-Linien",
@@ -105,6 +123,16 @@
       "runningDepth": "Engine {{done}} / {{total}} · Tiefe {{depth}}",
       "aborted": "Abgebrochen bei {{done}} / {{total}}",
       "error": "Die Engine konnte nicht gestartet werden."
+    },
+    "stats": {
+      "title": "Statistik",
+      "caption": "Anzahl der Zugkategorien pro Spieler",
+      "category": "Kategorie",
+      "you": "Du",
+      "opponent": "Gegner",
+      "accuracy": "Genauigkeit",
+      "phase": "Phase",
+      "pending": "Erscheint, sobald die Engine die Partie bewertet hat."
     }
   },
   "import": {
@@ -212,5 +240,22 @@
       "darstellung": "Darstellung & Sprache"
     },
     "placeholder": "Die Einstellungen für diesen Bereich folgen in einem späteren Meilenstein."
+  },
+  "categories": {
+    "brilliant": "Brillant",
+    "great": "Großartig",
+    "best": "Beste",
+    "excellent": "Ausgezeichnet",
+    "good": "Gut",
+    "book": "Theorie",
+    "inaccuracy": "Ungenauigkeit",
+    "mistake": "Fehler",
+    "blunder": "Patzer",
+    "miss": "Verpasst"
+  },
+  "phases": {
+    "opening": "Eröffnung",
+    "middlegame": "Mittelspiel",
+    "endgame": "Endspiel"
   }
 }

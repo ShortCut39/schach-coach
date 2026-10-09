@@ -1,52 +1,92 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import type { Game, PlyBase } from '../../chess/types';
+import { ERROR_CATEGORIES, GOOD_CATEGORIES, type PlyAnalysis } from '../../classification/types';
 import { formatPositionEval } from '../../engine/evalFormat';
-import { buildRows } from './moveRows';
-import { useCurrentEvals } from './useAnalysisFor';
 import { useGame } from '../../store/game';
 import { useSettings } from '../../store/settings';
+import { CategoryIcon } from '../shared/CategoryIcon';
+import { buildRows } from './moveRows';
+import { useCurrentEvals } from './useAnalysisFor';
 
-export function MoveList({ game }: { game: Game }) {
+const filters = ['all', 'mine', 'errors', 'good'] as const;
+type Filter = (typeof filters)[number];
+
+function matches(
+  filter: Filter,
+  ply: PlyBase,
+  analysis: PlyAnalysis | undefined,
+  userColor: string,
+) {
+  switch (filter) {
+    case 'all':
+      return true;
+    case 'mine':
+      return ply.color === userColor;
+    case 'errors':
+      return analysis !== undefined && ERROR_CATEGORIES.has(analysis.category);
+    case 'good':
+      return analysis !== undefined && GOOD_CATEGORIES.has(analysis.category);
+  }
+}
+
+interface MoveListProps {
+  game: Game;
+  analyses: (PlyAnalysis | undefined)[];
+}
+
+export function MoveList({ game, analyses }: MoveListProps) {
   const { t } = useTranslation();
   const current = useGame((s) => s.current);
   const goTo = useGame((s) => s.goTo);
+  const userColor = useGame((s) => s.userColor);
   const notation = useSettings((s) => s.notation);
   const evals = useCurrentEvals();
+  const [filter, setFilter] = useState<Filter>('all');
   const activeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     activeRef.current?.scrollIntoView?.({ block: 'nearest' });
   }, [current]);
 
-  const rows = buildRows(game.plies);
+  const isMatch = (ply: PlyBase | undefined) =>
+    ply !== undefined && matches(filter, ply, analyses[ply.index], userColor);
+  const rows = buildRows(game.plies).filter((row) => isMatch(row.white) || isMatch(row.black));
 
   function cell(ply: PlyBase | undefined) {
     if (!ply) return <span className="min-h-8" />;
     const active = ply.index === current;
+    const dimmed = !isMatch(ply);
     const san = formatSan(ply.san, notation);
+    const analysis = analyses[ply.index];
     // Bewertung der Stellung nach dem Zug (Index Halbzug + 1), Weiß-Sicht
     const evalText = formatPositionEval(evals[ply.index + 1]);
     const isMate = evalText?.includes('M') || evalText === '#';
+    const move = `${formatMoveNumber(ply.moveNumber, ply.color)} ${san}`;
     return (
       <button
         ref={active ? activeRef : undefined}
         type="button"
         onClick={() => goTo(ply.index)}
         aria-current={active ? 'step' : undefined}
-        aria-label={`${formatMoveNumber(ply.moveNumber, ply.color)} ${san}`}
+        aria-label={
+          analysis
+            ? t('analyse.moves.cellLabel', { move, category: t(`categories.${analysis.category}`) })
+            : move
+        }
         className={`flex min-h-8 items-center gap-1.5 rounded-[7px] px-1.5 text-left text-[13px] font-semibold ${
           active
             ? 'bg-move-active-bg text-white ring-1 ring-move-active-ring ring-inset'
             : 'text-body hover:bg-accent-bg'
-        }`}
+        } ${dimmed ? 'opacity-35' : ''}`}
       >
         <span>{san}</span>
+        {analysis && <CategoryIcon category={analysis.category} decorative />}
         {evalText && (
           <span
             className={`ml-auto font-mono text-[11px] font-medium ${
-              active ? 'text-accent-text' : isMate ? 'text-accent-text' : 'text-muted'
+              active || isMate ? 'text-accent-text' : 'text-muted'
             }`}
           >
             {evalText}
@@ -63,6 +103,30 @@ export function MoveList({ game }: { game: Game }) {
         <span className="font-mono text-[11.5px] font-medium text-muted">
           {t('analyse.moves.evalHint')}
         </span>
+      </div>
+      <div
+        role="group"
+        aria-label={t('analyse.moves.filterLabel')}
+        className="mb-2.5 flex flex-wrap gap-1.5"
+      >
+        {filters.map((id) => {
+          const active = id === filter;
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setFilter(id)}
+              className={`min-h-8 rounded-full border px-3 text-[12.5px] ${
+                active
+                  ? 'border-border-accent bg-accent-bg font-semibold text-accent-text'
+                  : 'border-border-chip font-medium text-muted hover:text-text'
+              }`}
+            >
+              {t(`analyse.moves.filters.${id}`)}
+            </button>
+          );
+        })}
       </div>
       <div role="table" aria-label={t('analyse.moves.tableLabel')}>
         <div
@@ -95,6 +159,11 @@ export function MoveList({ game }: { game: Game }) {
               </span>
             </div>
           ))}
+          {rows.length === 0 && (
+            <p className="py-3 text-center text-[13px] text-faint">
+              {t('analyse.moves.filterEmpty')}
+            </p>
+          )}
         </div>
       </div>
     </section>

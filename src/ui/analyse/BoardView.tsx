@@ -1,5 +1,5 @@
 import { Chessboard } from 'react-chessboard';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Orientation } from '../../store/game';
 
 interface BoardViewProps {
@@ -8,6 +8,7 @@ interface BoardViewProps {
   /** Felder des zuletzt gespielten Zugs, z. B. `{ from: 'b3', to: 'b8' }` */
   lastMove?: { from: string; to: string } | undefined;
   label: string;
+  overlay?: ReactNode;
 }
 
 const notationBase: CSSProperties = {
@@ -18,7 +19,7 @@ const notationBase: CSSProperties = {
 };
 
 /** Nur-Anzeige-Brett (kein Ziehen). Figuren: SVG-Satz von react-chessboard. */
-export function BoardView({ fen, orientation, lastMove, label }: BoardViewProps) {
+export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardViewProps) {
   const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   const squareStyles: Record<string, CSSProperties> = lastMove
     ? { [lastMove.from]: highlight, [lastMove.to]: highlight }
@@ -48,6 +49,7 @@ export function BoardView({ fen, orientation, lastMove, label }: BoardViewProps)
           squareStyles,
         }}
       />
+      {overlay}
     </div>
   );
 }
