@@ -1,0 +1,120 @@
+/*
+ * Design-Tokens (Variante C · Pro).
+ * Einzige Quelle für Farben, Radien und Schriften. Komponenten verwenden nur
+ * die daraus erzeugten Tailwind-Klassen (z. B. bg-panel, text-muted, rounded-panel)
+ * oder var(--sc-…), nie feste Farbwerte.
+ * Ein späteres Hell-Theme überschreibt nur die Variablen unter :root.
+ */
+
+:root {
+  /* Flächen */
+  --sc-bg: #0b0e13;
+  --sc-header: #0f131a;
+  --sc-panel: #11151c;
+  --sc-panel-sub: #0f131a;
+
+  /* Rahmen */
+  --sc-border: #1e2530;
+  --sc-border-input: #2b3445;
+  /* Aus dem Mockup abgeleitet: Chips, Zeilentrenner, Info-Band */
+  --sc-border-chip: #232b38;
+  --sc-border-accent: #3a4572;
+  --sc-info-bg: #12151f;
+  --sc-info-border: #2b3556;
+  --sc-info-text: #b7c0ff;
+
+  /* Text */
+  --sc-text: #dde3ec;
+  --sc-text-body: #cdd4df;
+  --sc-text-muted: #8791a1;
+  --sc-text-faint: #6c7686;
+
+  /* Akzent und Status */
+  --sc-accent: #7c8cff;
+  --sc-accent-text: #a9b4ff;
+  --sc-accent-bg: #1a2030;
+  --sc-on-accent: #0b0e13;
+  --sc-success: #4ade80;
+
+  /* Brett (Standard-Thema; weitere Themen in src/ui/board-themes.ts ab M1) */
+  --sc-board-light: #cfd8dc;
+  --sc-board-dark: #5d7385;
+  --sc-last-move: rgba(255, 214, 90, 0.5);
+
+  /* Pfeile */
+  --sc-arrow-played: #7c8cff;
+  --sc-arrow-best: #ffd166;
+  --sc-arrow-reply: #ff6b5e;
+
+  /* Zugkategorien: Farbe + Textfarbe im Icon */
+  --sc-cat-brilliant: #17b5a3;
+  --sc-cat-brilliant-fg: #04211e;
+  --sc-cat-great: #4c8dff;
+  --sc-cat-great-fg: #04122b;
+  --sc-cat-best: #2fa84f;
+  --sc-cat-best-fg: #04170a;
+  --sc-cat-excellent: #a6d04a;
+  --sc-cat-excellent-fg: #142004;
+  --sc-cat-good: #8497aa;
+  --sc-cat-good-fg: #0e141b;
+  --sc-cat-book: #b9935f;
+  --sc-cat-book-fg: #241705;
+  --sc-cat-inaccuracy: #e6c229;
+  --sc-cat-inaccuracy-fg: #241d00;
+  --sc-cat-mistake: #ee8a2b;
+  --sc-cat-mistake-fg: #2a1400;
+  --sc-cat-blunder: #e0453a;
+  --sc-cat-blunder-fg: #ffffff;
+  --sc-cat-miss: #d9609f;
+  --sc-cat-miss-fg: #2a0818;
+
+  /* Radien */
+  --sc-radius-panel: 12px;
+  --sc-radius-control: 10px;
+  --sc-radius-small: 8px;
+
+  /* Mindestgröße klickbarer Elemente */
+  --sc-hit: 44px;
+
+  /* Schriften */
+  --sc-font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --sc-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-bg: var(--sc-bg);
+  --color-header: var(--sc-header);
+  --color-panel: var(--sc-panel);
+  --color-panel-sub: var(--sc-panel-sub);
+
+  --color-border: var(--sc-border);
+  --color-border-input: var(--sc-border-input);
+  --color-border-chip: var(--sc-border-chip);
+  --color-border-accent: var(--sc-border-accent);
+  --color-info-bg: var(--sc-info-bg);
+  --color-info-border: var(--sc-info-border);
+  --color-info-text: var(--sc-info-text);
+
+  --color-text: var(--sc-text);
+  --color-body: var(--sc-text-body);
+  --color-muted: var(--sc-text-muted);
+  --color-faint: var(--sc-text-faint);
+
+  --color-accent: var(--sc-accent);
+  --color-accent-text: var(--sc-accent-text);
+  --color-accent-bg: var(--sc-accent-bg);
+  --color-on-accent: var(--sc-on-accent);
+  --color-success: var(--sc-success);
+
+  --color-board-light: var(--sc-board-light);
+  --color-board-dark: var(--sc-board-dark);
+
+  --radius-panel: var(--sc-radius-panel);
+  --radius-control: var(--sc-radius-control);
+  --radius-small: var(--sc-radius-small);
+
+  --spacing-hit: var(--sc-hit);
+
+  --font-sans: var(--sc-font-sans);
+  --font-mono: var(--sc-font-mono);
+}

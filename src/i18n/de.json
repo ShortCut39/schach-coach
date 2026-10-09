@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "Schach-Coach"
+  },
+  "nav": {
+    "label": "Hauptnavigation",
+    "analyse": "Analyse",
+    "import": "Import",
+    "bibliothek": "Bibliothek",
+    "einstellungen": "Einstellungen"
+  },
+  "status": {
+    "label": "Status",
+    "engineNotLoaded": "Engine nicht geladen",
+    "llmNotConfigured": "KI nicht eingerichtet",
+    "ready": "bereit",
+    "notReady": "nicht bereit"
+  },
+  "common": {
+    "comingInMilestone": "Kommt in Meilenstein {{milestone}}",
+    "version": "Version {{version}}"
+  },
+  "analyse": {
+    "title": "Analyse",
+    "emptyTitle": "Noch keine Partie geladen",
+    "emptyText": "Füge eine Partie als PGN oder FEN ein. Danach erscheinen hier Brett, Zugliste und die Erklärungen des Coaches.",
+    "emptyAction": "Partie importieren"
+  },
+  "import": {
+    "title": "Neue Partie analysieren",
+    "subtitle": "Füge eine Partie als PGN oder FEN ein oder lade eine Datei. Die Engine bewertet jede Stellung, die KI erklärt danach die wichtigen Züge.",
+    "placeholder": "Hier kannst du bald PGN, FEN oder eine Datei einfügen."
+  },
+  "bibliothek": {
+    "title": "Bibliothek",
+    "subtitle": "Analysierte Partien liegen lokal auf diesem Rechner. Nichts wird doppelt berechnet.",
+    "banner": "Platzhalter: Hier erscheinen später deine lokal gespeicherten Partien.",
+    "placeholder": "Noch keine Partien gespeichert."
+  },
+  "einstellungen": {
+    "title": "Einstellungen",
+    "sectionsLabel": "Einstellungsbereiche",
+    "sections": {
+      "ki": "KI-Anbindung",
+      "engine": "Engine",
+      "analyse": "Analyse & Erklärungen",
+      "darstellung": "Darstellung & Sprache"
+    },
+    "placeholder": "Die Einstellungen für diesen Bereich folgen in einem späteren Meilenstein."
+  }
+}
