@@ -77,7 +77,7 @@ export const DEFAULT_CLASSIFICATION: ClassificationConfig = {
   excellent: 2,
   greatGap: 10,
   decided: 90,
-  sacrificeMaterial: 3,
+  sacrificeMaterial: 2,
   sacrificeWindow: 8,
   brilliantMinWin: 50,
   missOpponentLoss: 10,
