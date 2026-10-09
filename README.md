@@ -2,12 +2,15 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Meilenstein 4 (KI).** Partien laden, Stockfish 19 (Lite, WASM) bewertet jede Stellung, jeder Zug wird klassifiziert (Brillant bis Patzer, Theorie). Ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge (Was / Warum / Aufbauen), auf Wunsch ausführlicher oder aus Sicht des Gegners. Die Einstellungen sind vollständig, der API-Key liegt im Schlüsselbund des Systems. Zusammenfassung und Feinschliff folgen in Meilenstein 5.
+> **Stand: Meilenstein 5 (Zusammenfassung und Feinschliff).** Partien laden und mit Stockfish 19 (Lite, WASM) bewerten lassen, jeder Zug wird klassifiziert, ein LLM erklärt die wichtigen Züge. Neu: Zusammenfassung mit Genauigkeit, Wendepunkten und drei KI-Tipps, Markdown-Export, die letzte Partie wird beim Start samt Bewertungen und Erklärungen wiederhergestellt, Fehler- und Leerzustände, Barrierefreiheit und Linux-Pakete (deb, AppImage). Version 2 (Bibliothek, Chat, Lichess/Chess.com-Import, helles Design) folgt in Meilenstein 6.
 
 ## Bedienung
 
 - **Import:** PGN einfügen (Live-Prüfung unter dem Feld), FEN im Tab „FEN“ oder eine `.pgn`-Datei ins Fenster ziehen bzw. auswählen. Enthält der Text mehrere Partien, erscheint rechts eine Auswahlliste. „Du spielst“ legt fest, welche Seite unten steht.
 - **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen. Ein Klick in den Bewertungsverlauf springt zum Zug.
+- **Zusammenfassung:** Rechts im Analyse-Screen der Reiter „Zusammenfassung“ → „Zusammenfassung öffnen“. Sie zeigt Genauigkeit je Phase, Zugkategorien, Wendepunkte (anklickbar), Eröffnung, Bewertungsverlauf und die drei wichtigsten Tipps der KI. „Als Markdown exportieren“ speichert alles samt Zugliste und Erklärungen als `.md`-Datei.
+- **Weitermachen:** Die letzte Partie wird beim Start wiederhergestellt, mit Bewertungen, Erklärungen, Zusammenfassung und Stellung. Gespeichert wird automatisch.
+- **Tastatur:** In Reiterleisten wechseln ← / → den Reiter. Der Link „Zum Inhalt springen“ erscheint mit der Tab-Taste ganz oben.
 - **Engine:** Startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
 
 ## KI einrichten
@@ -82,8 +85,19 @@ Hinweis: `pnpm-workspace.yaml` schaltet das `postinstall`-Skript des Pakets `sto
 ```bash
 pnpm tauri dev      # Desktop-App mit Hot-Reload
 pnpm dev            # nur das Frontend im Browser (http://localhost:1420)
-pnpm tauri build    # Linux-Pakete (deb, AppImage) unter src-tauri/target/release/bundle
+pnpm tauri build    # Linux-Pakete (deb, AppImage), siehe „Linux-Pakete“
 ```
+
+## Linux-Pakete
+
+```bash
+pnpm tauri build
+```
+
+Die Pakete liegen danach unter `src-tauri/target/release/bundle/`:
+
+- `appimage/Schach-Coach_<version>_amd64.AppImage`: direkt startbar (`chmod +x`, dann ausführen).
+- `deb/Schach-Coach_<version>_amd64.deb`: für Debian/Ubuntu. Unter Arch lieber das AppImage oder `pnpm tauri dev` nutzen.
 
 ## Prüfen und Testen
 
@@ -98,7 +112,7 @@ pnpm format         # Prettier
 
 Die App ist ein Tauri-2-Programm: ein schlanker Rust-Teil (`src-tauri/`) öffnet ein Fenster, die gesamte Oberfläche ist React + TypeScript (`src/`).
 Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish im Web Worker), `classification/` (Gewinnchance, Zugkategorien) und `llm/` (Prompts, Client) – die einzeln mit Vitest getestet werden.
-Zustand liegt in Zustand-Stores (`store/`), Komponenten liegen unter `ui/` (`shared/` für Bausteine, `screens/` für die vier Screens).
+Zustand liegt in Zustand-Stores (`store/`, inklusive Einstellungen, Sitzung und dem Ablauf Engine → KI), Komponenten liegen unter `ui/` (`shared/` für Bausteine, `screens/` für die vier Screens, `analyse/`, `import/` und `summary/` für deren Teile).
 Alle sichtbaren Texte stehen in `src/i18n/de.json` und werden über i18next geladen; die Schlüssel sind typisiert, ein falscher Schlüssel fällt beim Typecheck auf.
 Farben, Radien und Schriften sind Design-Tokens als CSS-Variablen in `src/styles/tokens.css` und werden als Tailwind-Klassen (`bg-panel`, `text-muted`, `rounded-panel` …) verwendet.
 
@@ -111,7 +125,9 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **Content-Security-Policy:** In `src-tauri/tauri.conf.json` ist sie streng gesetzt (nur eigene Dateien, WASM erlaubt, Netzwerk nur über das Tauri-HTTP-Plugin). Der Dev-Modus nutzt eine eigene, lockerere `devCsp` für Vites Hot-Reload. `style-src` ist von Tauris automatischen Nonces ausgenommen, weil React und react-chessboard Inline-Styles nutzen.
 - **HTTP-Freigabe:** Die App darf `https://` beliebig sowie `http://localhost` und `http://127.0.0.1` ansprechen (`src-tauri/capabilities/default.json`). Ein LLM-Server im Heimnetz über `http://192.168…` ist damit nicht erreichbar.
 - Im Browser-Modus (`pnpm dev` ohne Tauri) gibt es keinen Schlüsselbund: Der Key gilt dort nur bis zum Neuladen. Außerdem können CORS-Regeln Anfragen blockieren.
-- Erklärungen werden nur im Arbeitsspeicher gehalten, nicht gespeichert (kommt mit der Bibliothek in Meilenstein 6).
+- Gespeichert wird nur die **letzte** Partie, samt Erklärungen. Mehrere Partien kommen mit der Bibliothek in Meilenstein 6.
+- **Kontrast:** Alle Texttöne erreichen WCAG AA (4,5:1) außer dem Token „schwach“ `#6c7686` mit 3,5–4,2:1 (kleine Labels, Zugnummern, Hinweise). Knapp darunter liegen auch das Patzer-Icon (weiß auf `#e0453a`, 4,1:1) und die Brettkoordinaten (3,4:1). Die Werte stammen aus dem Design und sind bewusst nicht geändert.
+- Die Zusammenfassungs-Ansicht und der Reiter „Brett/Zusammenfassung“ werden nicht über einen Neustart gemerkt, die App startet immer auf dem Brett.
 - Die Einstellung „Threads“ ist ausgegraut: Die eingebaute Lite-Engine nutzt einen Thread.
 - Nur Deutsch, nur dunkles Farbschema.
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
