@@ -164,6 +164,8 @@ export class UciEngine {
     // So viele Linien liefert die Engine pro Iteration (weniger, wenn es weniger legale Züge gibt)
     const expectedLines = Math.min(settings.multipv, new Chess(fen).moves().length);
     let earlyStopSent = false;
+    /** Linien der letzten vollständigen Iteration (alle Multi-PV-Linien mit derselben Tiefe) */
+    let lastComplete: EngineLine[] | undefined;
     const byPv = new Map<number, EngineLine>();
     let reportedDepth = 0;
     this.searching = true;
@@ -185,6 +187,10 @@ export class UciEngine {
           // Schranken aus dem Aspiration Window sind keine exakten Werte
           if (info.bound) return;
           byPv.set(info.multipv, toEngineLine(info, turn));
+          if (info.multipv === expectedLines) {
+            const iteration = sortedLines(byPv).filter((line) => line.depth === info.depth);
+            if (iteration.length === expectedLines) lastComplete = iteration;
+          }
           const best = byPv.get(1);
           if (
             !earlyStopSent &&
@@ -206,7 +212,7 @@ export class UciEngine {
         if (parseBestMove(line) !== undefined) {
           const aborted = this.stopRequested;
           cleanup();
-          resolve(finalLines(byPv, aborted));
+          resolve(resultOf(lastComplete ?? sortedLines(byPv), aborted));
         }
       });
       this.crashListeners.add(onCrash);
@@ -216,9 +222,15 @@ export class UciEngine {
   }
 }
 
-/** Nur Linien der letzten vollständigen Iteration behalten (gleiche Tiefe wie Linie 1). */
-function finalLines(byPv: Map<number, EngineLine>, aborted: boolean): SearchResult {
-  const lines = [...byPv.values()].sort((a, b) => a.multipv - b.multipv);
+function sortedLines(byPv: Map<number, EngineLine>): EngineLine[] {
+  return [...byPv.values()].sort((a, b) => a.multipv - b.multipv);
+}
+
+/**
+ * Ergebnis aus der letzten vollständigen Iteration. Gibt es keine (sehr früher Abbruch),
+ * bleiben nur Linien mit der Tiefe von Linie 1.
+ */
+function resultOf(lines: EngineLine[], aborted: boolean): SearchResult {
   const depth = lines[0]?.depth ?? 0;
   return { lines: lines.filter((line) => line.depth === depth), depth, aborted };
 }

@@ -132,7 +132,11 @@ describe('UciEngine', () => {
           emit(`info depth ${depth} multipv 1 score mate 1 nodes 1 pv d1d8`);
           emit(`info depth ${depth} multipv 2 score cp 900 nodes 1 pv g5d2`);
         }
-        finish = () => emit('bestmove d1d8');
+        // Wie der echte Stockfish: nach „stop“ noch eine Linie 1 der angefangenen Iteration
+        finish = () => {
+          emit('info depth 13 multipv 1 score mate 1 nodes 2 pv d1d8');
+          emit('bestmove d1d8');
+        };
       } else if (command === 'stop') finish?.();
       else standardResponder(command, emit);
     });
@@ -142,6 +146,7 @@ describe('UciEngine', () => {
     expect(result.aborted).toBe(false);
     expect(result.depth).toBeGreaterThanOrEqual(10);
     expect(result.lines.map((l) => l.multipv)).toEqual([1, 2]);
+    expect(result.lines.map((l) => l.depth)).toEqual([12, 12]); // nicht die angefangene Tiefe 13
     expect(result.lines[0]?.mate).toBe(1);
   });
 });
