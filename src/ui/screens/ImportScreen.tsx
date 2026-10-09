@@ -5,7 +5,8 @@ import { detectInput } from '../../chess/detect';
 import { useGame } from '../../store/game';
 import { useImportDraft } from '../../store/importDraft';
 import { useNavigation } from '../../store/navigation';
-import { useAnalysis } from '../../store/analysis';
+import type { ExplainScope } from '../../llm/selection';
+import { analyseAndExplain } from '../../store/pipeline';
 import { useSettings } from '../../store/settings';
 import { DropZone } from '../import/DropZone';
 import { ProgressCard } from '../import/ProgressCard';
@@ -25,9 +26,11 @@ export function ImportScreen() {
   const loadGame = useGame((s) => s.load);
   const setScreen = useNavigation((s) => s.setScreen);
 
-  const { tab, pgnText, fenText, selected, userColor, fileName, depth, update } = useImportDraft();
-  const multiPv = useSettings((s) => s.multiPv);
-  const startAnalysis = useAnalysis((s) => s.start);
+  const { tab, pgnText, fenText, selected, userColor, fileName, update } = useImportDraft();
+  const settingsDepth = useSettings((s) => s.engineDepth);
+  const settingsScope = useSettings((s) => s.explainScope);
+  const depth = useImportDraft((s) => s.depth) ?? settingsDepth;
+  const explainScope = useImportDraft((s) => s.explainScope) ?? settingsScope;
   const resetDraft = useImportDraft((s) => s.reset);
   const [fileError, setFileError] = useState<FileReadError>();
   const texts: Record<InputTab, string> = { pgn: pgnText, fen: fenText };
@@ -44,6 +47,7 @@ export function ImportScreen() {
   const textareaId = useId();
   const statusId = useId();
   const depthId = useId();
+  const scopeId = useId();
 
   const textKey = { pgn: 'pgnText', fen: 'fenText' } as const;
 
@@ -82,7 +86,7 @@ export function ImportScreen() {
   function analyse() {
     if (!source) return;
     loadGame(source, userColor);
-    void startAnalysis(source, { depth, multipv: multiPv });
+    void analyseAndExplain(source, depth, explainScope);
     setScreen('analyse');
   }
 
@@ -96,6 +100,13 @@ export function ImportScreen() {
     { value: 20, label: t('import.depth.standard', { depth: 20 }) },
     { value: 26, label: t('import.depth.thorough', { depth: 26 }) },
   ];
+  if (!depthOptions.some((o) => o.value === settingsDepth)) {
+    depthOptions.push({
+      value: settingsDepth,
+      label: t('import.depth.setting', { depth: settingsDepth }),
+    });
+    depthOptions.sort((a, b) => a.value - b.value);
+  }
   const colorOptions = [
     { value: 'w', label: t('common.white') },
     { value: 'b', label: t('common.black') },
@@ -174,6 +185,21 @@ export function ImportScreen() {
                 value={userColor}
                 onChange={(value) => update({ userColor: value })}
               />
+            </div>
+            <div className="flex-[1_1_220px]">
+              <FieldLabel htmlFor={scopeId}>{t('import.explainScope')}</FieldLabel>
+              <select
+                id={scopeId}
+                value={explainScope}
+                onChange={(event) => update({ explainScope: event.target.value as ExplainScope })}
+                className="min-h-[46px] w-full rounded-control border border-border-input bg-bg px-3 font-medium text-text"
+              >
+                {(['errorsAndMyGood', 'errorsOnly', 'all'] as const).map((scope) => (
+                  <option key={scope} value={scope}>
+                    {t(`explainScope.${scope}`)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex-[0_1_220px]">
               <FieldLabel htmlFor={depthId}>{t('import.depth.label')}</FieldLabel>

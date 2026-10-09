@@ -51,6 +51,11 @@
   /* Brett (Standard-Thema; weitere Themen werden in Meilenstein 4 wählbar) */
   --sc-board-light: #cfd8dc;
   --sc-board-dark: #5d7385;
+  /* Weitere Brett-Themen (Einstellungen → Brettfarben) */
+  --sc-board-wood-light: #e6dcc8;
+  --sc-board-wood-dark: #8c6f52;
+  --sc-board-sage-light: #ece6d6;
+  --sc-board-sage-dark: #7fa38f;
   --sc-board-coord-on-light: #47596a;
   --sc-board-coord-on-dark: #cfd8dc;
   --sc-board-shadow: 0 0 0 1px #1e2530, 0 14px 34px rgba(0, 0, 0, 0.5);

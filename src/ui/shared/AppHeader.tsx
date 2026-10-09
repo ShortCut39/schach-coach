@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
+import { LLM_PRESETS } from '../../llm/presets';
 import { useAnalysis } from '../../store/analysis';
+import { useApiKey } from '../../store/apiKey';
 import { useEngine } from '../../store/engine';
 import { screens, useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
@@ -14,6 +16,11 @@ export function AppHeader() {
   const engineName = useEngine((s) => s.name);
   const analysisDepth = useAnalysis((s) => (s.source ? s.settings.depth : undefined));
   const defaultDepth = useSettings((s) => s.engineDepth);
+  const llm = useSettings((s) => s.llm);
+  const apiKey = useApiKey((s) => s.key);
+  const preset = LLM_PRESETS.find((p) => p.id === llm.preset);
+  const llmReady =
+    llm.baseUrl.trim() !== '' && llm.model.trim() !== '' && (apiKey !== '' || !preset?.needsKey);
 
   const engineLabel =
     engineStatus === 'ready'
@@ -59,7 +66,12 @@ export function AppHeader() {
           className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-xs font-medium text-muted"
         >
           <StatusIndicator label={engineLabel} ready={engineStatus === 'ready'} />
-          <StatusIndicator label={t('status.llmNotConfigured')} ready={false} />
+          <StatusIndicator
+            label={
+              llmReady ? t('status.llmReady', { model: llm.model }) : t('status.llmNotConfigured')
+            }
+            ready={llmReady}
+          />
         </div>
       </div>
     </header>

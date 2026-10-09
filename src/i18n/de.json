@@ -16,7 +16,8 @@
     "notReady": "nicht bereit",
     "engineLoading": "Stockfish lädt …",
     "engineReady": "{{name}} · Tiefe {{depth}}",
-    "engineError": "Engine nicht verfügbar"
+    "engineError": "Engine nicht verfügbar",
+    "llmReady": "{{model}}"
   },
   "common": {
     "comingInMilestone": "Kommt in Meilenstein {{milestone}}",
@@ -90,7 +91,6 @@
       "coach": "Coach",
       "chat": "Chat",
       "summary": "Zusammenfassung",
-      "coachPlaceholder": "Hier erklärt der Coach bald jeden wichtigen Zug.",
       "chatPlaceholder": "Fragen zur Stellung stellen.",
       "summaryPlaceholder": "Hier erscheint die Zusammenfassung der Partie."
     },
@@ -211,7 +211,8 @@
       "label": "Engine-Tiefe",
       "fast": "{{depth}} (schnell)",
       "standard": "{{depth}} (Standard)",
-      "thorough": "{{depth}} (gründlich)"
+      "thorough": "{{depth}} (gründlich)",
+      "setting": "{{depth}} (Einstellung)"
     },
     "progress": {
       "label": "Fortschritt der Analyse",
@@ -221,8 +222,15 @@
       "aborted": "Abgebrochen",
       "error": "Die Engine konnte nicht gestartet werden.",
       "toBoard": "Zum Brett",
-      "engineBar": "Engine-Fortschritt"
-    }
+      "engineBar": "Engine-Fortschritt",
+      "ai": "KI erklärt wichtige Züge",
+      "aiWaiting": "wartet",
+      "aiNotConfigured": "nicht eingerichtet",
+      "aiError": "Fehler",
+      "aiDone": "fertig",
+      "aiBar": "KI-Fortschritt"
+    },
+    "explainScope": "Erklärungen für"
   },
   "bibliothek": {
     "title": "Bibliothek",
@@ -239,7 +247,84 @@
       "analyse": "Analyse & Erklärungen",
       "darstellung": "Darstellung & Sprache"
     },
-    "placeholder": "Die Einstellungen für diesen Bereich folgen in einem späteren Meilenstein."
+    "ki": {
+      "subtitle": "Jeder OpenAI-kompatible Endpunkt funktioniert: Cloud oder lokal.",
+      "presetsLabel": "Voreinstellung",
+      "presets": {
+        "openai": "OpenAI",
+        "openrouter": "OpenRouter",
+        "ollama": "Ollama (lokal)",
+        "lmstudio": "LM Studio (lokal)",
+        "custom": "Eigener"
+      },
+      "baseUrl": "Base-URL",
+      "apiKey": "API-Key",
+      "apiKeyPlaceholder": "Leer lassen, wenn der Server keinen Key braucht",
+      "show": "Anzeigen",
+      "hide": "Verbergen",
+      "keyringNote": "Wird im Schlüsselbund des Systems gespeichert, getrennt pro Endpunkt, und nur an diese Base-URL gesendet.",
+      "keyringMissing": "Kein Schlüsselbund verfügbar: Der Key gilt nur bis zum Schließen der App und wird nicht gespeichert.",
+      "model": "Modellname",
+      "modelPlaceholder": "z. B. llama3.1 oder openai/gpt-4o-mini",
+      "test": "Verbindung testen",
+      "testing": "Teste …",
+      "testOk": "Verbunden · Antwort in {{seconds}} s",
+      "testNeedsModel": "Bitte zuerst Base-URL und Modellname eintragen."
+    },
+    "engine": {
+      "subtitle": "Stockfish läuft im Hintergrund auf diesem Rechner.",
+      "depth": "Analysetiefe",
+      "fast": "schnell",
+      "thorough": "gründlich",
+      "multiPv": "Linien (Multi-PV)",
+      "multiPvOption": "{{count}}",
+      "multiPvStandard": "{{count}} (Standard)",
+      "threads": "Threads",
+      "threadsAuto": "Automatisch",
+      "threadsNote": "Die eingebaute Engine nutzt einen Thread. Mehrere Threads kommen mit der nativen Engine (Version 3)."
+    },
+    "analyse": {
+      "subtitle": "Steuert, was die KI erklärt und wie einfach sie es sagt.",
+      "level": "Niveau der Erklärungen",
+      "levels": {
+        "beginner": "Anfänger",
+        "intermediate": "Fortgeschritten",
+        "club": "Vereinsspieler"
+      },
+      "scope": "Erklärungen für",
+      "thresholds": "Schwellen (Verlust der Gewinnchance)",
+      "reset": "Zurücksetzen",
+      "inaccuracy": "Ungenauigkeit ab",
+      "mistake": "Fehler ab",
+      "blunder": "Patzer ab",
+      "thresholdsInvalid": "Die Schwellen müssen aufsteigen: Ungenauigkeit < Fehler < Patzer.",
+      "automatic": "Brillant und Großartig werden automatisch erkannt (Multi-PV, Figurenopfer)."
+    },
+    "darstellung": {
+      "scheme": "Farbschema",
+      "dark": "Dunkel",
+      "light": "Hell",
+      "lightLater": "Hell kommt in Version 2.",
+      "notation": "Notation",
+      "notationDe": "Deutsch (D, T, L, S)",
+      "notationEn": "Englisch (Q, R, B, N)",
+      "board": "Brettfarben",
+      "boardThemes": {
+        "standard": "Blaugrau",
+        "wood": "Holz",
+        "sage": "Salbei"
+      },
+      "arrows": "Pfeile für gespielten und besten Zug",
+      "arrowsHint": "Standardmäßig auf dem Brett anzeigen",
+      "language": "Sprache",
+      "languageDe": "Deutsch",
+      "languageNote": "Weitere Sprachen kommen am Ende der Entwicklung. Sie gelten für Oberfläche und KI-Erklärungen."
+    },
+    "discard": "Verwerfen",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "saveFailed": "Speichern fehlgeschlagen.",
+    "unsaved": "Ungespeicherte Änderungen"
   },
   "categories": {
     "brilliant": "Brillant",
@@ -257,5 +342,61 @@
     "opening": "Eröffnung",
     "middlegame": "Mittelspiel",
     "endgame": "Endspiel"
+  },
+  "coach": {
+    "labels": {
+      "was": "Was",
+      "warum": "Warum",
+      "aufbauen": "Aufbauen",
+      "merksatz": "Merksatz"
+    },
+    "opponentLabels": {
+      "was": "Plan",
+      "warum": "Warum",
+      "aufbauen": "Achte auf"
+    },
+    "moreDetail": "Ausführlicher erklären",
+    "shortVersion": "Kurzfassung",
+    "opponentView": "Gegner-Sicht",
+    "opponentTitle": "Aus Sicht des Gegners",
+    "detailedTitle": "Ausführlich",
+    "request": "Erklärung anfordern",
+    "requestHint": "Für diesen Zug gibt es noch keine Erklärung.",
+    "requestAll": "Erklärungen für die Partie anfordern",
+    "loading": "Die KI erklärt diesen Zug …",
+    "failed": "Erklärung fehlgeschlagen.",
+    "retry": "Erneut versuchen",
+    "notConfigured": "Richte zuerst die KI-Anbindung ein, dann erklärt der Coach deine Züge.",
+    "setup": "KI einrichten",
+    "noMove": "Wähle einen Zug in der Liste, dann erklärt der Coach ihn hier.",
+    "waitingForEngine": "Sobald die Engine diesen Zug bewertet hat, kann der Coach ihn erklären.",
+    "positionTitle": "Stellung",
+    "explainPosition": "Stellung erklären",
+    "unnoticed": "Unbemerkt gut gespielt: Das war stark, aber in den nächsten Zügen hast du nicht darauf aufgebaut.",
+    "unnoticedFact": "Unbemerkt gut gespielt: Nach diesem starken Zug hat der Spieler in seinen nächsten zwei Zügen nicht darauf aufgebaut (Verlust an Gewinnchance ab 5).",
+    "sacrifice": "Opfer",
+    "aiNote": "KI-Erklärung auf Basis der Engine-Daten",
+    "run": {
+      "running": "KI {{done}} / {{total}}",
+      "error": "KI-Fehler"
+    }
+  },
+  "llmErrors": {
+    "invalidUrl": "Die Base-URL ist ungültig. Sie muss mit http:// oder https:// beginnen.",
+    "unauthorized": "Der API-Key wurde abgelehnt. Prüfe den Key.",
+    "modelNotFound": "Das Modell ist unbekannt. Prüfe den Modellnamen.",
+    "notFound": "Unter dieser Adresse gibt es keinen passenden Endpunkt. Prüfe die Base-URL.",
+    "rateLimited": "Zu viele Anfragen oder kein Guthaben. Versuche es später erneut.",
+    "server": "Der Server hat einen Fehler gemeldet. Versuche es später erneut.",
+    "unreachable": "Der Endpunkt ist nicht erreichbar. Läuft der Server, und stimmt die Adresse?",
+    "timeout": "Keine Antwort in der vorgesehenen Zeit.",
+    "aborted": "Abgebrochen.",
+    "jsonModeUnsupported": "Der Endpunkt unterstützt den JSON-Modus nicht.",
+    "badResponse": "Die Antwort der KI war nicht verwertbar."
+  },
+  "explainScope": {
+    "errorsAndMyGood": "Fehler + meine guten Züge",
+    "errorsOnly": "Nur Fehler",
+    "all": "Alle Züge"
   }
 }

@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useAnalysis } from '../../store/analysis';
+import { useApiKey } from '../../store/apiKey';
+import { isLlmConfigured, useExplanations } from '../../store/explanations';
+import { useSettings } from '../../store/settings';
 import { useNavigation } from '../../store/navigation';
 import { Button } from '../shared/Button';
 
@@ -11,6 +14,20 @@ export function ProgressCard() {
   const cancel = useAnalysis((s) => s.cancel);
   const resume = useAnalysis((s) => s.resume);
   const setScreen = useNavigation((s) => s.setScreen);
+  const aiRun = useExplanations((s) => s.run);
+  useApiKey((s) => s.key);
+  useSettings((s) => s.llm);
+  const aiConfigured = isLlmConfigured();
+  const aiPercent = aiRun.total > 0 ? (aiRun.done / aiRun.total) * 100 : 0;
+  const aiText = !aiConfigured
+    ? t('import.progress.aiNotConfigured')
+    : aiRun.status === 'running'
+      ? `${aiRun.done} / ${aiRun.total}`
+      : aiRun.status === 'done'
+        ? t('import.progress.aiDone')
+        : aiRun.status === 'error'
+          ? t('import.progress.aiError')
+          : t('import.progress.aiWaiting');
 
   if (status === 'idle') return null;
   const percent = progress.total > 0 ? (progress.done / progress.total) * 100 : 0;
@@ -55,6 +72,36 @@ export function ProgressCard() {
             style={{ width: `${percent}%` }}
           />
         </div>
+      </div>
+      <div>
+        <div
+          className={`mb-1 flex justify-between text-[13px] ${aiRun.status === 'running' ? '' : 'text-muted'}`}
+        >
+          <span>{t('import.progress.ai')}</span>
+          <span
+            className={`font-mono text-[12.5px] font-medium ${aiRun.status === 'error' ? 'text-danger' : aiRun.status === 'running' ? 'text-accent-text' : ''}`}
+          >
+            {aiText}
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label={t('import.progress.aiBar')}
+          aria-valuemin={0}
+          aria-valuemax={aiRun.total}
+          aria-valuenow={aiRun.done}
+          className="h-2 overflow-hidden rounded-full bg-track"
+        >
+          <div
+            className="h-2 bg-accent transition-[width] duration-300"
+            style={{ width: `${aiPercent}%` }}
+          />
+        </div>
+        {aiRun.status === 'error' && aiRun.error && (
+          <p role="alert" className="mt-1 text-[12.5px] text-danger">
+            {t(`llmErrors.${aiRun.error}`)}
+          </p>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         {status === 'running' && (

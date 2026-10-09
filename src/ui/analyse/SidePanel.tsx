@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CoachCard } from './CoachCard';
 
 const tabs = ['coach', 'chat', 'summary'] as const;
 type Tab = (typeof tabs)[number];
@@ -9,11 +10,7 @@ export function SidePanel() {
   const { t } = useTranslation();
   const [active, setActive] = useState<Tab>('coach');
 
-  const placeholder: Record<Tab, { text: string; note: string }> = {
-    coach: {
-      text: t('analyse.side.coachPlaceholder'),
-      note: t('common.comingInMilestone', { milestone: 4 }),
-    },
+  const placeholder: Record<Exclude<Tab, 'coach'>, { text: string; note: string }> = {
     chat: { text: t('analyse.side.chatPlaceholder'), note: t('common.version', { version: 2 }) },
     summary: {
       text: t('analyse.side.summaryPlaceholder'),
@@ -55,8 +52,14 @@ export function SidePanel() {
         aria-labelledby={`side-tab-${active}`}
         className="flex flex-col gap-1 p-4"
       >
-        <p className="text-body">{placeholder[active].text}</p>
-        <p className="font-mono text-xs text-faint">{placeholder[active].note}</p>
+        {active === 'coach' ? (
+          <CoachCard />
+        ) : (
+          <>
+            <p className="text-body">{placeholder[active].text}</p>
+            <p className="font-mono text-xs text-faint">{placeholder[active].note}</p>
+          </>
+        )}
       </div>
     </section>
   );
