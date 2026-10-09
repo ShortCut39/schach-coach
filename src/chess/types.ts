@@ -40,6 +40,8 @@ export interface Game {
   startFen: string;
   plies: PlyBase[];
   result: GameResult;
+  /** PGN-Text dieser einen Partie (zum Wiederherstellen und Exportieren) */
+  pgn: string;
 }
 
 export interface Position {

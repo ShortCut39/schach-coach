@@ -1,4 +1,5 @@
 import {
+  formatPgnDate,
   fullMoveCount,
   headerValue,
   movetextTokens,
@@ -137,5 +138,15 @@ describe('Hilfsfunktionen', () => {
       'Bb5',
       'a6',
     ]);
+  });
+});
+
+describe('formatPgnDate', () => {
+  it('formatiert bekannte und teilweise bekannte Daten', () => {
+    expect(formatPgnDate('2026.10.09')).toBe('09.10.2026');
+    expect(formatPgnDate('1858.??.??')).toBe('1858');
+    expect(formatPgnDate('????.??.??')).toBeUndefined();
+    expect(formatPgnDate(undefined)).toBeUndefined();
+    expect(formatPgnDate('gestern')).toBeUndefined();
   });
 });

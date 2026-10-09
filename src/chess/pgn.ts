@@ -165,7 +165,10 @@ export function parsePgnGame(chunk: string): ParseResult<Game> {
   }));
 
   const startFen = history[0]?.before ?? startFenOf(headers);
-  return { ok: true, value: { kind: 'game', headers, startFen, plies, result: resultOf(headers) } };
+  return {
+    ok: true,
+    value: { kind: 'game', headers, startFen, plies, result: resultOf(headers), pgn: chunk.trim() },
+  };
 }
 
 export interface GameSummary {
@@ -192,4 +195,17 @@ export function fullMoveCount(game: Game): number {
   const first = game.plies[0];
   if (!last || !first) return 0;
   return last.moveNumber - first.moveNumber + 1;
+}
+
+/**
+ * PGN-Datum (`YYYY.MM.DD`, unbekannte Teile als `??`) für die Anzeige:
+ * vollständig → `09.10.2026`, nur Jahr bekannt → `1858`, sonst `undefined`.
+ */
+export function formatPgnDate(value: string | undefined): string | undefined {
+  const match = /^(\d{4}|\?{4})\.(\d{2}|\?{2})\.(\d{2}|\?{2})$/.exec(value?.trim() ?? '');
+  if (!match) return undefined;
+  const [, year, month, day] = match;
+  if (!year || year.includes('?')) return undefined;
+  if (!month || month.includes('?') || !day || day.includes('?')) return year;
+  return `${day}.${month}.${year}`;
 }
