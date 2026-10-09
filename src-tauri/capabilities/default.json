@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Standardrechte der App: Kern, Einstellungen (Store) und HTTP zu beliebigen HTTPS-Endpunkten sowie lokalen LLM-Servern",
+  "description": "Standardrechte der App: Kern, Einstellungen (Store), Speichern-Dialog, HTTP zu HTTPS-Endpunkten und lokalen LLM-Servern sowie Start der nativen Stockfish-Engine (nur dieser Sidecar)",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -23,6 +23,17 @@
       ]
     },
     "store:default",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "binaries/stockfish",
+          "sidecar": true
+        }
+      ]
+    },
+    "shell:allow-stdin-write",
+    "shell:allow-kill"
   ]
 }

@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build"
+    "beforeDevCommand": "pnpm fetch:engine && pnpm dev",
+    "beforeBuildCommand": "pnpm fetch:engine && pnpm build"
   },
   "app": {
     "windows": [
@@ -62,6 +62,7 @@
     "shortDescription": "Schachpartien analysieren: Stockfish bewertet, eine KI erklärt.",
     "longDescription": "Schach-Coach analysiert eigene Partien mit Stockfish, ordnet jeden Zug ein (Brillant bis Patzer) und lässt die wichtigen Züge von einem OpenAI-kompatiblen Sprachmodell in einfachem Deutsch erklären.",
     "license": "GPL-3.0-or-later",
-    "licenseFile": "../LICENSE"
+    "licenseFile": "../LICENSE",
+    "externalBin": ["binaries/stockfish"]
   }
 }
