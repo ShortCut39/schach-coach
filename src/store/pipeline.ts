@@ -1,5 +1,6 @@
 import type { ExplainScope } from '../llm/selection';
 import { useAnalysis } from './analysis';
+import { getEngine } from './engine';
 import { isLlmConfigured, useExplanations } from './explanations';
 import { useGame, type LoadedSource } from './game';
 import { findRecord } from './library';
@@ -7,7 +8,7 @@ import { applySnapshot, sessionSchema } from './session';
 import { useSettings } from './settings';
 
 /**
- * Liegt die Partie schon mit gleicher Tiefe und Multi-PV in der Bibliothek, werden deren
+ * Liegt die Partie schon mit gleicher Tiefe, Multi-PV und Engine in der Bibliothek, werden deren
  * Bewertungen übernommen (nichts wird doppelt berechnet). Erklärungen und Zusammenfassung nur,
  * wenn auch die gewählte Farbe übereinstimmt – sonst sprächen sie die falsche Seite an.
  */
@@ -21,6 +22,9 @@ async function reuseFromLibrary(
   if (!parsed.success) return false;
   const record = parsed.data;
   if (record.analysis?.depth !== depth || record.analysis.multipv !== multipv) return false;
+  // Nur Bewertungen derselben Engine übernehmen (z. B. nicht Lite-WASM für die native Engine)
+  const engine = (await getEngine().catch(() => undefined))?.name;
+  if (!engine || record.analysis.engine !== engine) return false;
   const { userColor } = useGame.getState();
   const sameColor = record.userColor === userColor;
   applySnapshot({

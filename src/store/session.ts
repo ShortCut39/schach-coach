@@ -15,6 +15,8 @@ import { getSettingsStorage } from './persistence';
  * Wird beim Start wiederhergestellt, damit nichts neu gerechnet werden muss.
  */
 const STORAGE_KEY = 'lastSession';
+/** Engine aller Analysen vor Einführung der nativen Engine */
+export const LEGACY_ENGINE = 'Stockfish 19 Lite WASM';
 const SAVE_DELAY_MS = 1000;
 
 const lineSchema = z.object({
@@ -58,6 +60,8 @@ export const sessionSchema = z.object({
     .object({
       depth: z.number().int(),
       multipv: z.number().int(),
+      /** Engine, die bewertet hat; ältere Einträge stammen alle von der WASM-Lite-Version */
+      engine: z.string().catch(LEGACY_ENGINE),
       evals: z.array(evalSchema.nullable()),
     })
     .nullable(),
@@ -122,7 +126,11 @@ export function snapshot(): Session | null {
     orientation,
     current,
     analysis: ownAnalysis
-      ? { ...analysis.settings, evals: analysis.evals.map((e) => e ?? null) }
+      ? {
+          ...analysis.settings,
+          engine: analysis.engine ?? LEGACY_ENGINE,
+          evals: analysis.evals.map((e) => e ?? null),
+        }
       : null,
     explanations: ownExplanations ? doneOnly(explanations.entries) : {},
     summary:
@@ -178,6 +186,7 @@ export function applySnapshot(raw: unknown): boolean {
       fens,
       evals,
       settings: { depth: session.analysis.depth, multipv: session.analysis.multipv },
+      engine: session.analysis.engine,
       status: done === fens.length ? 'done' : 'aborted',
       progress: { done, total: fens.length, current: null, depth: null },
     });

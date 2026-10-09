@@ -335,9 +335,15 @@
       "multiPv": "Linien (Multi-PV)",
       "multiPvOption": "{{count}}",
       "multiPvStandard": "{{count}} (Standard)",
-      "threads": "Threads",
-      "threadsAuto": "Automatisch",
-      "threadsNote": "Die eingebaute Engine nutzt einen Thread. Mehrere Threads kommen mit der nativen Engine (Version 3)."
+      "threads": "Threads (Stellungen gleichzeitig)",
+      "threadsAuto": "Automatisch ({{count}})",
+      "threadsNote": "So viele Stellungen rechnet die Analyse gleichzeitig, jede mit einem eigenen Engine-Prozess. Die native Engine braucht pro Prozess etwa 300 MB Arbeitsspeicher.",
+      "kind": "Engine",
+      "kindNative": "Nativ (Stockfish 19, schneller und stärker)",
+      "kindWasm": "Eingebaut (WASM, Lite)",
+      "running": "Läuft: {{name}}",
+      "nativeMissing": "Die native Engine wurde nicht gefunden, die eingebaute Version ist aktiv. Mit „pnpm fetch:engine“ wird sie geladen.",
+      "threadsOption": "{{count}}"
     },
     "analyse": {
       "subtitle": "Steuert, was die KI erklärt und wie einfach sie es sagt.",

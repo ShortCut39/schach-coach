@@ -3,7 +3,7 @@ import { EvalCache } from '../engine/cache';
 import { analysePositions, type QueueProgress } from '../engine/queue';
 import type { PositionEval, SearchSettings } from '../engine/types';
 import { DEFAULT_SEARCH } from '../engine/types';
-import { getEngine } from './engine';
+import { getEngines, poolSize } from './engine';
 import type { LoadedSource } from './game';
 
 export type AnalysisStatus = 'idle' | 'running' | 'done' | 'aborted' | 'error';
@@ -15,6 +15,8 @@ interface AnalysisState {
   fens: string[];
   evals: (PositionEval | undefined)[];
   settings: SearchSettings;
+  /** Name der Engine, die bewertet hat (z. B. „Stockfish 19“) */
+  engine: string | undefined;
   status: AnalysisStatus;
   progress: QueueProgress;
 
@@ -26,8 +28,17 @@ interface AnalysisState {
 
 const emptyProgress: QueueProgress = { done: 0, total: 0, current: null, depth: null };
 
-/** Bewertungen über Partien hinweg merken (nach fen, depth, multipv). */
-const cache = new EvalCache();
+/** Bewertungen über Partien hinweg merken (nach fen, depth, multipv), getrennt je Engine. */
+const caches = new Map<string, EvalCache>();
+function cacheFor(engineName: string | undefined): EvalCache {
+  const key = engineName ?? 'unbekannt';
+  let cache = caches.get(key);
+  if (!cache) {
+    cache = new EvalCache();
+    caches.set(key, cache);
+  }
+  return cache;
+}
 let controller: AbortController | null = null;
 let runId = 0;
 let lastEngineGame: LoadedSource | null = null;
@@ -50,15 +61,17 @@ export const useAnalysis = create<AnalysisState>()((set, get) => {
 
     set({ status: 'running', progress: { ...emptyProgress, total: fens.length } });
     try {
-      const engine = await getEngine();
+      const engines = await getEngines(source.kind === 'game' ? poolSize() : 1);
       if (!isCurrent()) return;
+      if (engines.length === 0) throw new Error('Keine Engine verfügbar');
       if (lastEngineGame !== source) {
-        await engine.newGame();
+        await Promise.all(engines.map((engine) => engine.newGame()));
         lastEngineGame = source;
       }
+      set({ engine: engines[0]?.name });
       const outcome = await analysePositions(
-        engine,
-        cache,
+        engines,
+        cacheFor(engines[0]?.name),
         fens,
         settings,
         {
@@ -87,6 +100,7 @@ export const useAnalysis = create<AnalysisState>()((set, get) => {
     fens: [],
     evals: [],
     settings: DEFAULT_SEARCH,
+    engine: undefined,
     status: 'idle',
     progress: emptyProgress,
 

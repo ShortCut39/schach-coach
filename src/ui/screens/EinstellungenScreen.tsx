@@ -4,7 +4,9 @@ import { testConnection } from '../../llm/client';
 import { getFetch } from '../../llm/http';
 import { LLM_PRESETS, type LlmPresetId } from '../../llm/presets';
 import { LlmError } from '../../llm/types';
+import { useAnalysis } from '../../store/analysis';
 import { useApiKey } from '../../store/apiKey';
+import { autoPoolSize, restartEngines, useEngine } from '../../store/engine';
 import { getSecretStorage } from '../../store/persistence';
 import {
   DEFAULT_THRESHOLDS,
@@ -79,6 +81,8 @@ export function EinstellungenScreen() {
   const [test, setTest] = useState<TestState>({ kind: 'idle' });
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
   const [active, setActive] = useState<Section>('ki');
+  const engineState = useEngine();
+  const autoThreads = autoPoolSize();
   const keyOrigin = useRef(originOf(draft.llm.baseUrl));
   const ids = {
     baseUrl: useId(),
@@ -87,6 +91,7 @@ export function EinstellungenScreen() {
     depth: useId(),
     multiPv: useId(),
     threads: useId(),
+    engineKind: useId(),
     scope: useId(),
     notation: useId(),
     language: useId(),
@@ -155,7 +160,13 @@ export function EinstellungenScreen() {
   async function save() {
     try {
       const valid = settingsSchema.parse(draft);
+      const engineChanged = valid.engine !== saved.engine || valid.threads !== saved.threads;
       await saved.save(valid);
+      // Neue Engine-Art oder Threads: Pool neu starten (laufende Analyse vorher abbrechen)
+      if (engineChanged) {
+        useAnalysis.getState().cancel();
+        void restartEngines();
+      }
       if (urlValid) await saveKey(valid.llm.baseUrl, keyDraft);
       setSaveState('saved');
     } catch {
@@ -333,6 +344,22 @@ export function EinstellungenScreen() {
           title={t('einstellungen.sections.engine')}
           subtitle={t('einstellungen.engine.subtitle')}
         >
+          <SelectField
+            id={ids.engineKind}
+            label={t('einstellungen.engine.kind')}
+            value={draft.engine}
+            onChange={(e) => update({ engine: e.target.value as Settings['engine'] })}
+            hint={
+              engineState.nativeUnavailable
+                ? t('einstellungen.engine.nativeMissing')
+                : engineState.name
+                  ? t('einstellungen.engine.running', { name: engineState.name })
+                  : undefined
+            }
+          >
+            <option value="native">{t('einstellungen.engine.kindNative')}</option>
+            <option value="wasm">{t('einstellungen.engine.kindWasm')}</option>
+          </SelectField>
           <div>
             <div className="mb-1.5 flex items-baseline justify-between">
               <FieldLabel htmlFor={ids.depth}>{t('einstellungen.engine.depth')}</FieldLabel>
@@ -374,10 +401,17 @@ export function EinstellungenScreen() {
               id={ids.threads}
               label={t('einstellungen.engine.threads')}
               className="flex-[1_1_180px]"
-              disabled
-              hint={t('einstellungen.engine.threadsNote')}
+              value={draft.threads}
+              onChange={(e) => update({ threads: Number(e.target.value) })}
             >
-              <option>{t('einstellungen.engine.threadsAuto')}</option>
+              <option value={0}>
+                {t('einstellungen.engine.threadsAuto', { count: autoThreads })}
+              </option>
+              {[1, 2, 4, 6, 8].map((n) => (
+                <option key={n} value={n}>
+                  {t('einstellungen.engine.threadsOption', { count: n })}
+                </option>
+              ))}
             </SelectField>
           </div>
         </SettingsCard>

@@ -29,6 +29,10 @@ export const settingsSchema = z.object({
     .catch({ preset: 'openrouter', baseUrl: LLM_PRESETS[1].baseUrl, model: '' }),
   engineDepth: z.number().int().min(10).max(30).catch(DEFAULT_SEARCH.depth),
   multiPv: z.number().int().min(1).max(5).catch(DEFAULT_SEARCH.multipv),
+  /** Native Engine (Sidecar) oder eingebaute WASM-Version */
+  engine: z.enum(['native', 'wasm']).catch('native'),
+  /** Parallel gerechnete Stellungen; 0 = automatisch */
+  threads: z.number().int().min(0).max(16).catch(0),
   level: z.enum(['beginner', 'intermediate', 'club']).catch('beginner'),
   explainScope: z.enum(['errorsAndMyGood', 'errorsOnly', 'all']).catch('errorsAndMyGood'),
   thresholds: z
@@ -68,6 +72,8 @@ export function pickSettings(state: Settings): Settings {
     llm: state.llm,
     engineDepth: state.engineDepth,
     multiPv: state.multiPv,
+    engine: state.engine,
+    threads: state.threads,
     level: state.level,
     explainScope: state.explainScope,
     thresholds: state.thresholds,
