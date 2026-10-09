@@ -4,8 +4,10 @@ import { parsePgnGame } from '../chess/pgn';
 import type { PositionEval } from '../engine/types';
 import type { GameSummary } from '../llm/summary';
 import { positionsOf, useAnalysis } from './analysis';
+import { useChat } from './chat';
 import { useExplanations, type PlyExplanations } from './explanations';
 import { useGame, type LoadedSource } from './game';
+import { useLibrary } from './library';
 import { getSettingsStorage } from './persistence';
 
 /**
@@ -43,7 +45,7 @@ const explanationSchema = z.object({
 });
 const entrySchema = z.object({ status: z.literal('done'), explanation: explanationSchema });
 
-const sessionSchema = z.object({
+export const sessionSchema = z.object({
   version: z.literal(1),
   source: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('game'), pgn: z.string() }),
@@ -74,9 +76,19 @@ const sessionSchema = z.object({
       tipps: z.array(z.object({ titel: z.string(), text: z.string() })),
     })
     .nullable(),
+  /** Chat zur Stellung (optional, ältere Sitzungen haben keinen) */
+  chat: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+        context: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
-type Session = z.infer<typeof sessionSchema>;
+export type Session = z.infer<typeof sessionSchema>;
 
 /** Nur fertige Erklärungen werden gespeichert (nicht „lädt“ oder „fehlgeschlagen“). */
 function doneOnly(entries: Record<number, PlyExplanations>): Session['explanations'] {
@@ -127,14 +139,18 @@ export async function saveSession(): Promise<void> {
 
 /** Stellt die letzte Sitzung wieder her. `false`, wenn es keine (gültige) gibt. */
 export async function restoreSession(): Promise<boolean> {
-  let session: Session;
   try {
-    const parsed = sessionSchema.safeParse(await getSettingsStorage().get(STORAGE_KEY));
-    if (!parsed.success) return false;
-    session = parsed.data;
+    return applySnapshot(await getSettingsStorage().get(STORAGE_KEY));
   } catch {
     return false;
   }
+}
+
+/** Lädt eine Momentaufnahme (Sitzung oder Bibliothekseintrag) in die Stores. */
+export function applySnapshot(raw: unknown): boolean {
+  const parsed = sessionSchema.safeParse(raw);
+  if (!parsed.success) return false;
+  const session = parsed.data;
 
   let source: LoadedSource;
   if (session.source.kind === 'game') {
@@ -177,6 +193,14 @@ export async function restoreSession(): Promise<boolean> {
     summary: session.summary ? { status: 'done', data: session.summary as GameSummary } : null,
     run: { status: 'idle', done: 0, total: 0 },
   });
+  useChat.setState({
+    source,
+    messages: (session.chat ?? []).map((m) =>
+      m.context ? { ...m, context: m.context } : { role: m.role, content: m.content },
+    ),
+    pending: false,
+    error: null,
+  });
   return true;
 }
 
@@ -186,12 +210,22 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 export function startSessionAutosave(): () => void {
   const schedule = () => {
     clearTimeout(timer);
-    timer = setTimeout(() => void saveSession().catch(() => undefined), SAVE_DELAY_MS);
+    timer = setTimeout(() => {
+      void saveSession().catch(() => undefined);
+      // Vollständig bewertete Partien landen automatisch in der Bibliothek
+      void useLibrary
+        .getState()
+        .saveCurrent()
+        .catch(() => undefined);
+    }, SAVE_DELAY_MS);
   };
   const unsubscribers = [
     useGame.subscribe(schedule),
     useAnalysis.subscribe((state, previous) => {
       if (state.evals !== previous.evals || state.status !== previous.status) schedule();
+    }),
+    useChat.subscribe((state, previous) => {
+      if (state.messages !== previous.messages) schedule();
     }),
     useExplanations.subscribe((state, previous) => {
       if (state.entries !== previous.entries || state.summary !== previous.summary) schedule();

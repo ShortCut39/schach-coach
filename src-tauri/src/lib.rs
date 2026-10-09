@@ -1,4 +1,5 @@
 mod import_file;
+mod library;
 mod secrets;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -20,6 +21,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             import_file::read_import_file,
             import_file::write_export_file,
+            library::library_list,
+            library::library_get,
+            library::library_save,
+            library::library_delete,
             secrets::api_key_available,
             secrets::api_key_get,
             secrets::api_key_set

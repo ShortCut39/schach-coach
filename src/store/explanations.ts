@@ -13,7 +13,7 @@ import { batchMessages, detailMessages, positionMessages, type DetailMode } from
 import type { Explanation } from '../llm/schema';
 import { buildSummaryFacts, parseSummary, summaryMessages, type GameSummary } from '../llm/summary';
 import { chunk, selectPlies, type ExplainScope } from '../llm/selection';
-import { LlmError, type ChatMessage, type LlmErrorCode } from '../llm/types';
+import { LlmError, type ChatMessage, type LlmConfig, type LlmErrorCode } from '../llm/types';
 import { useAnalysis } from './analysis';
 import { useApiKey } from './apiKey';
 import { useGame, type LoadedSource } from './game';
@@ -71,9 +71,15 @@ export function isLlmConfigured(): boolean {
   return llm.baseUrl.trim() !== '' && llm.model.trim() !== '' && (hasKey || !preset?.needsKey);
 }
 
+/** Verbindung aus Einstellungen und Key (Key nur im Arbeitsspeicher). */
+export function currentLlmConfig(): LlmConfig {
+  const { llm } = useSettings.getState();
+  return { baseUrl: llm.baseUrl, model: llm.model, apiKey: useApiKey.getState().key };
+}
+
 function createAsk(): (messages: ChatMessage[]) => Promise<string> {
   const { llm } = useSettings.getState();
-  const config = { baseUrl: llm.baseUrl, model: llm.model, apiKey: useApiKey.getState().key };
+  const config = currentLlmConfig();
   const fetchFn = getFetch();
   return withJsonFallback(
     (messages, jsonMode) =>
@@ -82,7 +88,7 @@ function createAsk(): (messages: ChatMessage[]) => Promise<string> {
   );
 }
 
-function labels(): FactLabels {
+export function labels(): FactLabels {
   const t = i18n.t.bind(i18n);
   return {
     category: Object.fromEntries(CATEGORIES.map((c) => [c, t(`categories.${c}`)])) as Record<
@@ -95,7 +101,7 @@ function labels(): FactLabels {
 }
 
 /** Alles, was für Fakten gebraucht wird – nur, wenn Analyse und Partie zusammenpassen. */
-async function gameContext() {
+export async function gameContext() {
   const { source, userColor } = useGame.getState();
   const analysis = useAnalysis.getState();
   if (source?.kind !== 'game' || analysis.source !== source) return null;
@@ -129,8 +135,12 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
     return source;
   }
 
-  async function explainBatches(plies: number[]): Promise<void> {
+  async function explainBatches(requested: number[], skipDone = false): Promise<void> {
     const source = ensureSource();
+    // Schon erklärte Züge nicht erneut anfragen (z. B. aus der Bibliothek übernommen)
+    const plies = skipDone
+      ? requested.filter((ply) => get().entries[ply]?.short?.status !== 'done')
+      : requested;
     const context = await gameContext();
     if (!source || !context || plies.length === 0) return;
     const { game, evals, result, settings } = context;

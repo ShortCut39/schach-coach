@@ -96,3 +96,71 @@ export function setStorages(settings: KeyValueStorage, secrets: SecretStorage): 
   settingsStorage = settings;
   secretStorage = secrets;
 }
+
+/** Ablage der Bibliothek: kleine Metadaten für die Liste, große Datensätze getrennt. */
+export interface LibraryStorage {
+  list(): Promise<unknown[]>;
+  get(id: string): Promise<unknown>;
+  save(id: string, meta: unknown, record: unknown): Promise<void>;
+  remove(id: string): Promise<void>;
+}
+
+function rustLibrary(): LibraryStorage {
+  const parse = (text: string | null) => (text === null ? null : (JSON.parse(text) as unknown));
+  return {
+    list: async () =>
+      (await invoke<string[]>('library_list')).flatMap((text) => {
+        try {
+          return [JSON.parse(text) as unknown];
+        } catch {
+          return [];
+        }
+      }),
+    get: async (id) => parse(await invoke<string | null>('library_get', { id })),
+    save: async (id, meta, record) => {
+      await invoke('library_save', {
+        id,
+        meta: JSON.stringify(meta),
+        record: JSON.stringify(record),
+      });
+    },
+    remove: async (id) => {
+      await invoke('library_delete', { id });
+    },
+  };
+}
+
+/** Browser-Modus und Tests: alles in einer Key-Value-Ablage. */
+export function keyValueLibrary(storage: KeyValueStorage): LibraryStorage {
+  const ids = async () => ((await storage.get('library:ids')) as string[] | undefined) ?? [];
+  return {
+    list: async () => Promise.all((await ids()).map((id) => storage.get(`library:meta:${id}`))),
+    get: (id) => storage.get(`library:record:${id}`),
+    save: async (id, meta, record) => {
+      await storage.set(`library:record:${id}`, record);
+      await storage.set(`library:meta:${id}`, meta);
+      const all = await ids();
+      if (!all.includes(id)) await storage.set('library:ids', [...all, id]);
+    },
+    remove: async (id) => {
+      await storage.set(
+        'library:ids',
+        (await ids()).filter((x) => x !== id),
+      );
+      await storage.set(`library:record:${id}`, null);
+      await storage.set(`library:meta:${id}`, null);
+    },
+  };
+}
+
+let libraryStorage: LibraryStorage | null = null;
+
+export function getLibraryStorage(): LibraryStorage {
+  libraryStorage ??= isTauri() ? rustLibrary() : keyValueLibrary(getSettingsStorage());
+  return libraryStorage;
+}
+
+/** Nur für Tests */
+export function setLibraryStorage(storage: LibraryStorage): void {
+  libraryStorage = storage;
+}
