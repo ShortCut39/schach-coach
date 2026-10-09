@@ -2,7 +2,12 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Meilenstein 0 (Gerüst).** App-Shell mit Navigation und vier leeren Screens. Import, Brett, Engine und KI folgen in den nächsten Meilensteinen.
+> **Stand: Meilenstein 1 (Import und Brett).** Partien als PGN, FEN oder Datei laden (auch mehrere Partien pro Datei), verständliche Fehlermeldungen, Brett mit Zugliste, Navigation per Knopf und Tastatur, Brett drehen, deutsche Notation. Engine, Zugbewertung und KI folgen in den nächsten Meilensteinen.
+
+## Bedienung
+
+- **Import:** PGN einfügen (Live-Prüfung unter dem Feld), FEN im Tab „FEN“ oder eine `.pgn`-Datei ins Fenster ziehen bzw. auswählen. Enthält der Text mehrere Partien, erscheint rechts eine Auswahlliste. „Du spielst“ legt fest, welche Seite unten steht.
+- **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen.
 
 ## Setup unter CachyOS / Arch Linux
 
@@ -64,10 +69,15 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **NVIDIA + Wayland:** WebKitGTK stürzt dort sonst mit „Error 71 (Protokollfehler)“ ab. Die App setzt deshalb unter Linux beim Start automatisch `WEBKIT_DISABLE_DMABUF_RENDERER=1`, sofern die Variable nicht schon gesetzt ist (`src-tauri/src/main.rs`).
 - **TypeScript 6.0 statt 7:** `typescript-eslint` unterstützt TypeScript 7 noch nicht. Ein Wechsel ist geplant, sobald es unterstützt wird.
 - Die Content-Security-Policy (`csp`) ist noch nicht gesetzt. Sie kommt mit der KI-Anbindung in Meilenstein 4.
-- Nur Deutsch, nur dunkles Farbschema.
+- Nur Deutsch, nur dunkles Farbschema. Die Notation ist fest auf Deutsch, umschaltbar wird sie mit den Einstellungen in Meilenstein 4.
+- Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
+- Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
+- Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
 - Gebaut und getestet wird vorerst nur unter Linux.
 
 ## Lizenzhinweise
 
 - Schriften: IBM Plex (SIL Open Font License), lokal gebündelt über `@fontsource`.
+- Figuren: SVG-Satz aus `react-chessboard` (MIT), im Stil der Cburnett-Figuren von Wikimedia Commons.
+- Schachlogik: `chess.js` (BSD-2-Clause).
 - Beispielpartie `src/test/fixtures/opera-game.pgn`: Morphy – Herzog von Braunschweig & Graf Isouard, Paris 1858 (gemeinfrei).
