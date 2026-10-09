@@ -15,7 +15,7 @@ Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stel
 - **Farbschema:** Einstellungen → Darstellung → Dunkel oder Hell.
 - **Weitermachen:** Die letzte Partie wird beim Start wiederhergestellt, mit Bewertungen, Erklärungen, Zusammenfassung und Stellung. Gespeichert wird automatisch.
 - **Tastatur:** In Reiterleisten wechseln ← / → den Reiter. Der Link „Zum Inhalt springen“ erscheint mit der Tab-Taste ganz oben.
-- **Engine:** Startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
+- **Engine:** In der Desktop-App läuft die **native Stockfish 19** als Sidecar, mehrere Prozesse rechnen gleichzeitig verschiedene Stellungen. Fehlt die Binary, nutzt die App automatisch die eingebaute WASM-Version. Unter Einstellungen → Engine gibt es die Wahl „Nativ“ oder „Eingebaut“ und die Threads, also wie viele Stellungen gleichzeitig gerechnet werden (Automatisch = halbe Kernzahl, höchstens 4). Sie startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
 
 ## KI einrichten
 
@@ -82,6 +82,8 @@ Abhängigkeiten installieren:
 pnpm install
 ```
 
+Die native Stockfish-Engine (offizielles Release `sf_19`, 81 MB, SHA-256-geprüft) lädt `pnpm fetch:engine` nach `src-tauri/binaries/`. `pnpm tauri dev` und `pnpm tauri build` rufen das automatisch auf. Ist die Binary schon da, passiert nichts. Sie liegt nicht im Git.
+
 Hinweis: `pnpm-workspace.yaml` schaltet das `postinstall`-Skript des Pakets `stockfish` bewusst ab. Es würde nur Verknüpfungen auf die 99-MB-Vollversion anlegen, die App nutzt die Lite-Version.
 
 ## Starten
@@ -139,7 +141,17 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
 - Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
 - Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
-- **Analysedauer:** Stockfish läuft als Lite-Version mit nur einem Thread im WebView. Die Beispielpartie (34 Stellungen, Tiefe 20, 3 Linien) dauert etwa 3 Minuten, längere Partien entsprechend länger. Die Tiefe lässt sich beim Import wählen (14 / 20 / 26). Schneller wird es mit dem nativen Stockfish (Version 3).
+- **Analysedauer** (Beispielpartie, 34 Stellungen, 3 Linien, i7-8700):
+
+  | Engine                                   | Tiefe 16 | Tiefe 20  |
+  | ---------------------------------------- | -------- | --------- |
+  | Native Stockfish 19, 4 Prozesse parallel | 11 s     | 44 s      |
+  | WASM Lite, 1 Prozess                     | –        | ca. 3 min |
+
+  Die native Engine ist außerdem deutlich stärker, weil sie das große Bewertungsnetz nutzt. „Tiefe 20“ ist deshalb bei beiden Engines nicht dasselbe.
+
+- **Warum parallele Prozesse statt vieler Threads:** Bei Suchen mit fester Tiefe macht Stockfish zusätzliche Threads vor allem gründlicher, aber kaum schneller (gemessen: 1 Thread 2,4 s, 11 Threads 3,8 s für Tiefe 18). Mehrere Stellungen gleichzeitig zu rechnen bringt etwa das 3,7-Fache. Jeder native Prozess braucht rund 300 MB Arbeitsspeicher.
+- **Bewertungen unterschiedlicher Engines werden nicht vermischt:** Cache und Bibliothek merken sich, welche Engine gerechnet hat. Eine alte Lite-Analyse wird mit der nativen Engine neu berechnet.
 - **Früher Stopp bei Matt:** Hat die beste Linie ein erzwungenes Matt, endet die Suche, sobald eine Iteration mit mindestens Tiefe `max(10, 2 × Mattlänge + 6)` vollständig ist. Weiteres Rechnen würde nur die Nebenlinien verfeinern und dauert z. B. bei Matt in 1 über eine Minute. Die angezeigte Tiefe ist dann die tatsächlich gerechnete.
 - Bewertungen werden nur im Arbeitsspeicher zwischengespeichert, nicht über einen Neustart hinweg.
 - Eröffnungsnamen kommen aus dem Lichess-Buch und sind englisch (z. B. „Philidor Defense“).
@@ -155,7 +167,7 @@ Schach-Coach steht unter der **GNU General Public License v3.0 oder später** (s
 - Schriften: IBM Plex (SIL Open Font License), lokal gebündelt über `@fontsource`.
 - Figuren: SVG-Satz aus `react-chessboard` (MIT), im Stil der Cburnett-Figuren von Wikimedia Commons.
 - Schachlogik: `chess.js` (BSD-2-Clause).
-- **Engine: Stockfish.js 19 (GPL-3.0)**, gebündelt aus dem npm-Paket `stockfish`.
+- **Engine: Stockfish.js 19 (GPL-3.0)**, gebündelt aus dem npm-Paket `stockfish`, und die **native Stockfish 19** (GPL-3.0) aus dem offiziellen Release von github.com/official-stockfish/Stockfish als Sidecar.
 - Eröffnungsbuch: [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), siehe `data/chess-openings/`. `pnpm build:openings` erzeugt daraus `src/classification/data/openings.json`.
 - Test-Fixture `src/test/fixtures/opera-game-evals-d20.json`: echte Stockfish-Bewertungen der Beispielpartie (Tiefe 20, Multi-PV 3), erzeugt mit `GENERATE_EVAL_FIXTURE=1 pnpm vitest run src/test/tools`.
 - Beispielpartie `src/test/fixtures/opera-game.pgn`: Morphy – Herzog von Braunschweig & Graf Isouard, Paris 1858 (gemeinfrei).
