@@ -18,6 +18,23 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Dunkle, schmale Scrollbalken passend zum Theme */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sc-border-input) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--sc-border-input);
+    border-radius: 999px;
+  }
+
   :focus-visible {
     outline: 2px solid var(--sc-accent);
     outline-offset: 2px;

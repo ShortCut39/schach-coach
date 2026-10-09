@@ -22,6 +22,16 @@
   --sc-info-bg: #12151f;
   --sc-info-border: #2b3556;
   --sc-info-text: #b7c0ff;
+  --sc-divider: #1a212c;
+  --sc-track: #232b38;
+  --sc-button-secondary: #151a24;
+  --sc-control-text: #c3cbd8;
+  --sc-toggle-on: #e9edf3;
+  --sc-move-active-bg: #232b4d;
+  --sc-move-active-ring: #5a69c9;
+  --sc-piece-chip-white: #ffffff;
+  --sc-piece-chip-black: #17120d;
+  --sc-piece-chip-border: #5a6270;
 
   /* Text */
   --sc-text: #dde3ec;
@@ -35,10 +45,15 @@
   --sc-accent-bg: #1a2030;
   --sc-on-accent: #0b0e13;
   --sc-success: #4ade80;
+  /* Aus dem Mockup abgeleitet (Bibliothek, „Niederlage“): gut lesbares Rot für Fehlermeldungen */
+  --sc-danger: #ff9b92;
 
-  /* Brett (Standard-Thema; weitere Themen in src/ui/board-themes.ts ab M1) */
+  /* Brett (Standard-Thema; weitere Themen werden in Meilenstein 4 wählbar) */
   --sc-board-light: #cfd8dc;
   --sc-board-dark: #5d7385;
+  --sc-board-coord-on-light: #47596a;
+  --sc-board-coord-on-dark: #cfd8dc;
+  --sc-board-shadow: 0 0 0 1px #1e2530, 0 14px 34px rgba(0, 0, 0, 0.5);
   --sc-last-move: rgba(255, 214, 90, 0.5);
 
   /* Pfeile */
@@ -94,6 +109,16 @@
   --color-info-bg: var(--sc-info-bg);
   --color-info-border: var(--sc-info-border);
   --color-info-text: var(--sc-info-text);
+  --color-divider: var(--sc-divider);
+  --color-track: var(--sc-track);
+  --color-button-secondary: var(--sc-button-secondary);
+  --color-control-text: var(--sc-control-text);
+  --color-toggle-on: var(--sc-toggle-on);
+  --color-move-active-bg: var(--sc-move-active-bg);
+  --color-move-active-ring: var(--sc-move-active-ring);
+  --color-piece-chip-white: var(--sc-piece-chip-white);
+  --color-piece-chip-black: var(--sc-piece-chip-black);
+  --color-piece-chip-border: var(--sc-piece-chip-border);
 
   --color-text: var(--sc-text);
   --color-body: var(--sc-text-body);
@@ -105,6 +130,7 @@
   --color-accent-bg: var(--sc-accent-bg);
   --color-on-accent: var(--sc-on-accent);
   --color-success: var(--sc-success);
+  --color-danger: var(--sc-danger);
 
   --color-board-light: var(--sc-board-light);
   --color-board-dark: var(--sc-board-dark);
@@ -114,6 +140,8 @@
   --radius-small: var(--sc-radius-small);
 
   --spacing-hit: var(--sc-hit);
+
+  --shadow-board: var(--sc-board-shadow);
 
   --font-sans: var(--sc-font-sans);
   --font-mono: var(--sc-font-mono);

@@ -18,18 +18,129 @@
   },
   "common": {
     "comingInMilestone": "Kommt in Meilenstein {{milestone}}",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "white": "Weiß",
+    "black": "Schwarz",
+    "resultOpen": "offen",
+    "moves_one": "{{count}} Zug",
+    "moves_other": "{{count}} Züge",
+    "plies_one": "{{count}} Halbzug",
+    "plies_other": "{{count}} Halbzüge"
   },
   "analyse": {
     "title": "Analyse",
     "emptyTitle": "Noch keine Partie geladen",
     "emptyText": "Füge eine Partie als PGN oder FEN ein. Danach erscheinen hier Brett, Zugliste und die Erklärungen des Coaches.",
-    "emptyAction": "Partie importieren"
+    "emptyAction": "Partie importieren",
+    "moves": {
+      "title": "Züge",
+      "number": "#",
+      "white": "Weiß",
+      "black": "Schwarz",
+      "tableLabel": "Zugliste",
+      "start": "Ausgangsstellung"
+    },
+    "players": {
+      "you": "Du",
+      "opponent": "Gegner"
+    },
+    "board": {
+      "label": "Brett",
+      "positionStart": "Ausgangsstellung",
+      "positionAfter": "Stellung nach {{move}}"
+    },
+    "controls": {
+      "label": "Brettsteuerung",
+      "first": "Zum Anfang",
+      "prev": "Ein Zug zurück",
+      "next": "Ein Zug vor",
+      "last": "Zum Ende",
+      "flip": "Brett drehen",
+      "keyboardHint": "Tastatur: ← → Zug · Pos1/Ende · F drehen"
+    },
+    "position": {
+      "title": "Einzelstellung",
+      "turn": "{{side}} am Zug",
+      "text": "Für eine FEN gibt es keine Zugliste. Ab Meilenstein 2 zeigt die Engine hier ihre besten Fortsetzungen."
+    },
+    "side": {
+      "label": "Coach und Zusammenfassung",
+      "coach": "Coach",
+      "chat": "Chat",
+      "summary": "Zusammenfassung",
+      "coachPlaceholder": "Hier erklärt der Coach bald jeden wichtigen Zug.",
+      "chatPlaceholder": "Fragen zur Stellung stellen.",
+      "summaryPlaceholder": "Hier erscheint die Zusammenfassung der Partie."
+    }
   },
   "import": {
     "title": "Neue Partie analysieren",
     "subtitle": "Füge eine Partie als PGN oder FEN ein oder lade eine Datei. Die Engine bewertet jede Stellung, die KI erklärt danach die wichtigen Züge.",
-    "placeholder": "Hier kannst du bald PGN, FEN oder eine Datei einfügen."
+    "inputLabel": "Partie eingeben",
+    "tabsLabel": "Eingabeart",
+    "tabs": {
+      "pgn": "PGN",
+      "fen": "FEN",
+      "datei": "Datei"
+    },
+    "pgnLabel": "PGN der Partie",
+    "fenLabel": "FEN der Stellung",
+    "pgnPlaceholder": "[Event \"…\"]\n[White \"…\"]\n[Black \"…\"]\n\n1. e4 e5 2. Nf3 …",
+    "fenPlaceholder": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+    "fileTabText": "Lade eine PGN-Datei von deinem Rechner. Enthält sie mehrere Partien, wählst du danach eine aus.",
+    "fileLoaded": "Geladen: {{name}}",
+    "status": {
+      "empty": "Noch nichts eingefügt.",
+      "pgnOk": "PGN erkannt: {{moves}}, {{plies}}, Ergebnis {{result}}",
+      "fenOk": "FEN erkannt: {{side}} am Zug",
+      "multi": "{{count}} Partien erkannt – wähle rechts eine aus.",
+      "looksLikeFen": "Das sieht nach einer FEN aus.",
+      "looksLikePgn": "Das sieht nach einer PGN aus.",
+      "switchToFen": "Zum FEN-Tab wechseln",
+      "switchToPgn": "Zum PGN-Tab wechseln"
+    },
+    "errors": {
+      "empty": "Noch nichts eingefügt.",
+      "noMoves": "Die PGN enthält keine Züge.",
+      "syntax": "Die PGN ist nicht lesbar. Prüfe, ob du die ganze Partie kopiert hast.",
+      "illegalMove": "Zug {{move}} ({{color}}): „{{san}}“ ist in dieser Stellung nicht möglich.",
+      "fen": {
+        "fields": "Die FEN ist unvollständig.",
+        "board": "Die Figurenstellung ist fehlerhaft. Erwartet werden 8 Reihen mit je 8 Feldern, getrennt durch „/“.",
+        "kings": "Jede Seite braucht genau einen König.",
+        "pawns": "Bauern dürfen nicht auf der ersten oder achten Reihe stehen.",
+        "turn": "Das Zugrecht muss „w“ (Weiß) oder „b“ (Schwarz) sein.",
+        "castling": "Die Rochaderechte sind ungültig.",
+        "enPassant": "Das En-passant-Feld ist ungültig.",
+        "counters": "Die Zugzähler am Ende der FEN sind ungültig.",
+        "other": "Die FEN ist ungültig."
+      },
+      "file": "Die Datei konnte nicht gelesen werden."
+    },
+    "userColor": "Du spielst",
+    "analyse": "Analysieren",
+    "reset": "Zurücksetzen",
+    "drop": {
+      "label": "Datei laden",
+      "title": "PGN-Datei hierher ziehen",
+      "or": "oder",
+      "choose": "Datei auswählen",
+      "release": "Loslassen zum Laden"
+    },
+    "games": {
+      "label": "Partien im Text",
+      "title": "Mehrere Partien erkannt",
+      "count": "{{count}} Partien",
+      "select": "Partie auswählen",
+      "untitled": "Partie {{number}}",
+      "noSite": "Ohne Ort",
+      "meta": "{{place}} · {{moves}} · {{result}}"
+    },
+    "sources": {
+      "label": "Weitere Quellen",
+      "title": "Von Lichess oder Chess.com laden",
+      "text": "Per Benutzername, ohne Einfügen"
+    }
   },
   "bibliothek": {
     "title": "Bibliothek",
