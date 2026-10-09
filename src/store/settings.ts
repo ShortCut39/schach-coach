@@ -1,34 +1,88 @@
+import { z } from 'zod';
 import { create } from 'zustand';
-import type { NotationStyle } from '../chess/notation';
-import { DEFAULT_CLASSIFICATION, type ClassificationConfig } from '../classification/types';
+import { DEFAULT_CLASSIFICATION } from '../classification/types';
 import { DEFAULT_SEARCH } from '../engine/types';
+import { LLM_PRESETS } from '../llm/presets';
+import { getSettingsStorage } from './persistence';
+
+const presetIds = LLM_PRESETS.map((p) => p.id) as [string, ...string[]];
+
+const DEFAULT_THRESHOLDS = {
+  inaccuracy: DEFAULT_CLASSIFICATION.inaccuracy,
+  mistake: DEFAULT_CLASSIFICATION.mistake,
+  blunder: DEFAULT_CLASSIFICATION.blunder,
+};
+
+const threshold = z.number().min(1).max(60);
 
 /**
- * Anzeige-Einstellungen. Die Bedienoberfläche dafür und das dauerhafte Speichern
- * kommen in Meilenstein 4; bis dahin gelten die Standardwerte.
+ * Alle Einstellungen außer dem API-Key (der liegt im Schlüsselbund).
+ * Ungültige oder fehlende Werte fallen beim Laden auf den Standard zurück.
  */
-interface SettingsState {
-  notation: NotationStyle;
-  /** Standard-Tiefe für neue Analysen */
-  engineDepth: number;
-  /** Anzahl Engine-Linien (Multi-PV) */
-  multiPv: number;
-  /** Schwellen für Ungenauigkeit / Fehler / Patzer (Verlust an Gewinnchance) */
-  thresholds: Pick<ClassificationConfig, 'inaccuracy' | 'mistake' | 'blunder'>;
-  /** Pfeile für gespielten Zug, Bestzug und Fortsetzung auf dem Brett */
-  showArrows: boolean;
-  setNotation: (notation: NotationStyle) => void;
+export const settingsSchema = z.object({
+  llm: z
+    .object({
+      preset: z.enum(presetIds).catch('openrouter'),
+      baseUrl: z.string().catch(LLM_PRESETS[1].baseUrl),
+      model: z.string().catch(''),
+    })
+    .catch({ preset: 'openrouter', baseUrl: LLM_PRESETS[1].baseUrl, model: '' }),
+  engineDepth: z.number().int().min(10).max(30).catch(DEFAULT_SEARCH.depth),
+  multiPv: z.number().int().min(1).max(5).catch(DEFAULT_SEARCH.multipv),
+  level: z.enum(['beginner', 'intermediate', 'club']).catch('beginner'),
+  explainScope: z.enum(['errorsAndMyGood', 'errorsOnly', 'all']).catch('errorsAndMyGood'),
+  thresholds: z
+    .object({ inaccuracy: threshold, mistake: threshold, blunder: threshold })
+    .refine((t) => t.inaccuracy < t.mistake && t.mistake < t.blunder)
+    .catch(DEFAULT_THRESHOLDS),
+  notation: z.enum(['de', 'en']).catch('de'),
+  boardTheme: z.enum(['standard', 'wood', 'sage']).catch('standard'),
+  showArrows: z.boolean().catch(true),
+});
+
+export type Settings = z.infer<typeof settingsSchema>;
+
+export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({});
+export { DEFAULT_THRESHOLDS };
+
+const STORAGE_KEY = 'settings';
+
+interface SettingsState extends Settings {
+  loaded: boolean;
+  /** Lädt gespeicherte Einstellungen (einmal beim Start). */
+  load: () => Promise<void>;
+  /** Übernimmt und speichert neue Einstellungen. */
+  save: (next: Settings) => Promise<void>;
+}
+
+export function pickSettings(state: Settings): Settings {
+  return settingsSchema.parse({
+    llm: state.llm,
+    engineDepth: state.engineDepth,
+    multiPv: state.multiPv,
+    level: state.level,
+    explainScope: state.explainScope,
+    thresholds: state.thresholds,
+    notation: state.notation,
+    boardTheme: state.boardTheme,
+    showArrows: state.showArrows,
+  });
 }
 
 export const useSettings = create<SettingsState>()((set) => ({
-  notation: 'de',
-  engineDepth: DEFAULT_SEARCH.depth,
-  multiPv: DEFAULT_SEARCH.multipv,
-  thresholds: {
-    inaccuracy: DEFAULT_CLASSIFICATION.inaccuracy,
-    mistake: DEFAULT_CLASSIFICATION.mistake,
-    blunder: DEFAULT_CLASSIFICATION.blunder,
+  ...DEFAULT_SETTINGS,
+  loaded: false,
+  load: async () => {
+    try {
+      const raw = await getSettingsStorage().get(STORAGE_KEY);
+      set({ ...settingsSchema.parse(raw ?? {}), loaded: true });
+    } catch {
+      set({ loaded: true });
+    }
   },
-  showArrows: true,
-  setNotation: (notation) => set({ notation }),
+  save: async (next) => {
+    const valid = settingsSchema.parse(next);
+    set(valid);
+    await getSettingsStorage().set(STORAGE_KEY, valid);
+  },
 }));

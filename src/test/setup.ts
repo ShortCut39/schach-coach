@@ -1,10 +1,13 @@
 import '@testing-library/jest-dom/vitest';
 import '../i18n';
 import { setEngineTransportFactory } from '../store/engine';
+import { memorySecrets, memoryStorage, setStorages } from '../store/persistence';
 import { fakeEngineTransport } from './fakeEngine';
 
 // Oberflächentests nutzen eine simulierte Engine (kein Web Worker in jsdom)
 setEngineTransportFactory(fakeEngineTransport);
+// Einstellungen und Key nur im Speicher
+setStorages(memoryStorage(), memorySecrets());
 
 // jsdom berechnet kein Layout. react-chessboard misst für Zug-Animationen die Feldbreite
 // und bricht bei 0 ab. Deshalb liefern Elemente im Test eine feste Größe.
