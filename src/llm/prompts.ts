@@ -32,6 +32,7 @@ export function systemPrompt(
   level: Level,
   notation: NotationStyle,
   language: ExplanationLanguage = 'de',
+  format: 'json' | 'text' = 'json',
 ): string {
   void language; // vorerst nur Deutsch
   return [
@@ -69,7 +70,9 @@ export function systemPrompt(
     'Bei Fehlern (Ungenauigkeit, Fehler, Patzer, Verpasst): erkläre, was passiert ist, was besser gewesen wäre und woran man das erkennt.',
     'Gewinnchancen sind Prozent für die ziehende Seite. Bewertungen sind aus Sicht von Weiß in Bauerneinheiten, „M2“ heißt Matt in 2, „#“ heißt Matt auf dem Brett.',
     '',
-    'Antworte nur mit gültigem JSON, ohne Text davor oder danach.',
+    format === 'json'
+      ? 'Antworte nur mit gültigem JSON, ohne Text davor oder danach.'
+      : 'Antworte als normaler Text in 2–5 kurzen Sätzen, ohne JSON und ohne Überschriften.',
   ].join('\n');
 }
 

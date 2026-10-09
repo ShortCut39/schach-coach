@@ -35,6 +35,14 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
     }
 
     const user = body.messages.at(-1)?.content ?? '';
+    if (user.includes('Daten zur aktuellen Stellung')) {
+      const facts = JSON.parse(user.slice(user.indexOf('Daten zur aktuellen Stellung:') + 29)) as {
+        stellung: { am_zug: string };
+      };
+      return json(200, {
+        choices: [{ message: { content: `Test-Antwort: ${facts.stellung.am_zug} ist am Zug.` } }],
+      });
+    }
     if (user.startsWith('Schreibe eine Zusammenfassung')) {
       const facts = JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as {
         wendepunkte: { ply: number; zug: string }[];

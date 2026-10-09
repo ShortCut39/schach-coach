@@ -3,21 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../../store/navigation';
 import { Button } from '../shared/Button';
 import { handleTabKeys } from '../shared/tabKeys';
+import { ChatPanel } from './ChatPanel';
 import { CoachCard } from './CoachCard';
 
 const tabs = ['coach', 'chat', 'summary'] as const;
 type Tab = (typeof tabs)[number];
 
-/** Rechte Spalte: Reiter Coach · Chat · Zusammenfassung. Inhalte folgen in späteren Meilensteinen. */
+/** Rechte Spalte: Reiter Coach (Zug-Erklärung) · Chat (Fragen zur Stellung) · Zusammenfassung. */
 export function SidePanel() {
   const { t } = useTranslation();
   const [active, setActive] = useState<Tab>('coach');
   const setAnalyseView = useNavigation((s) => s.setAnalyseView);
-
-  const chatPlaceholder = {
-    text: t('analyse.side.chatPlaceholder'),
-    note: t('common.version', { version: 2 }),
-  };
 
   return (
     <section
@@ -73,10 +69,7 @@ export function SidePanel() {
             </Button>
           </div>
         ) : (
-          <>
-            <p className="text-body">{chatPlaceholder.text}</p>
-            <p className="font-mono text-xs text-faint">{chatPlaceholder.note}</p>
-          </>
+          <ChatPanel />
         )}
       </div>
     </section>
