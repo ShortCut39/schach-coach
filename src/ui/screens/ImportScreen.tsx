@@ -5,7 +5,10 @@ import { detectInput } from '../../chess/detect';
 import { useGame } from '../../store/game';
 import { useImportDraft } from '../../store/importDraft';
 import { useNavigation } from '../../store/navigation';
+import { useAnalysis } from '../../store/analysis';
+import { useSettings } from '../../store/settings';
 import { DropZone } from '../import/DropZone';
+import { ProgressCard } from '../import/ProgressCard';
 import { GameList } from '../import/GameList';
 import { ValidationMessage } from '../import/ValidationMessage';
 import { evaluateImport, loadableSource, type InputTab } from '../import/evaluate';
@@ -22,7 +25,9 @@ export function ImportScreen() {
   const loadGame = useGame((s) => s.load);
   const setScreen = useNavigation((s) => s.setScreen);
 
-  const { tab, pgnText, fenText, selected, userColor, fileName, update } = useImportDraft();
+  const { tab, pgnText, fenText, selected, userColor, fileName, depth, update } = useImportDraft();
+  const multiPv = useSettings((s) => s.multiPv);
+  const startAnalysis = useAnalysis((s) => s.start);
   const resetDraft = useImportDraft((s) => s.reset);
   const [fileError, setFileError] = useState<FileReadError>();
   const texts: Record<InputTab, string> = { pgn: pgnText, fen: fenText };
@@ -38,6 +43,7 @@ export function ImportScreen() {
 
   const textareaId = useId();
   const statusId = useId();
+  const depthId = useId();
 
   const textKey = { pgn: 'pgnText', fen: 'fenText' } as const;
 
@@ -76,6 +82,7 @@ export function ImportScreen() {
   function analyse() {
     if (!source) return;
     loadGame(source, userColor);
+    void startAnalysis(source, { depth, multipv: multiPv });
     setScreen('analyse');
   }
 
@@ -84,6 +91,11 @@ export function ImportScreen() {
     { value: 'fen', label: t('import.tabs.fen') },
     { value: 'datei', label: t('import.tabs.datei') },
   ] as const;
+  const depthOptions = [
+    { value: 14, label: t('import.depth.fast', { depth: 14 }) },
+    { value: 20, label: t('import.depth.standard', { depth: 20 }) },
+    { value: 26, label: t('import.depth.thorough', { depth: 26 }) },
+  ];
   const colorOptions = [
     { value: 'w', label: t('common.white') },
     { value: 'b', label: t('common.black') },
@@ -152,15 +164,32 @@ export function ImportScreen() {
             </p>
           )}
 
-          <div>
-            <FieldLabel id="user-color-label">{t('import.userColor')}</FieldLabel>
-            <Segmented
-              variant="light"
-              label={t('import.userColor')}
-              options={colorOptions}
-              value={userColor}
-              onChange={(value) => update({ userColor: value })}
-            />
+          <div className="flex flex-wrap gap-x-7 gap-y-4">
+            <div>
+              <FieldLabel id="user-color-label">{t('import.userColor')}</FieldLabel>
+              <Segmented
+                variant="light"
+                label={t('import.userColor')}
+                options={colorOptions}
+                value={userColor}
+                onChange={(value) => update({ userColor: value })}
+              />
+            </div>
+            <div className="flex-[0_1_220px]">
+              <FieldLabel htmlFor={depthId}>{t('import.depth.label')}</FieldLabel>
+              <select
+                id={depthId}
+                value={depth}
+                onChange={(event) => update({ depth: Number(event.target.value) })}
+                className="min-h-[46px] w-full rounded-control border border-border-input bg-bg px-3 font-medium text-text"
+              >
+                {depthOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -183,6 +212,8 @@ export function ImportScreen() {
               onSelect={(index) => update({ selected: index })}
             />
           )}
+
+          <ProgressCard />
 
           <section
             aria-label={t('import.sources.label')}

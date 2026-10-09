@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import type { Game, PlyBase } from '../../chess/types';
+import { formatPositionEval } from '../../engine/evalFormat';
 import { buildRows } from './moveRows';
+import { useCurrentEvals } from './useAnalysisFor';
 import { useGame } from '../../store/game';
 import { useSettings } from '../../store/settings';
 
@@ -11,6 +13,7 @@ export function MoveList({ game }: { game: Game }) {
   const current = useGame((s) => s.current);
   const goTo = useGame((s) => s.goTo);
   const notation = useSettings((s) => s.notation);
+  const evals = useCurrentEvals();
   const activeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -23,6 +26,9 @@ export function MoveList({ game }: { game: Game }) {
     if (!ply) return <span className="min-h-8" />;
     const active = ply.index === current;
     const san = formatSan(ply.san, notation);
+    // Bewertung der Stellung nach dem Zug (Index Halbzug + 1), Weiß-Sicht
+    const evalText = formatPositionEval(evals[ply.index + 1]);
+    const isMate = evalText?.includes('M') || evalText === '#';
     return (
       <button
         ref={active ? activeRef : undefined}
@@ -36,14 +42,28 @@ export function MoveList({ game }: { game: Game }) {
             : 'text-body hover:bg-accent-bg'
         }`}
       >
-        {san}
+        <span>{san}</span>
+        {evalText && (
+          <span
+            className={`ml-auto font-mono text-[11px] font-medium ${
+              active ? 'text-accent-text' : isMate ? 'text-accent-text' : 'text-muted'
+            }`}
+          >
+            {evalText}
+          </span>
+        )}
       </button>
     );
   }
 
   return (
     <section className="rounded-panel border border-border bg-panel px-3.5 pt-3.5 pb-2.5">
-      <h2 className="mb-2.5 text-sm font-bold">{t('analyse.moves.title')}</h2>
+      <div className="mb-2.5 flex items-baseline justify-between">
+        <h2 className="text-sm font-bold">{t('analyse.moves.title')}</h2>
+        <span className="font-mono text-[11.5px] font-medium text-muted">
+          {t('analyse.moves.evalHint')}
+        </span>
+      </div>
       <div role="table" aria-label={t('analyse.moves.tableLabel')}>
         <div
           role="row"

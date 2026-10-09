@@ -47,9 +47,9 @@ describe('App-Shell', () => {
     expect(missing).toEqual([]);
   });
 
-  it('zeigt keine erfundenen Statuswerte, solange Engine und KI fehlen', () => {
+  it('zeigt den echten Engine-Namen, sobald sie bereit ist, und keine erfundene KI', async () => {
     render(<App />);
-    expect(screen.getByText('Engine nicht geladen')).toBeInTheDocument();
+    expect(await screen.findByText('Test-Engine · Tiefe 20')).toBeInTheDocument();
     expect(screen.getByText('KI nicht eingerichtet')).toBeInTheDocument();
   });
 });

@@ -2,16 +2,22 @@ import { useTranslation } from 'react-i18next';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import { headerValue } from '../../chess/pgn';
 import type { Color } from '../../chess/types';
+import { positionsOf } from '../../store/analysis';
 import { selectCurrentFen, selectCurrentPly, useGame } from '../../store/game';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
 import { BoardControls } from '../analyse/BoardControls';
+import { AnalysisProgress } from '../analyse/AnalysisProgress';
 import { BoardView } from '../analyse/BoardView';
+import { EngineLines } from '../analyse/EngineLines';
+import { EvalBar } from '../analyse/EvalBar';
+import { EvalGraph } from '../analyse/EvalGraph';
 import { MoveList } from '../analyse/MoveList';
 import { PlayerRow } from '../analyse/PlayerRow';
 import { PositionInfo } from '../analyse/PositionInfo';
 import { SidePanel } from '../analyse/SidePanel';
 import { useBoardKeyboard } from '../analyse/useBoardKeyboard';
+import { useCurrentEvals } from '../analyse/useAnalysisFor';
 import { KnightIcon } from '../shared/KnightIcon';
 import { Panel } from '../shared/Panel';
 
@@ -55,8 +61,9 @@ function AnalyseLayout() {
   const current = useGame((s) => s.current);
   const fen = useGame(selectCurrentFen);
   const ply = useGame(selectCurrentPly);
-  const { first, prev, next, last, flip } = useGame.getState();
+  const { first, prev, next, last, flip, goTo } = useGame.getState();
   const notation = useSettings((s) => s.notation);
+  const evals = useCurrentEvals();
 
   if (!source || !fen) return null;
 
@@ -74,6 +81,18 @@ function AnalyseLayout() {
         move: `${formatMoveNumber(ply.moveNumber, ply.color)} ${formatSan(ply.san, notation)}`,
       })
     : t('analyse.board.positionStart');
+
+  // Engine-Linien zeigen, was vor dem aktuellen Zug am besten war (wie im Mockup „vor 16. Zug“)
+  const fens = positionsOf(source);
+  const linesIndex = Math.max(current, 0);
+  const linesCaption =
+    source.kind === 'position'
+      ? t('analyse.engine.position')
+      : ply
+        ? t('analyse.engine.before', {
+            move: `${formatMoveNumber(ply.moveNumber, ply.color)} ${formatSan(ply.san, notation)}`,
+          })
+        : t('analyse.engine.start');
 
   return (
     <main className="flex flex-wrap items-start gap-5 p-5">
@@ -97,12 +116,17 @@ function AnalyseLayout() {
             )
           }
         />
-        <BoardView
-          fen={fen}
-          orientation={orientation}
-          lastMove={ply && { from: ply.from, to: ply.to }}
-          label={boardLabel}
-        />
+        <div className="flex items-stretch gap-2.5">
+          <div className="min-w-0 flex-1">
+            <BoardView
+              fen={fen}
+              orientation={orientation}
+              lastMove={ply && { from: ply.from, to: ply.to }}
+              label={boardLabel}
+            />
+          </div>
+          <EvalBar evaluation={evals[current + 1]} orientation={orientation} />
+        </div>
         <PlayerRow
           color={bottomColor}
           isUser={bottomColor === userColor}
@@ -119,10 +143,19 @@ function AnalyseLayout() {
             />
           }
         />
+        {source.kind === 'game' && (
+          <EvalGraph evals={evals} plyCount={plyCount} current={current} onSelect={goTo} />
+        )}
       </section>
 
       <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-4">
         <SidePanel />
+        <EngineLines
+          fen={fens[linesIndex] ?? fen}
+          evaluation={evals[linesIndex]}
+          caption={linesCaption}
+        />
+        {source.kind === 'position' && <AnalysisProgress />}
       </aside>
     </main>
   );

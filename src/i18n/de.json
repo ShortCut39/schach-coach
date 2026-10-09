@@ -11,10 +11,12 @@
   },
   "status": {
     "label": "Status",
-    "engineNotLoaded": "Engine nicht geladen",
     "llmNotConfigured": "KI nicht eingerichtet",
     "ready": "bereit",
-    "notReady": "nicht bereit"
+    "notReady": "nicht bereit",
+    "engineLoading": "Stockfish lädt …",
+    "engineReady": "{{name}} · Tiefe {{depth}}",
+    "engineError": "Engine nicht verfügbar"
   },
   "common": {
     "comingInMilestone": "Kommt in Meilenstein {{milestone}}",
@@ -25,7 +27,9 @@
     "moves_one": "{{count}} Zug",
     "moves_other": "{{count}} Züge",
     "plies_one": "{{count}} Halbzug",
-    "plies_other": "{{count}} Halbzüge"
+    "plies_other": "{{count}} Halbzüge",
+    "cancel": "Abbrechen",
+    "resume": "Fortsetzen"
   },
   "analyse": {
     "title": "Analyse",
@@ -38,7 +42,8 @@
       "white": "Weiß",
       "black": "Schwarz",
       "tableLabel": "Zugliste",
-      "start": "Ausgangsstellung"
+      "start": "Ausgangsstellung",
+      "evalHint": "Eval = Weiß-Sicht"
     },
     "players": {
       "you": "Du",
@@ -71,6 +76,35 @@
       "coachPlaceholder": "Hier erklärt der Coach bald jeden wichtigen Zug.",
       "chatPlaceholder": "Fragen zur Stellung stellen.",
       "summaryPlaceholder": "Hier erscheint die Zusammenfassung der Partie."
+    },
+    "evalBar": {
+      "label": "Bewertungsbalken: {{eval}}",
+      "unknown": "noch keine Bewertung"
+    },
+    "graph": {
+      "title": "Bewertungsverlauf",
+      "label": "Bewertungsverlauf über {{count}} Halbzüge. Klick springt zum Zug.",
+      "plies_one": "{{count}} Halbzug",
+      "plies_other": "{{count}} Halbzüge",
+      "empty": "Die Kurve füllt sich, während die Engine rechnet."
+    },
+    "engine": {
+      "title": "Engine-Linien",
+      "before": "vor {{move}}",
+      "start": "Ausgangsstellung",
+      "position": "diese Stellung",
+      "depth": "Tiefe {{depth}}",
+      "pending": "Wird berechnet …",
+      "notAnalysed": "Noch nicht bewertet.",
+      "checkmate": "Matt – die Partie ist zu Ende.",
+      "stalemate": "Patt – die Partie ist remis.",
+      "lineLabel": "Linie {{number}}: {{eval}}, {{moves}}"
+    },
+    "progress": {
+      "running": "Engine {{done}} / {{total}}",
+      "runningDepth": "Engine {{done}} / {{total}} · Tiefe {{depth}}",
+      "aborted": "Abgebrochen bei {{done}} / {{total}}",
+      "error": "Die Engine konnte nicht gestartet werden."
     }
   },
   "import": {
@@ -144,6 +178,22 @@
       "label": "Weitere Quellen",
       "title": "Von Lichess oder Chess.com laden",
       "text": "Per Benutzername, ohne Einfügen"
+    },
+    "depth": {
+      "label": "Engine-Tiefe",
+      "fast": "{{depth}} (schnell)",
+      "standard": "{{depth}} (Standard)",
+      "thorough": "{{depth}} (gründlich)"
+    },
+    "progress": {
+      "label": "Fortschritt der Analyse",
+      "title": "Fortschritt",
+      "engine": "Engine bewertet Stellungen",
+      "done": "Fertig",
+      "aborted": "Abgebrochen",
+      "error": "Die Engine konnte nicht gestartet werden.",
+      "toBoard": "Zum Brett",
+      "engineBar": "Engine-Fortschritt"
     }
   },
   "bibliothek": {

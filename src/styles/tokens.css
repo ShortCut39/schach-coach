@@ -56,6 +56,14 @@
   --sc-board-shadow: 0 0 0 1px #1e2530, 0 14px 34px rgba(0, 0, 0, 0.5);
   --sc-last-move: rgba(255, 214, 90, 0.5);
 
+  /* Eval-Balken und Bewertungsverlauf (aus dem Mockup) */
+  --sc-eval-white: #e9edf3;
+  --sc-eval-black: #232b38;
+  --sc-graph-area: #cfd6e2;
+  --sc-graph-midline: #3a4352;
+  --sc-graph-cursor: rgba(124, 140, 255, 0.8);
+  --sc-line-text: #aab3c2;
+
   /* Pfeile */
   --sc-arrow-played: #7c8cff;
   --sc-arrow-best: #ffd166;
@@ -131,6 +139,13 @@
   --color-on-accent: var(--sc-on-accent);
   --color-success: var(--sc-success);
   --color-danger: var(--sc-danger);
+
+  --color-eval-white: var(--sc-eval-white);
+  --color-eval-black: var(--sc-eval-black);
+  --color-graph-area: var(--sc-graph-area);
+  --color-graph-midline: var(--sc-graph-midline);
+  --color-graph-cursor: var(--sc-graph-cursor);
+  --color-line-text: var(--sc-line-text);
 
   --color-board-light: var(--sc-board-light);
   --color-board-dark: var(--sc-board-dark);

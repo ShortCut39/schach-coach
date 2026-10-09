@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { useAnalysis } from '../store/analysis';
 import { useGame } from '../store/game';
 import { useImportDraft } from '../store/importDraft';
 import { useNavigation } from '../store/navigation';
@@ -21,6 +22,7 @@ describe('Import → Analyse', () => {
     useNavigation.setState({ screen: 'analyse' });
     useGame.getState().clear();
     useImportDraft.getState().reset();
+    useAnalysis.getState().reset();
   });
 
   it('lädt die Beispielpartie und lässt sich per Tastatur und Knopf durchklicken', async () => {
@@ -122,5 +124,30 @@ describe('Import → Analyse', () => {
     expect(
       await screen.findByText(/PGN erkannt: 17 Züge, 33 Halbzüge, Ergebnis 1-0/),
     ).toBeInTheDocument();
+  });
+
+  it('startet die Engine-Analyse und zeigt Bewertungen, Linien und Verlauf', async () => {
+    render(<App />);
+    openImport();
+    fireEvent.change(screen.getByLabelText('PGN der Partie'), { target: { value: operaGame } });
+    fireEvent.change(screen.getByLabelText('Engine-Tiefe'), { target: { value: '14' } });
+    await screen.findByText(/PGN erkannt/);
+    fireEvent.click(screen.getByRole('button', { name: 'Analysieren' }));
+
+    await waitFor(() => expect(useAnalysis.getState().status).toBe('done'));
+    expect(useAnalysis.getState().settings).toEqual({ depth: 14, multipv: 3 });
+    expect(screen.getByText('Test-Engine · Tiefe 14')).toBeInTheDocument();
+    expect(screen.getByText('33 Halbzüge')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Bewertungsbalken/ })).toBeInTheDocument();
+
+    // Ausgangsstellung: drei Linien der (simulierten) Engine
+    const lines = screen.getByRole('heading', { name: 'Engine-Linien' }).closest('section');
+    if (!lines) throw new Error('Engine-Linien fehlen');
+    expect(within(lines).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(lines).getByText('Ausgangsstellung')).toBeInTheDocument();
+
+    press('End');
+    expect(within(lines).getByText('vor 17. Td8#')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '17. Td8#' })).toHaveTextContent('#');
   });
 });

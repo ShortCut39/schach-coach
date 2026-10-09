@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import { useAnalysis } from '../../store/analysis';
+import { useEngine } from '../../store/engine';
 import { screens, useNavigation } from '../../store/navigation';
+import { useSettings } from '../../store/settings';
 import { KnightIcon } from './KnightIcon';
 import { StatusIndicator } from './StatusIndicator';
 
@@ -7,6 +10,17 @@ export function AppHeader() {
   const { t } = useTranslation();
   const screen = useNavigation((s) => s.screen);
   const setScreen = useNavigation((s) => s.setScreen);
+  const engineStatus = useEngine((s) => s.status);
+  const engineName = useEngine((s) => s.name);
+  const analysisDepth = useAnalysis((s) => (s.source ? s.settings.depth : undefined));
+  const defaultDepth = useSettings((s) => s.engineDepth);
+
+  const engineLabel =
+    engineStatus === 'ready'
+      ? t('status.engineReady', { name: engineName ?? '', depth: analysisDepth ?? defaultDepth })
+      : engineStatus === 'error'
+        ? t('status.engineError')
+        : t('status.engineLoading');
 
   return (
     <header className="border-b border-border bg-header">
@@ -44,7 +58,7 @@ export function AppHeader() {
           role="group"
           className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-xs font-medium text-muted"
         >
-          <StatusIndicator label={t('status.engineNotLoaded')} ready={false} />
+          <StatusIndicator label={engineLabel} ready={engineStatus === 'ready'} />
           <StatusIndicator label={t('status.llmNotConfigured')} ready={false} />
         </div>
       </div>

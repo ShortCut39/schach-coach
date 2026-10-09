@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { getEngine } from '../store/engine';
 import { useNavigation, type Screen } from '../store/navigation';
 import { AppHeader } from '../ui/shared/AppHeader';
 import { AnalyseScreen } from '../ui/screens/AnalyseScreen';
@@ -14,6 +16,13 @@ const screenComponents: Record<Screen, () => React.JSX.Element> = {
 
 export function App() {
   const screen = useNavigation((s) => s.screen);
+
+  // Engine im Hintergrund starten, damit sie bei der ersten Analyse bereit ist
+  useEffect(() => {
+    getEngine().catch(() => {
+      // Status „Engine nicht verfügbar“ zeigt die Kopfleiste
+    });
+  }, []);
   const ScreenComponent = screenComponents[screen];
 
   return (
