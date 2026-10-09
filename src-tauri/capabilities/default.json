@@ -1,7 +1,27 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "enables the default permissions",
+  "description": "Standardrechte der App: Kern, Einstellungen (Store) und HTTP zu beliebigen HTTPS-Endpunkten sowie lokalen LLM-Servern",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "https://*:*"
+        },
+        {
+          "url": "http://localhost:*"
+        },
+        {
+          "url": "http://127.0.0.1:*"
+        }
+      ]
+    },
+    "store:default"
+  ]
 }

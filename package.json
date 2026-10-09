@@ -20,6 +20,8 @@
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@fontsource/ibm-plex-sans": "^5.3.0",
     "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/plugin-http": "~2.8.1",
+    "@tauri-apps/plugin-store": "~2.5.0",
     "chess.js": "^1.4.0",
     "i18next": "^26.4.2",
     "react": "^19.3.0",
@@ -27,6 +29,7 @@
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.16",
     "stockfish": "^19.0.0",
+    "zod": "^4.6.5",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
