@@ -3,3 +3,6 @@ src-tauri/target
 src-tauri/gen
 docs/mockups/html
 pnpm-lock.yaml
+src/classification/data
+src/test/fixtures/*.json
+data/chess-openings

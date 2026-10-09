@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Beispielpartie mit echten Engine-Daten > klassifiziert alle 33 Halbzüge 1`] = `
+[
+  "e4 book",
+  "e5 book",
+  "Nf3 book",
+  "d6 book",
+  "d4 book",
+  "Bg4 good",
+  "dxe5 excellent",
+  "Bxf3 good",
+  "Qxf3 best",
+  "dxe5 best",
+  "Bc4 excellent",
+  "Nf6 mistake",
+  "Qb3 great",
+  "Qe7 excellent",
+  "Nc3 excellent",
+  "c6 best",
+  "Bg5 best",
+  "b5 mistake",
+  "Nxb5 great",
+  "cxb5 inaccuracy",
+  "Bxb5+ best",
+  "Nbd7 best",
+  "O-O-O best",
+  "Rd8 best",
+  "Rxd7 best",
+  "Rxd7 excellent",
+  "Rd1 best",
+  "Qe6 good",
+  "Bxd7+ best",
+  "Nxd7 excellent",
+  "Qb8+ brilliant",
+  "Nxb8 best",
+  "Rd8# best",
+]
+`;
+
+exports[`Beispielpartie mit echten Engine-Daten > klassifiziert alle 33 Halbzüge 2`] = `
+{
+  "best": 8,
+  "blunder": 0,
+  "book": 3,
+  "brilliant": 1,
+  "excellent": 3,
+  "good": 0,
+  "great": 2,
+  "inaccuracy": 0,
+  "miss": 0,
+  "mistake": 0,
+}
+`;
