@@ -49,7 +49,7 @@ describe('Erklärungen (simulierter Endpunkt)', () => {
 
     const { run, entries } = useExplanations.getState();
     expect(run).toMatchObject({ status: 'done', total: 28 }); // 33 Halbzüge − 5 Theorie
-    expect(calls).toHaveLength(4); // Pakete zu 7
+    expect(calls).toHaveLength(5); // 4 Pakete zu 7 + Zusammenfassung
     expect(entries[30]?.short).toMatchObject({
       status: 'done',
       explanation: { was: expect.stringContaining('Db8+') },
@@ -101,5 +101,30 @@ describe('Erklärungen (simulierter Endpunkt)', () => {
     );
     expect(useExplanations.getState().entries[30]?.detailed?.status).toBe('done');
     expect(calls[1]?.body.messages[1]?.content).toContain('aus Sicht des Gegners');
+  });
+});
+
+describe('KI-Zusammenfassung', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('wird nach den Zug-Erklärungen angefordert und enthält drei Tipps', async () => {
+    useExplanations.getState().reset();
+    await useSettings.getState().save({
+      ...DEFAULT_SETTINGS,
+      llm: { preset: 'ollama', baseUrl: 'http://localhost:11434/v1', model: 'test' },
+    });
+    const { fetchFn, calls } = fakeLlmFetch();
+    vi.stubGlobal('fetch', fetchFn);
+    const game = opera();
+    useGame.getState().load(game, 'w');
+    await analyseAndExplain(game, 8, 'all');
+
+    const { summary } = useExplanations.getState();
+    expect(summary?.status).toBe('done');
+    expect(summary?.data?.tipps).toHaveLength(3);
+    const request = calls.at(-1)?.body.messages[1]?.content ?? '';
+    expect(request).toContain('"du_spielst": "Weiß"');
+    expect(request).toContain('"wendepunkte"');
+    await useSettings.getState().save(DEFAULT_SETTINGS);
   });
 });

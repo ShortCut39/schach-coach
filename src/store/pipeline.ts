@@ -6,7 +6,7 @@ import { useSettings } from './settings';
 
 /**
  * Ganze Analyse: Engine bewertet alle Stellungen; ist sie fertig und die KI eingerichtet,
- * werden die ausgewählten Züge in Paketen erklärt.
+ * werden die ausgewählten Züge in Paketen erklärt und danach die Zusammenfassung angefordert.
  */
 export async function analyseAndExplain(
   source: LoadedSource,
@@ -19,5 +19,9 @@ export async function analyseAndExplain(
   if (analysis.status !== 'done' || analysis.source !== source) return;
   if (source.kind === 'game' && isLlmConfigured()) {
     await useExplanations.getState().explainGame(scope);
+    // Zusammenfassung nur, wenn die Verbindung funktioniert hat
+    if (useExplanations.getState().run.status !== 'error') {
+      await useExplanations.getState().explainSummary();
+    }
   }
 }

@@ -35,6 +35,20 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
     }
 
     const user = body.messages.at(-1)?.content ?? '';
+    if (user.startsWith('Schreibe eine Zusammenfassung')) {
+      const facts = JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as {
+        wendepunkte: { ply: number; zug: string }[];
+      };
+      const content = JSON.stringify({
+        eroeffnung: 'Test-Eröffnung.',
+        wendepunkte: facts.wendepunkte.map((w) => ({
+          ply: w.ply,
+          text: `Test-Wendepunkt ${w.zug}.`,
+        })),
+        tipps: [1, 2, 3].map((n) => ({ titel: `Test-Tipp ${n}`, text: 'Test-Text.' })),
+      });
+      return json(200, { choices: [{ message: { content } }] });
+    }
     const data = user.includes('Daten:')
       ? (JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as unknown)
       : null;

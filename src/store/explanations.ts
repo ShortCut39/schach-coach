@@ -11,6 +11,7 @@ import { getFetch } from '../llm/http';
 import { LLM_PRESETS } from '../llm/presets';
 import { batchMessages, detailMessages, positionMessages, type DetailMode } from '../llm/prompts';
 import type { Explanation } from '../llm/schema';
+import { buildSummaryFacts, parseSummary, summaryMessages, type GameSummary } from '../llm/summary';
 import { chunk, selectPlies, type ExplainScope } from '../llm/selection';
 import { LlmError, type ChatMessage, type LlmErrorCode } from '../llm/types';
 import { useAnalysis } from './analysis';
@@ -35,11 +36,19 @@ export interface PlyExplanations {
 
 export type RunStatus = 'idle' | 'running' | 'done' | 'error';
 
+export interface SummaryEntry {
+  status: EntryStatus;
+  data?: GameSummary;
+  error?: LlmErrorCode;
+}
+
 interface ExplanationsState {
   source: LoadedSource | null;
   /** Index = Halbzug; bei einer FEN wird Index 0 für die Stellung verwendet */
   entries: Record<number, PlyExplanations>;
   run: { status: RunStatus; done: number; total: number; error?: LlmErrorCode };
+  /** KI-Zusammenfassung (Eröffnung, Wendepunkte, drei Tipps) */
+  summary: SummaryEntry | null;
 
   /** Erklärt die ausgewählten Züge der geladenen Partie in Paketen. */
   explainGame: (scope: ExplainScope) => Promise<void>;
@@ -47,6 +56,8 @@ interface ExplanationsState {
   explainPlies: (plies: number[]) => Promise<void>;
   explainDetail: (ply: number, mode: DetailMode) => Promise<void>;
   explainPosition: () => Promise<void>;
+  /** Eigene Anfrage: Eröffnung, Wendepunkte und die drei wichtigsten Tipps. */
+  explainSummary: () => Promise<void>;
   /** Zurück zur Kurzfassung */
   discardDetail: (ply: number) => void;
   reset: () => void;
@@ -113,7 +124,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
   function ensureSource(): LoadedSource | null {
     const source = useGame.getState().source;
     if (source && get().source !== source) {
-      set({ source, entries: {}, run: { status: 'idle', done: 0, total: 0 } });
+      set({ source, entries: {}, summary: null, run: { status: 'idle', done: 0, total: 0 } });
     }
     return source;
   }
@@ -192,6 +203,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
     source: null,
     entries: {},
     run: { status: 'idle', done: 0, total: 0 },
+    summary: null,
 
     explainGame: async (scope) => {
       ensureSource();
@@ -274,6 +286,33 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
       }
     },
 
+    explainSummary: async () => {
+      const source = ensureSource();
+      const context = await gameContext();
+      if (!source || !context) return;
+      const { game, evals, result, settings, userColor } = context;
+      const facts = buildSummaryFacts(game, result, evals, userColor, settings.notation, labels());
+      const ask = createAsk();
+      const setSummary = (summary: SummaryEntry) => {
+        if (get().source === source) set({ summary });
+      };
+      setSummary({ status: 'loading' });
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const content = await ask(summaryMessages(facts, settings.level, settings.notation));
+          setSummary({ status: 'done', data: parseSummary(content) });
+          return;
+        } catch (error) {
+          const code = errorCode(error);
+          // Nur ungültige Antworten werden einmal automatisch wiederholt
+          if (code !== 'badResponse' || attempt === 1) {
+            setSummary({ status: 'failed', error: code });
+            return;
+          }
+        }
+      }
+    },
+
     discardDetail: (ply) =>
       set((s) => {
         const entry = { ...s.entries[ply] };
@@ -281,6 +320,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
         return { entries: { ...s.entries, [ply]: entry } };
       }),
 
-    reset: () => set({ source: null, entries: {}, run: { status: 'idle', done: 0, total: 0 } }),
+    reset: () =>
+      set({ source: null, entries: {}, summary: null, run: { status: 'idle', done: 0, total: 0 } }),
   };
 });
