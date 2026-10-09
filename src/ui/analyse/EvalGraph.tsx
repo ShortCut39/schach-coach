@@ -15,16 +15,25 @@ interface EvalGraphProps {
   analyses: (PlyAnalysis | undefined)[];
   /** Anzahl Halbzüge der Partie (Stellungen = Halbzüge + 1) */
   plyCount: number;
-  /** Aktuell angezeigter Halbzug, -1 = Ausgangsstellung */
-  current: number;
+  /** Aktuell angezeigter Halbzug, -1 = Ausgangsstellung; ohne Angabe kein Cursor */
+  current?: number;
   onSelect: (plyIndex: number) => void;
+  /** Höhe der Kurve in px (Brett: 110, Zusammenfassung: 130) */
+  height?: number;
 }
 
 /**
  * Bewertungsverlauf: helle Fläche = Weiß im Vorteil (Gewinnchance von Weiß),
  * gestrichelte Mittellinie = ausgeglichen, senkrechter Strich = aktuelle Stellung.
  */
-export function EvalGraph({ evals, analyses, plyCount, current, onSelect }: EvalGraphProps) {
+export function EvalGraph({
+  evals,
+  analyses,
+  plyCount,
+  current,
+  onSelect,
+  height = 110,
+}: EvalGraphProps) {
   const { t } = useTranslation();
   const status = useAnalysis((s) => s.status);
   const span = Math.max(plyCount, 1);
@@ -75,7 +84,8 @@ export function EvalGraph({ evals, analyses, plyCount, current, onSelect }: Eval
         role="img"
         aria-label={`${t('analyse.graph.label', { count: plyCount })} ${t('analyse.graph.markers')}`}
         onClick={handleClick}
-        className="relative h-[110px] cursor-pointer overflow-hidden rounded-small bg-bg"
+        className="relative cursor-pointer overflow-hidden rounded-small bg-bg"
+        style={{ height }}
       >
         <svg
           viewBox="0 0 100 100"
@@ -104,11 +114,13 @@ export function EvalGraph({ evals, analyses, plyCount, current, onSelect }: Eval
             />
           )}
         </svg>
-        <div
-          aria-hidden="true"
-          className="absolute inset-y-0 w-0.5 bg-graph-cursor"
-          style={{ left: `calc(${x(current + 1)}% - 1px)` }}
-        />
+        {current !== undefined && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-y-0 w-0.5 bg-graph-cursor"
+            style={{ left: `calc(${x(current + 1)}% - 1px)` }}
+          />
+        )}
         {markers.map((marker) => (
           <span
             key={marker.plyIndex}

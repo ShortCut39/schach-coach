@@ -1,3 +1,5 @@
+import { handleTabKeys } from './tabKeys';
+
 interface SegmentedOption<T extends string> {
   value: T;
   label: string;
@@ -27,6 +29,17 @@ export function Segmented<T extends string>({
     <div
       role={isTabs ? 'tablist' : 'group'}
       aria-label={label}
+      onKeyDown={
+        isTabs
+          ? (event) =>
+              handleTabKeys(
+                event,
+                options.map((o) => o.value),
+                value,
+                onChange,
+              )
+          : undefined
+      }
       className="inline-flex self-start rounded-control border border-border-chip bg-bg p-[3px]"
     >
       {options.map((option) => {
@@ -42,6 +55,7 @@ export function Segmented<T extends string>({
             id={idPrefix ? `${idPrefix}-${option.value}` : undefined}
             role={isTabs ? 'tab' : undefined}
             aria-selected={isTabs ? active : undefined}
+            tabIndex={isTabs && !active ? -1 : undefined}
             aria-pressed={isTabs ? undefined : active}
             onClick={() => onChange(option.value)}
             className={`min-h-10 rounded-small px-5 text-sm transition-colors ${

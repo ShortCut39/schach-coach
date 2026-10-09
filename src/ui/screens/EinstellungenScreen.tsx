@@ -187,7 +187,10 @@ export function EinstellungenScreen() {
   const multiPvOptions = [1, 2, 3, 4, 5];
 
   return (
-    <main className="mx-auto flex w-full max-w-[1240px] flex-wrap items-start gap-6 px-5 pt-7 pb-10">
+    <main
+      id="main"
+      className="mx-auto flex w-full max-w-[1240px] flex-wrap items-start gap-6 px-5 pt-7 pb-10"
+    >
       <nav
         aria-label={t('einstellungen.sectionsLabel')}
         className="sticky top-5 flex flex-[0_0_220px] flex-col gap-0.5"

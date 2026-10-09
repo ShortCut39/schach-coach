@@ -109,7 +109,7 @@ export function ProgressCard() {
             {t('common.cancel')}
           </Button>
         )}
-        {status === 'aborted' && (
+        {(status === 'aborted' || status === 'error') && (
           <Button variant="ghost" onClick={() => void resume()}>
             {t('common.resume')}
           </Button>

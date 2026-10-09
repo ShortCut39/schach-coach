@@ -23,10 +23,13 @@ import { useGameAnalysis } from '../analyse/useGameAnalysis';
 import { useBoardKeyboard } from '../analyse/useBoardKeyboard';
 import { useCurrentEvals } from '../analyse/useAnalysisFor';
 import { KnightIcon } from '../shared/KnightIcon';
+import { SummaryView } from '../summary/SummaryView';
 import { Panel } from '../shared/Panel';
 
 export function AnalyseScreen() {
   const source = useGame((s) => s.source);
+  const view = useNavigation((s) => s.analyseView);
+  if (view === 'summary') return <SummaryView />;
   return source ? <AnalyseLayout /> : <EmptyState />;
 }
 
@@ -35,7 +38,7 @@ function EmptyState() {
   const setScreen = useNavigation((s) => s.setScreen);
 
   return (
-    <main className="flex flex-1 items-start justify-center p-5">
+    <main id="main" className="flex flex-1 items-start justify-center p-5">
       <h1 className="sr-only">{t('analyse.title')}</h1>
       <Panel className="mt-16 flex w-full max-w-[520px] flex-col items-center gap-3 px-8 py-10 text-center">
         <span className="flex size-12 items-center justify-center rounded-panel bg-accent-bg text-accent-text">
@@ -118,7 +121,7 @@ function AnalyseLayout() {
         : t('analyse.engine.start');
 
   return (
-    <main className="flex flex-wrap items-start gap-5 p-5">
+    <main id="main" className="flex flex-wrap items-start gap-5 p-5">
       <h1 className="sr-only">{t('analyse.title')}</h1>
 
       <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4">

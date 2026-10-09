@@ -41,8 +41,13 @@ export function AnalysisProgress() {
   }
   if (status === 'error') {
     return (
-      <span role="alert" className="text-danger">
-        {t('analyse.progress.error')}
+      <span className="flex items-center gap-2">
+        <span role="alert" className="text-danger">
+          {t('analyse.progress.error')}
+        </span>
+        <button type="button" onClick={() => void resume()} className={buttonClass}>
+          {t('analyse.progress.retry')}
+        </button>
       </span>
     );
   }

@@ -7,7 +7,10 @@ import { VersionBadge } from '../shared/VersionBadge';
 export function BibliothekScreen() {
   const { t } = useTranslation();
   return (
-    <main className="mx-auto flex w-full max-w-[1240px] flex-col gap-[18px] px-5 pt-7 pb-10">
+    <main
+      id="main"
+      className="mx-auto flex w-full max-w-[1240px] flex-col gap-[18px] px-5 pt-7 pb-10"
+    >
       <PageHeader title={t('bibliothek.title')} subtitle={t('bibliothek.subtitle')} />
       <div className="flex items-center gap-2.5 rounded-control border border-info-border bg-info-bg px-4 py-3 text-[13.5px] text-info-text">
         <VersionBadge version={2} />

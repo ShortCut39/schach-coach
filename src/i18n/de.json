@@ -91,8 +91,7 @@
       "coach": "Coach",
       "chat": "Chat",
       "summary": "Zusammenfassung",
-      "chatPlaceholder": "Fragen zur Stellung stellen.",
-      "summaryPlaceholder": "Hier erscheint die Zusammenfassung der Partie."
+      "chatPlaceholder": "Fragen zur Stellung stellen."
     },
     "evalBar": {
       "label": "Bewertungsbalken: {{eval}}",
@@ -122,7 +121,8 @@
       "running": "Engine {{done}} / {{total}}",
       "runningDepth": "Engine {{done}} / {{total}} · Tiefe {{depth}}",
       "aborted": "Abgebrochen bei {{done}} / {{total}}",
-      "error": "Die Engine konnte nicht gestartet werden."
+      "error": "Die Engine konnte nicht gestartet werden.",
+      "retry": "Erneut versuchen"
     },
     "stats": {
       "title": "Statistik",
@@ -398,5 +398,72 @@
     "errorsAndMyGood": "Fehler + meine guten Züge",
     "errorsOnly": "Nur Fehler",
     "all": "Alle Züge"
+  },
+  "summary": {
+    "viewLabel": "Analyse-Ansicht",
+    "board": "Brett",
+    "summary": "Zusammenfassung",
+    "title": "Zusammenfassung der Partie",
+    "subtitleYou": "Du spielst {{color}}",
+    "export": "Als Markdown exportieren",
+    "exported": "Exportiert: {{name}}",
+    "exportFailed": "Export fehlgeschlagen.",
+    "backToBoard": "Zurück zum Brett",
+    "accuracyLabel": "Genauigkeit und Kategorien",
+    "you": "Du ({{color}})",
+    "opponent": "Gegner ({{color}})",
+    "byPhase": "Genauigkeit nach Phase",
+    "categories": "Zugkategorien",
+    "turningPoints": "Wendepunkte",
+    "noTurningPoints": "Keine besonderen Wendepunkte – die Partie verlief ohne große Fehler oder brillante Züge.",
+    "tips": "Deine drei wichtigsten Tipps",
+    "tipsSource": "KI · {{model}}",
+    "tipsLoading": "Die KI schreibt deine Tipps …",
+    "tipsFailed": "Die Tipps konnten nicht erstellt werden.",
+    "tipsRequest": "Tipps anfordern",
+    "tipsNotConfigured": "Richte die KI-Anbindung ein, dann bekommst du hier drei Tipps zu deiner Partie.",
+    "opening": "Eröffnung",
+    "noOpening": "Die Partie hat das Eröffnungsbuch sofort verlassen.",
+    "theoryUntil": "Theorie bis {{move}}",
+    "openingFallback": "Die Partie blieb {{count}} Halbzüge in der Theorie.",
+    "patterns": "Muster über mehrere Partien",
+    "patternsText": "Erscheint, sobald genug Partien in der Bibliothek liegen",
+    "emptyTitle": "Noch keine Zusammenfassung",
+    "emptyGame": "Lade zuerst eine Partie, dann erscheint hier ihre Zusammenfassung.",
+    "emptyPosition": "Für eine einzelne Stellung gibt es keine Zusammenfassung.",
+    "waitingEngine": "Die Zusammenfassung erscheint, sobald die Engine die Partie bewertet hat.",
+    "openFull": "Zusammenfassung öffnen",
+    "sideText": "Genauigkeit, Wendepunkte und deine drei wichtigsten Tipps auf einen Blick."
+  },
+  "markdown": {
+    "title": "Schach-Coach: Analyse",
+    "players": "Partie",
+    "date": "Datum",
+    "result": "Ergebnis",
+    "youPlay": "Du spielst",
+    "opening": "Eröffnung",
+    "accuracy": "Genauigkeit",
+    "player": "Spieler",
+    "overall": "Gesamt",
+    "categories": "Zugkategorien",
+    "category": "Kategorie",
+    "turningPoints": "Wendepunkte",
+    "tips": "Die drei wichtigsten Tipps",
+    "moves": "Züge und Erklärungen",
+    "move": "Zug",
+    "eval": "Bewertung",
+    "explanation": "Erklärung",
+    "generated": "Erstellt mit Schach-Coach. Bewertungen: {{engine}}, Tiefe {{depth}}. Erklärungen: KI auf Basis der Engine-Daten.",
+    "noAi": "Ohne KI-Erklärungen.",
+    "fileName": "schach-coach-{{name}}.md"
+  },
+  "errors": {
+    "boundaryTitle": "Hier ist etwas schiefgelaufen",
+    "boundaryText": "Dieser Bereich konnte nicht angezeigt werden. Deine Partie ist gespeichert.",
+    "boundaryRetry": "Erneut versuchen",
+    "boundaryReload": "App neu laden"
+  },
+  "a11y": {
+    "skipToContent": "Zum Inhalt springen"
   }
 }

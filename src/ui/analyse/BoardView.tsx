@@ -20,6 +20,13 @@ const notationBase: CSSProperties = {
   userSelect: 'none',
 };
 
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 /** Nur-Anzeige-Brett (kein Ziehen). Figuren: SVG-Satz von react-chessboard. */
 export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardViewProps) {
   const colors = boardColors(useSettings((s) => s.boardTheme));
@@ -41,7 +48,7 @@ export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardV
           boardOrientation: orientation,
           allowDragging: false,
           allowDrawingArrows: false,
-          showAnimations: true,
+          showAnimations: !prefersReducedMotion(),
           animationDurationInMs: 150,
           lightSquareStyle: { backgroundColor: colors.light },
           darkSquareStyle: { backgroundColor: colors.dark },

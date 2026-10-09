@@ -113,7 +113,7 @@ export function ImportScreen() {
   ] as const;
 
   return (
-    <main className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-5 pt-7 pb-10">
+    <main id="main" className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-5 pt-7 pb-10">
       <PageHeader title={t('import.title')} subtitle={t('import.subtitle')} />
 
       <div className="flex flex-wrap items-start gap-5">

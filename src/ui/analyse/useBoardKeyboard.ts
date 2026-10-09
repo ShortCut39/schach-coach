@@ -1,9 +1,14 @@
 import { useEffect } from 'react';
 import { useGame } from '../../store/game';
 
+/** Felder und Bedienelemente, die Pfeiltasten selbst brauchen (Reiter, Radiogruppen, Regler) */
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+  return (
+    target.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+    target.closest('[role="tablist"], [role="radiogroup"], [role="slider"]') !== null
+  );
 }
 
 /** Tastatur: ←/→ Zug, Pos1/Ende, F Brett drehen. Nicht aktiv, während in ein Feld getippt wird. */

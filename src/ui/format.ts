@@ -9,3 +9,12 @@ export function formatPercent(value: number | undefined): string {
   }).format(value);
   return `${number} %`;
 }
+
+/** Farbe nach Genauigkeit (Zahl steht immer dabei, die Farbe ist nur zusätzlich). */
+export function accuracyColor(value: number | undefined): string {
+  if (value === undefined) return 'var(--sc-text-muted)';
+  if (value >= 85) return 'var(--sc-success)';
+  if (value >= 70) return 'var(--sc-cat-inaccuracy)';
+  if (value >= 50) return 'var(--sc-cat-mistake)';
+  return 'var(--sc-cat-blunder)';
+}
