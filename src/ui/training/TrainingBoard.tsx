@@ -13,6 +13,7 @@ import { useSettings } from '../../store/settings';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
 import { notationBase, prefersReducedMotion } from '../analyse/boardStyle';
 import { boardColors } from '../boardThemes';
+import { withCheckHighlight } from '../boardSquares';
 
 interface TrainingBoardProps {
   fen: string;
@@ -117,6 +118,8 @@ export function TrainingBoard({
     };
   }
 
+  const styles = withCheckHighlight(fen, squareStyles);
+
   return (
     <div
       role="group"
@@ -142,7 +145,7 @@ export function TrainingBoard({
           darkSquareNotationStyle: { color: colors.light },
           alphaNotationStyle: { ...notationBase, position: 'absolute', bottom: '3%', right: '6%' },
           numericNotationStyle: { ...notationBase, position: 'absolute', top: '4%', left: '6%' },
-          squareStyles,
+          squareStyles: styles,
         }}
       />
       <BoardOverlay orientation={orientation} arrows={arrows} />

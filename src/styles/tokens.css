@@ -73,6 +73,10 @@
   --sc-board-coord-on-dark: #cfd8dc;
   --sc-board-shadow: 0 0 0 1px #1e2530, 0 14px 34px rgba(0, 0, 0, 0.5);
   --sc-last-move: rgba(255, 214, 90, 0.5);
+  /* König im Schach (Rot der Patzer-Kategorie), bei Matt kräftiger */
+  --sc-check: rgba(240, 60, 48, 0.8);
+  --sc-check-strong: rgba(255, 52, 40, 1);
+  --sc-check-ring: #ff3b30;
   /* Mögliche Zielfelder beim Ziehen im Training (Punkt bzw. Ring) */
   --sc-move-target: rgba(12, 18, 26, 0.55);
 

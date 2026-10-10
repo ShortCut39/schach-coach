@@ -4,6 +4,7 @@ import { notationBase, prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
 import { useSettings } from '../../store/settings';
 import { boardColors } from '../boardThemes';
+import { withCheckHighlight } from '../boardSquares';
 
 interface BoardViewProps {
   fen: string;
@@ -18,9 +19,10 @@ interface BoardViewProps {
 export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardViewProps) {
   const colors = boardColors(useSettings((s) => s.boardTheme));
   const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
-  const squareStyles: Record<string, CSSProperties> = lastMove
-    ? { [lastMove.from]: highlight, [lastMove.to]: highlight }
-    : {};
+  const squareStyles = withCheckHighlight(
+    fen,
+    lastMove ? { [lastMove.from]: highlight, [lastMove.to]: highlight } : {},
+  );
 
   return (
     <div
