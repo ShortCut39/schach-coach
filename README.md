@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Neu: **Pakete für Windows und macOS**, gebaut von GitHub Actions.
+> **Stand: Version 3.** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Neu: **Pakete für Windows und macOS** (macOS experimentell), gebaut von GitHub Actions.
 
 ## Bedienung
 
@@ -135,9 +135,11 @@ Die Pakete liegen danach unter `src-tauri/target/release/bundle/`:
 
 Pakete für alle drei Systeme baut GitHub Actions (`.github/workflows/build.yml`), denn eine macOS-App lässt sich nur auf einem Mac bauen und ein Windows-Installer nur sinnvoll unter Windows.
 
+> **macOS ist experimentell.** Das Paket wird gebaut und signiert (ad hoc), wurde aber noch auf keinem Mac ausprobiert. Linux und Windows sind getestet. Wer es auf einem Mac testet: Rückmeldungen sind willkommen.
+
 - **Bauen:** auf GitHub im Reiter „Actions“ → „Build“ → „Run workflow“. Nach etwa 15–25 Minuten liegen die Pakete unten am Lauf unter „Artifacts“. Ein Git-Tag wie `v0.1.0` baut zusätzlich einen Release-Entwurf mit allen Paketen.
 - **Windows** (`Schach-Coach_<version>_x64-setup.exe`): Das Installationsprogramm installiert nur für den aktuellen Benutzer und braucht keine Administratorrechte. Weil das Paket nicht signiert ist, zeigt Windows beim ersten Start „Der Computer wurde durch Windows geschützt“: auf „Weitere Informationen“ → „Trotzdem ausführen“.
-- **macOS** (`Schach-Coach_<version>_universal.dmg`, für Apple Silicon und Intel, ab macOS 11): App aus dem DMG in „Programme“ ziehen. Die App ist nur ad hoc signiert (kein Apple-Entwicklerkonto). Beim ersten Öffnen meldet macOS deshalb, dass der Entwickler nicht überprüft werden kann. Dann: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“. Bei älteren macOS-Versionen geht auch Rechtsklick auf die App → „Öffnen“.
+- **macOS, experimentell** (`Schach-Coach_<version>_universal.dmg`, für Apple Silicon und Intel, ab macOS 11): App aus dem DMG in „Programme“ ziehen. Die App ist nur ad hoc signiert (kein Apple-Entwicklerkonto). Beim ersten Öffnen meldet macOS deshalb, dass der Entwickler nicht überprüft werden kann. Dann: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“. Bei älteren macOS-Versionen geht auch Rechtsklick auf die App → „Öffnen“.
 - **Engine:** Jedes Paket enthält die offizielle Stockfish-19-Binary für sein System (`pnpm fetch:engine --target <triple>`, Prüfsummen fest im Skript). Unter macOS ist das die Universal-Binary für beide Prozessor-Typen.
 - **Schlüsselbund:** Der API-Key liegt unter Windows in der Anmeldeinformationsverwaltung, unter macOS im Schlüsselbund, je Endpunkt getrennt wie unter Linux.
 - **Daten:** Einstellungen und Bibliothek liegen im üblichen App-Datenordner des Systems, unter Windows in `%APPDATA%\de.schachcoach.desktop`, unter macOS in `~/Library/Application Support/de.schachcoach.desktop`.
