@@ -1,8 +1,14 @@
 # Schach-Coach
 
-Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
+**Deutsch** · [English](README.en.md)
+
+Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachen Worten, auf Deutsch oder Englisch – auch die guten.
 
 > **Stand: Version 3.** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Neu: **Pakete für Windows und macOS** (macOS experimentell), gebaut von GitHub Actions.
+
+## Download
+
+Fertige Pakete für Linux (AppImage, deb), Windows (Installationsprogramm) und macOS (DMG, experimentell) gibt es unter [Releases](https://github.com/ShortCut39/schach-coach/releases). Hinweise zur ersten Ausführung unter Windows und macOS stehen im Abschnitt [Windows und macOS](#windows-und-macos).
 
 ## Bedienung
 
@@ -53,10 +59,10 @@ Alle Werte sind Gewinnchancen in Prozent aus Sicht des Ziehenden, berechnet aus 
 | Theorie                         | Stellung nach dem Zug steht im Lichess-Eröffnungsbuch, und die Partie war bis dahin ununterbrochen im Buch. Gezählt werden nur benannte Buchstellungen.                       |
 | Beste                           | gespielter Zug = Engine-Zug 1                                                                                                                                                 |
 | Ausgezeichnet / Gut             | Verlust ≤ 2 / < 5                                                                                                                                                             |
-| Ungenauigkeit / Fehler / Patzer | Verlust ab 5 / 10 / 20 (später in den Einstellungen änderbar)                                                                                                                 |
+| Ungenauigkeit / Fehler / Patzer | Verlust ab 5 / 10 / 20 (in den Einstellungen änderbar)                                                                                                                        |
 | Verpasst                        | Der Gegner hat vorher ≥ 10 verloren, der Bestzug hätte klar gewonnen (≥ 80), und du verlierst ≥ 10.                                                                           |
 | Großartig                       | Beste/Ausgezeichnet. Die beste Engine-Alternative (ein anderer Zug) ist ≥ 10 schlechter, und die Stellung war nicht entschieden (zwischen 10 und 90).                         |
-| Brillant                        | Beste/Ausgezeichnet mit Figurenopfer (Materialverlust ≥ 3 entlang der Hauptvariante, nicht sofort zurückgewonnen). Danach mindestens 50, und vorher nicht entschieden (< 90). |
+| Brillant                        | Beste/Ausgezeichnet mit Figurenopfer (Materialverlust ≥ 2 entlang der Hauptvariante, nicht sofort zurückgewonnen). Danach mindestens 50, und vorher nicht entschieden (< 90). |
 
 **Anpassungen gegenüber dem Projektdokument** (alle mit Tests):
 
@@ -173,7 +179,7 @@ Design-Vorlagen: `docs/mockups/` (nur lokal, nicht im Repository).
 - **Bibliothek auf der Festplatte:** unter Linux `~/.local/share/de.schachcoach.desktop/library/` (je Partie eine Metadaten- und eine Datendatei; Windows und macOS siehe oben). Im Browser-Modus liegt sie im `localStorage` des Browsers.
 - **Online-Import:** Lichess und Chess.com blockieren Anfragen ohne passenden User-Agent. Die App schickt den User-Agent des Tauri-HTTP-Plugins mit, und beide Schnittstellen nehmen ihn an (getestet im Oktober 2026). Ändert eine Plattform ihre Regeln, meldet die App „nicht verwertbar“ oder „nicht erreichbar“.
 - **Muster:** Die Motive sind einfache, regelbasierte Näherungen. Kombinationen und positionelle Fehler landen unter „Sonstiges“. Kennzahlen älterer Bibliothekseinträge rechnet die App beim ersten Öffnen der Muster-Seite einmal aus den gespeicherten Bewertungen nach.
-- **Training:** Aufgaben entstehen aus den gespeicherten Fehlern der Bibliothek. Wird eine Partie gelöscht, verschwinden ihre Aufgaben. Der Lernstand liegt in den Einstellungen der App (`trainingCards`). Die Zugprüfung vergleicht die gespeicherte Bewertung vor dem Zug mit einer neuen, oft etwas flacheren Rechnung danach; bei Zügen knapp an der 2-Punkte-Grenze kann das Urteil deshalb schwanken. Die englischen Screenreader-Hinweise der Zieh-Bibliothek (dnd-kit) sind ausgeblendet, weil react-chessboard sie nicht übersetzen lässt. Die App sagt Züge stattdessen selbst auf Deutsch an, und das Eingabefeld ist die Alternative zum Ziehen mit der Maus.
+- **Training:** Aufgaben entstehen aus den gespeicherten Fehlern der Bibliothek. Wird eine Partie gelöscht, verschwinden ihre Aufgaben. Der Lernstand liegt in den Einstellungen der App (`trainingCards`). Die Zugprüfung vergleicht die gespeicherte Bewertung vor dem Zug mit einer neuen, oft etwas flacheren Rechnung danach; bei Zügen knapp an der 2-Punkte-Grenze kann das Urteil deshalb schwanken. Die englischen Screenreader-Hinweise der Zieh-Bibliothek (dnd-kit) sind ausgeblendet, weil react-chessboard sie nicht übersetzen lässt. Die App sagt Züge stattdessen selbst in der eingestellten Sprache an, und das Eingabefeld ist die Alternative zum Ziehen mit der Maus.
 - **Chat:** Er braucht eine Engine-Bewertung der angezeigten Stellung. Solange die Engine noch rechnet, ist Senden gesperrt.
 - **Kontrast:** Alle Texttöne erreichen in beiden Farbschemata WCAG AA (4,5:1). Dafür wurde das Token „schwach“ auf `#7f8999` aufgehellt (Design: `#6c7686`). Knapp darunter liegen weiterhin das Patzer-Icon (weiß auf `#e0453a`, 4,1:1) und die Brettkoordinaten (3,4:1), beide wie im Design.
 - Die Zusammenfassungs-Ansicht und der Reiter „Brett/Zusammenfassung“ werden nicht über einen Neustart gemerkt, die App startet immer auf dem Brett.
@@ -197,7 +203,7 @@ Design-Vorlagen: `docs/mockups/` (nur lokal, nicht im Repository).
 - Bewertungen werden nur im Arbeitsspeicher zwischengespeichert, nicht über einen Neustart hinweg.
 - Eröffnungsnamen kommen aus dem Lichess-Buch und sind englisch (z. B. „Philidor Defense“).
 - Mit geringer Tiefe (z. B. 14) bewertet Stockfish manche Stellungen spürbar anders als mit Tiefe 20. Das ändert auch die Kategorien.
-- Gebaut und getestet wird vorerst nur unter Linux.
+- Getestet ist die App unter Linux und Windows; macOS wird gebaut, ist aber ungetestet.
 
 ## Lizenz
 

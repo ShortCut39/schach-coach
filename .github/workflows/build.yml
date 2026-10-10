@@ -87,7 +87,7 @@ jobs:
           args: ${{ matrix.args }}
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
           releaseName: 'Schach-Coach ${{ github.ref_name }}'
-          releaseBody: 'Pakete für Linux, Windows und macOS. Hinweise zur Installation stehen in der README.'
+          releaseBody: 'Pakete für Linux, Windows und macOS (experimentell). Installation: siehe README. · Packages for Linux, Windows and macOS (experimental). Installation: see README.en.md.'
           releaseDraft: true
 
       - uses: actions/upload-artifact@v4
