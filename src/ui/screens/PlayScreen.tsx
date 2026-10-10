@@ -12,6 +12,7 @@ import { EvalBar } from '../analyse/EvalBar';
 import { colorName } from '../chessText';
 import { ActionBar } from '../play/ActionBar';
 import { HelpersCard } from '../play/HelpersCard';
+import { DrawOfferCard, LiveBand, OpponentGoneCard, TakebackOfferCard } from '../play/LiveCards';
 import { NewGamePanel } from '../play/NewGamePanel';
 import { PlayerCard } from '../play/PlayerCard';
 import { PlayMoveList } from '../play/PlayMoveList';
@@ -61,7 +62,12 @@ export function PlayScreen() {
   const fen = view?.fen ?? DEFAULT_POSITION;
   const last = view?.plies.at(-1);
   const interactive =
-    !!view && view.status === 'playing' && view.turn === view.myColor && !view.waiting;
+    !!view &&
+    view.status === 'playing' &&
+    view.turn === view.myColor &&
+    !view.waiting &&
+    // Live-Partie: nur ziehen, solange die Verbindung steht
+    (!view.live || view.live.connection === 'connected');
   const arrows: BoardArrow[] =
     hint && hint.fen === fen
       ? [{ kind: 'best', from: hint.uci.slice(0, 2), to: hint.uci.slice(2, 4) }]
@@ -105,6 +111,7 @@ export function PlayScreen() {
       <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-3 4xl:flex-[0_1_460px]">
         {view ? (
           <>
+            <LiveBand view={view} />
             <PlayerCard
               color={topColor}
               player={view.players[topColor]}
@@ -125,12 +132,17 @@ export function PlayScreen() {
                 ? t(`play.notices.${notice}`)
                 : view.status === 'playing'
                   ? view.waiting
-                    ? t('play.status.opponentThinking')
+                    ? view.live
+                      ? t('play.status.sending')
+                      : t('play.status.opponentThinking')
                     : view.turn === view.myColor
                       ? t('play.status.yourTurn')
                       : t('play.status.opponentTurn')
                   : ''}
             </p>
+            <DrawOfferCard view={view} />
+            <TakebackOfferCard view={view} />
+            <OpponentGoneCard view={view} />
             {view.status === 'ended' ? (
               <ResultCard
                 view={view}
@@ -151,7 +163,11 @@ export function PlayScreen() {
               <ActionBar
                 view={view}
                 canAbort={session?.canAbort() ?? false}
-                canOfferDraw={local ? local.canOfferDraw() : view.status === 'playing'}
+                canOfferDraw={
+                  local
+                    ? local.canOfferDraw()
+                    : view.status === 'playing' && view.drawOffer !== view.myColor
+                }
               />
             )}
             {local && local.capabilities.hints && view.status === 'playing' && (

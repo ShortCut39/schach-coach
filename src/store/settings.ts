@@ -28,6 +28,8 @@ const DEFAULT_PLAY = {
   color: 'random' as const,
   evalBar: false,
   rated: false,
+  mode: 'local' as const,
+  lichessNoticeSeen: false,
 };
 
 /**
@@ -88,6 +90,10 @@ export const settingsSchema = z.object({
       evalBar: z.boolean().catch(DEFAULT_PLAY.evalBar),
       /** Lichess: gewertet suchen */
       rated: z.boolean().catch(DEFAULT_PLAY.rated),
+      /** Zuletzt gewählter Gegner: lokal gegen Stockfish oder Lichess */
+      mode: z.enum(['local', 'lichess']).catch(DEFAULT_PLAY.mode),
+      /** Fair-Play-Hinweis vor der ersten Lichess-Partie bestätigt */
+      lichessNoticeSeen: z.boolean().catch(DEFAULT_PLAY.lichessNoticeSeen),
     })
     .catch(DEFAULT_PLAY),
   /** Zuletzt genutztes Konto für den Online-Import */

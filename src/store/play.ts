@@ -6,13 +6,19 @@ import { remainingAt, LOW_TIME_MS } from '../play/clock/clock';
 import { StockfishOpponent } from '../play/opponent/stockfishOpponent';
 import type { Level } from '../play/opponent/levels';
 import { timeControl } from '../play/rules/timeControl';
+import { LichessSession } from '../play/session/LichessSession';
 import { LocalSession } from '../play/session/LocalSession';
 import type { BoardMoveInput, GameSession, GameViewState } from '../play/session/types';
+import { activateLiveGuard, releaseLiveGuard } from '../play/liveGuard';
+import { LichessError, type LichessErrorCode } from '../play/lichess/client';
+import { LichessLobby, type SeekParams } from '../play/lichess/lobby';
+import { nowPlayingSchema, type LichessEventGame, type NowPlaying } from '../play/lichess/mapper';
 import { buildPgn, type PgnInfo } from '../play/pgn';
 import { moveSound, playSound, type SoundKind } from '../play/sound';
 import { getEngine } from './engine';
 import { useGame, type Orientation } from './game';
 import { useLibrary } from './library';
+import { lichessClient, useLichessAuth } from './lichessAuth';
 import { useNavigation } from './navigation';
 import { analyseAndExplain } from './pipeline';
 import { pickSettings, useSettings } from './settings';
@@ -45,6 +51,12 @@ interface PlayState {
   pgnInfo: PgnInfo | null;
   /** Die beendete Partie als eingelesenes PGN (für „Partie analysieren“); `null` bei Abbruch */
   finishedGame: Game | null;
+  /** Lichess: Suche, Fehler der Suche, laufende Partien zum Fortsetzen */
+  lichess: {
+    seeking: SeekParams | null;
+    error: { code: LichessErrorCode; detail?: string | undefined } | null;
+    ongoing: NowPlaying[];
+  };
 
   startLocal: (setup: LocalSetup) => void;
   playMove: (move: BoardMoveInput) => void;
@@ -54,6 +66,16 @@ interface PlayState {
   offerDraw: () => Promise<void>;
   respondDraw: (accept: boolean) => Promise<void>;
   abort: () => Promise<void>;
+  /** Lichess: Gegner suchen (öffnet vorher den Ereignisstrom) */
+  startSeek: (params: SeekParams) => Promise<void>;
+  cancelSeek: () => void;
+  /** Laufende Lichess-Partien abfragen (beim Start und nach der Anmeldung) */
+  refreshOngoing: () => Promise<void>;
+  /** Laufende Lichess-Partie fortsetzen */
+  resumeLichess: (gameId: string) => void;
+  respondTakeback: (accept: boolean) => Promise<void>;
+  claimVictory: () => Promise<void>;
+  claimDraw: () => Promise<void>;
   /** Beendete Partie an die Analyse übergeben (aus meiner Sicht) und dorthin wechseln */
   analyseFinished: () => void;
   flip: () => void;
@@ -95,13 +117,42 @@ function soundFor(previous: GameViewState | null, next: GameViewState): void {
   }
 }
 
+/** PGN-Angaben einer Lichess-Partie (Event wie bei Lichess, Site = Partieseite, Wertungen) */
+function lichessPgnInfo(state: GameViewState): PgnInfo | null {
+  const live = state.live;
+  if (!live) return null;
+  const speed = live.speed.charAt(0).toUpperCase() + live.speed.slice(1);
+  const ratings: Partial<Record<Color, number>> = {};
+  if (state.players.w.rating !== undefined) ratings.w = state.players.w.rating;
+  if (state.players.b.rating !== undefined) ratings.b = state.players.b.rating;
+  return {
+    event: `${live.rated ? 'Rated' : 'Casual'} ${speed} game`,
+    site: `https://lichess.org/${live.gameId}`,
+    names: { w: state.players.w.name, b: state.players.b.name },
+    ratings,
+  };
+}
+
+/** Nur Echtzeit-Partien in normalem Schach, die die Board-API spielen kann */
+function playableHere(game: Pick<LichessEventGame, 'variant' | 'speed' | 'compat'>): boolean {
+  return (
+    (game.variant?.key ?? 'standard') === 'standard' &&
+    game.speed !== 'correspondence' &&
+    game.compat?.board !== false
+  );
+}
+
+let lobby: LichessLobby | null = null;
+
 export const usePlay = create<PlayState>()((set, get) => {
   /**
    * Partie zu Ende: PGN bauen, in der Bibliothek ablegen („nicht analysiert“) und – falls
    * eingestellt – gleich analysieren. Abgebrochene Partien zählen nicht.
    */
   function onFinished(state: GameViewState): void {
-    const info = get().pgnInfo;
+    // Live-Partie zu Ende: Sperre sofort aufheben (Analyse ist danach erlaubt)
+    if (state.live) releaseLiveGuard(state.live.gameId);
+    const info = state.live ? lichessPgnInfo(state) : get().pgnInfo;
     if (!info || state.outcome?.reason === 'aborted' || state.plies.length === 0) return;
     const parsed = parsePgnGame(buildPgn(state, info));
     if (!parsed.ok) return;
@@ -131,7 +182,13 @@ export const usePlay = create<PlayState>()((set, get) => {
       const previous = get().view;
       soundFor(previous, state);
       const moved = previous && previous.fen !== state.fen;
-      set({ view: state, ...(moved ? { hint: null, evaluation: null } : {}) });
+      // Lichess: Farbe steht erst nach dem ersten Stand fest → eigene Farbe unten
+      const colorKnown = previous?.status === 'starting' && state.status !== 'starting';
+      set({
+        view: state,
+        ...(moved ? { hint: null, evaluation: null } : {}),
+        ...(colorKnown ? { orientation: state.myColor === 'w' ? 'white' : 'black' } : {}),
+      });
       if (moved) void refreshEvalBar();
       if (state.status === 'ended' && previous?.status !== 'ended') onFinished(state);
     });
@@ -153,6 +210,45 @@ export const usePlay = create<PlayState>()((set, get) => {
     }, 250);
   }
 
+  /** Lichess-Partie übernehmen: Sperre sofort an, dann Partiestrom öffnen */
+  function attachLichess(gameId: string): void {
+    const current = get().session;
+    if (current instanceof LichessSession && current.gameId === gameId) return;
+    const account = useLichessAuth.getState().account;
+    if (!account) return;
+    activateLiveGuard(gameId);
+    const session = new LichessSession({ gameId, client: lichessClient(), accountId: account.id });
+    attach(session, 'w', { event: '', site: '', names: { w: '', b: '' } });
+    set((s) => ({
+      lichess: {
+        ...s.lichess,
+        seeking: null,
+        error: null,
+        ongoing: s.lichess.ongoing.filter((g) => g.gameId !== gameId),
+      },
+    }));
+    useNavigation.getState().setScreen('spielen');
+    session.start();
+  }
+
+  function getLobby(): LichessLobby {
+    lobby ??= new LichessLobby(lichessClient(), {
+      onGameStart: (game) => {
+        // Nur während einer Suche automatisch übernehmen (sonst über „Fortsetzen“)
+        if (get().lichess.seeking && playableHere(game)) attachLichess(game.gameId);
+        else void get().refreshOngoing();
+      },
+      onGameFinish: (game) => {
+        const session = get().session;
+        // Sicherheitsnetz: Die Partie selbst meldet ihr Ende über den Partiestrom
+        if (!(session instanceof LichessSession) || session.gameId !== game.gameId) {
+          releaseLiveGuard(game.gameId);
+        }
+      },
+    });
+    return lobby;
+  }
+
   return {
     session: null,
     view: null,
@@ -162,6 +258,63 @@ export const usePlay = create<PlayState>()((set, get) => {
     evaluation: null,
     pgnInfo: null,
     finishedGame: null,
+    lichess: { seeking: null, error: null, ongoing: [] },
+
+    startSeek: async (params) => {
+      if (get().lichess.seeking) return;
+      set((s) => ({ lichess: { ...s.lichess, seeking: params, error: null } }));
+      try {
+        await getLobby().seek(params);
+      } catch (error) {
+        const code = error instanceof LichessError ? error.code : 'unreachable';
+        const detail = error instanceof LichessError ? error.detail : undefined;
+        set((s) => ({ lichess: { ...s.lichess, error: { code, detail } } }));
+      } finally {
+        // Gepaart (gameStart kam) oder abgebrochen bzw. abgelehnt
+        set((s) => ({ lichess: { ...s.lichess, seeking: null } }));
+      }
+    },
+
+    cancelSeek: () => {
+      lobby?.cancelSeek();
+      set((s) => ({ lichess: { ...s.lichess, seeking: null } }));
+    },
+
+    refreshOngoing: async () => {
+      if (useLichessAuth.getState().status !== 'loggedIn') return;
+      try {
+        const parsed = nowPlayingSchema.safeParse(
+          await lichessClient().json('/api/account/playing?nb=9'),
+        );
+        const ongoing = parsed.success ? parsed.data.nowPlaying.filter(playableHere) : [];
+        const current = get().session;
+        set((s) => ({
+          lichess: {
+            ...s.lichess,
+            ongoing: ongoing.filter(
+              (g) => !(current instanceof LichessSession && current.gameId === g.gameId),
+            ),
+          },
+        }));
+      } catch {
+        // Ohne Verbindung keine Liste; die Partie läuft auf Lichess trotzdem weiter
+      }
+    },
+
+    resumeLichess: (gameId) => attachLichess(gameId),
+
+    respondTakeback: async (accept) => {
+      const { session } = get();
+      if (session instanceof LichessSession) await session.respondTakeback(accept);
+    },
+    claimVictory: async () => {
+      const { session } = get();
+      if (session instanceof LichessSession) await session.claimVictory();
+    },
+    claimDraw: async () => {
+      const { session } = get();
+      if (session instanceof LichessSession) await session.claimDraw();
+    },
 
     startLocal: (setup) => {
       const myColor = resolveColor(setup.color);
@@ -238,7 +391,12 @@ export const usePlay = create<PlayState>()((set, get) => {
     },
     flip: () => set((s) => ({ orientation: s.orientation === 'white' ? 'black' : 'white' })),
     close: () => {
-      get().session?.dispose();
+      const { session } = get();
+      // Eine Live-Partie wird nur nach ihrem Ende geschlossen; die Sperre gilt dann nicht mehr
+      if (session instanceof LichessSession && session.state.status === 'ended') {
+        releaseLiveGuard(session.gameId);
+      }
+      session?.dispose();
       unsubscribe?.();
       unsubscribe = null;
       if (lowTimeTimer) clearInterval(lowTimeTimer);
@@ -281,3 +439,26 @@ async function refreshEvalBar(): Promise<void> {
     // Ohne Bewertung bleibt der Balken neutral
   }
 }
+
+// Nach der Anmeldung (auch beim App-Start) laufende Lichess-Partien abfragen und anbieten; nach dem Abmelden
+// den Ereignisstrom schließen
+useLichessAuth.subscribe((state, previous) => {
+  if (state.status === previous.status) return;
+  if (state.status === 'loggedIn') {
+    void usePlay
+      .getState()
+      .refreshOngoing()
+      .then(() => {
+        // Laufende Partie (z. B. nach einem Neustart): Uhr tickt schon → gleich zu „Spielen“
+        const { lichess, session } = usePlay.getState();
+        if (lichess.ongoing.length > 0 && !session) {
+          useNavigation.getState().setScreen('spielen');
+        }
+      });
+  }
+  if (state.status === 'loggedOut') {
+    lobby?.close();
+    lobby = null;
+    usePlay.setState((s) => ({ lichess: { ...s.lichess, seeking: null, ongoing: [] } }));
+  }
+});

@@ -24,7 +24,28 @@ export type GameStatus = 'starting' | 'playing' | 'ended';
 
 /** Kurze Meldungen an den Nutzer (die Oberfläche übersetzt sie) */
 export type SessionNotice =
-  'moveRejected' | 'drawDeclined' | 'drawOfferSent' | 'opponentError' | 'connectionLost';
+  | 'moveRejected'
+  | 'drawDeclined'
+  | 'drawOfferSent'
+  | 'opponentError'
+  | 'connectionLost'
+  | 'actionFailed'
+  | 'rateLimited';
+
+export type ConnectionState = 'connecting' | 'connected' | 'reconnecting';
+
+/** Nur bei Lichess-Partien */
+export interface LiveInfo {
+  gameId: string;
+  rated: boolean;
+  /** Tempo laut Lichess (`rapid`, `classical` …) */
+  speed: string;
+  connection: ConnectionState;
+  /** Gegner hat die Partie verlassen; ab `claimWinAt` (performance.now) kann Sieg beansprucht werden */
+  opponentGone: { claimWinAt: number | null } | null;
+  /** Offener Rücknahmewunsch und von wem */
+  takebackOffer: Color | null;
+}
 
 /** Alles, was die Spielen-Seite anzeigt. Unveränderlich: jede Änderung ist ein neues Objekt. */
 export interface GameViewState {
@@ -52,6 +73,8 @@ export interface GameViewState {
   takebacks: number;
   /** Datum des Partiebeginns (für das PGN) */
   startedAt: Date;
+  /** Nur Lichess: Partie-Kennung, Verbindung, Gegner weg … */
+  live?: LiveInfo;
 }
 
 /** Welche Hilfen die Oberfläche anbieten darf. Bei Lichess ist alles aus. */

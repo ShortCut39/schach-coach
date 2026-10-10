@@ -754,14 +754,17 @@
     "status": {
       "yourTurn": "Du bist am Zug.",
       "opponentTurn": "Dein Gegner ist am Zug.",
-      "opponentThinking": "Stockfish überlegt …"
+      "opponentThinking": "Stockfish überlegt …",
+      "sending": "Zug wird gesendet …"
     },
     "notices": {
       "moveRejected": "Dieser Zug wurde nicht angenommen.",
       "drawDeclined": "Stockfish lehnt das Remis ab.",
       "drawOfferSent": "Remis angeboten.",
       "opponentError": "Stockfish konnte keinen Zug berechnen. Nimm deinen letzten Zug zurück oder starte eine neue Partie.",
-      "connectionLost": "Verbindung unterbrochen."
+      "connectionLost": "Verbindung unterbrochen.",
+      "rateLimited": "Lichess meldet zu viele Anfragen. Bitte eine Minute warten.",
+      "actionFailed": "Lichess hat die Aktion abgelehnt."
     },
     "newGame": {
       "title": "Neue Partie",
@@ -777,7 +780,13 @@
       "level": "Stärke",
       "levelNote": "Die Stufen sind ungefähre Einordnungen, keine genauen Elo-Werte.",
       "helpersInfo": "Während der Partie kannst du dir Tipps zeigen lassen, Züge zurücknehmen und den Bewertungsbalken einschalten.",
-      "start": "Partie starten"
+      "start": "Partie starten",
+      "subtitleLichess": "Live gegen Menschen auf Lichess – ohne jede Hilfe. Nach der Partie kannst du sie analysieren.",
+      "opponent": "Gegner",
+      "modes": {
+        "local": "Gegen Stockfish",
+        "lichess": "Lichess"
+      }
     },
     "speed": {
       "ultraBullet": "UltraBullet",
@@ -851,6 +860,43 @@
     "pgn": {
       "localEvent": "Partie gegen Stockfish",
       "localSite": "Schach-Coach (lokal)"
+    },
+    "lichess": {
+      "ongoing": "Laufende Partie auf Lichess",
+      "ongoingGame": "gegen {{opponent}} ({{speed}})",
+      "resume": "Fortsetzen",
+      "loginFirst": "Für Live-Partien musst du dich zuerst bei Lichess anmelden.",
+      "toSettings": "Zu den Einstellungen",
+      "account": "Angemeldet als {{name}} · Rapid {{rating}}",
+      "tooFast": "Lichess erlaubt offene Suchen über die Board-API erst ab Rapid (Grundzeit + 40 × Inkrement mindestens 8 Minuten).",
+      "rated": "Gewertet",
+      "ratedHint": "Die Partie zählt für deine Lichess-Wertung.",
+      "fairPlayTitle": "Fair Play:",
+      "fairPlay": "Während der Partie sind alle Hilfen aus – Engine, Bewertung, Tipps, Coach und KI –, auch nach dem Absenden eines Zugs. Die Analyse gibt es erst nach Partieende. So verlangt es Lichess.",
+      "understood": "Verstanden",
+      "seeking": "Suche läuft … ({{time}}, {{kind}})",
+      "ratedShort": "gewertet",
+      "casualShort": "ungewertet",
+      "cancelSeek": "Suche abbrechen",
+      "seek": "Gegner suchen"
+    },
+    "live": {
+      "band": "Live-Partie auf Lichess: Hilfen sind aus",
+      "ended": "Live-Partie beendet – Hilfen sind wieder da",
+      "connection": {
+        "connecting": "verbindet …",
+        "connected": "verbunden",
+        "reconnecting": "Verbindung unterbrochen, verbindet neu …"
+      },
+      "drawOffered": "Du hast Remis angeboten.",
+      "drawOfferTitle": "Dein Gegner bietet Remis an",
+      "accept": "Annehmen",
+      "decline": "Ablehnen",
+      "takebackTitle": "Dein Gegner möchte seinen Zug zurücknehmen",
+      "opponentGone": "Dein Gegner hat die Partie verlassen.",
+      "claimIn": "Du kannst in {{seconds}} s den Sieg beanspruchen.",
+      "claimVictory": "Sieg beanspruchen",
+      "claimDraw": "Remis beanspruchen"
     }
   },
   "lichess": {

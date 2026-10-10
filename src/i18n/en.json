@@ -754,14 +754,17 @@
     "status": {
       "yourTurn": "Your move.",
       "opponentTurn": "Your opponent is to move.",
-      "opponentThinking": "Stockfish is thinking …"
+      "opponentThinking": "Stockfish is thinking …",
+      "sending": "Sending move …"
     },
     "notices": {
       "moveRejected": "This move was not accepted.",
       "drawDeclined": "Stockfish declines the draw.",
       "drawOfferSent": "Draw offered.",
       "opponentError": "Stockfish could not calculate a move. Take back your last move or start a new game.",
-      "connectionLost": "Connection lost."
+      "connectionLost": "Connection lost.",
+      "rateLimited": "Lichess reports too many requests. Please wait a minute.",
+      "actionFailed": "Lichess rejected the action."
     },
     "newGame": {
       "title": "New game",
@@ -777,7 +780,13 @@
       "level": "Strength",
       "levelNote": "The levels are rough estimates, not exact Elo ratings.",
       "helpersInfo": "During the game you can ask for hints, take back moves and switch on the evaluation bar.",
-      "start": "Start game"
+      "start": "Start game",
+      "subtitleLichess": "Live against people on Lichess – without any assistance. After the game you can analyse it.",
+      "opponent": "Opponent",
+      "modes": {
+        "local": "Against Stockfish",
+        "lichess": "Lichess"
+      }
     },
     "speed": {
       "ultraBullet": "UltraBullet",
@@ -851,6 +860,43 @@
     "pgn": {
       "localEvent": "Game against Stockfish",
       "localSite": "Schach-Coach (local)"
+    },
+    "lichess": {
+      "ongoing": "Ongoing game on Lichess",
+      "ongoingGame": "against {{opponent}} ({{speed}})",
+      "resume": "Resume",
+      "loginFirst": "To play live games you first need to sign in to Lichess.",
+      "toSettings": "Go to settings",
+      "account": "Signed in as {{name}} · Rapid {{rating}}",
+      "tooFast": "Lichess only allows open seeks via the Board API from rapid upwards (base time + 40 × increment at least 8 minutes).",
+      "rated": "Rated",
+      "ratedHint": "The game counts for your Lichess rating.",
+      "fairPlayTitle": "Fair play:",
+      "fairPlay": "During the game all assistance is off – engine, evaluation, hints, coach and AI – even after you send a move. The analysis is only available after the game. Lichess requires this.",
+      "understood": "Understood",
+      "seeking": "Seeking … ({{time}}, {{kind}})",
+      "ratedShort": "rated",
+      "casualShort": "casual",
+      "cancelSeek": "Cancel seek",
+      "seek": "Find opponent"
+    },
+    "live": {
+      "band": "Live game on Lichess: assistance is off",
+      "ended": "Live game over – assistance is back",
+      "connection": {
+        "connecting": "connecting …",
+        "connected": "connected",
+        "reconnecting": "connection lost, reconnecting …"
+      },
+      "drawOffered": "You offered a draw.",
+      "drawOfferTitle": "Your opponent offers a draw",
+      "accept": "Accept",
+      "decline": "Decline",
+      "takebackTitle": "Your opponent wants to take back their move",
+      "opponentGone": "Your opponent has left the game.",
+      "claimIn": "You can claim victory in {{seconds}} s.",
+      "claimVictory": "Claim victory",
+      "claimDraw": "Claim draw"
     }
   },
   "lichess": {
