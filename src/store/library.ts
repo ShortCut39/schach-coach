@@ -1,15 +1,18 @@
 import { z } from 'zod';
 import { create } from 'zustand';
-import { formatPgnDate, headerValue } from '../chess/pgn';
+import { formatPgnDate, headerValue, parsePgnGame } from '../chess/pgn';
 import type { Color, Game } from '../chess/types';
 import { playerAccuracy } from '../classification/accuracy';
 import { computeGameAnalysis } from '../classification/gameAnalysis';
+import { computeGameStats } from '../classification/gameStats';
+import type { PositionEval } from '../engine/types';
+import { gameStatsSchema } from './libraryStats';
 import { loadOpeningBook } from '../classification/openingBook';
 import { countCategories } from '../classification/stats';
 import { useAnalysis } from './analysis';
 import { useGame } from './game';
 import { getLibraryStorage } from './persistence';
-import { applySnapshot, snapshot, type Session } from './session';
+import { applySnapshot, sessionSchema, snapshot, type Session } from './session';
 import { useSettings } from './settings';
 
 export type Outcome = 'win' | 'loss' | 'draw' | 'open';
@@ -33,9 +36,19 @@ export const metaSchema = z.object({
   plies: z.number(),
   depth: z.number(),
   multipv: z.number(),
+  /** Spieldatum als ISO-Datum (YYYY-MM-DD), falls in der PGN vollständig angegeben */
+  playedAt: z.string().nullable().catch(null),
+  /** Kennzahlen für „Muster über viele Partien“; fehlt bei älteren Einträgen */
+  stats: gameStatsSchema.optional().catch(undefined),
 });
 
 export type LibraryMeta = z.infer<typeof metaSchema>;
+
+/** `2026.10.09` → `2026-10-09`; unvollständige Daten → `null` */
+export function isoDate(pgnDate: string | undefined): string | null {
+  const match = /^(\d{4})\.(\d{2})\.(\d{2})$/.exec(pgnDate?.trim() ?? '');
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+}
 
 /**
  * Kennung einer Partie aus ihrem PGN (FNV-1a, 2 × 32 Bit, hexadezimal).
@@ -59,14 +72,18 @@ export function outcomeFor(result: Game['result'], userColor: Color): Outcome {
   return (result === '1-0') === (userColor === 'w') ? 'win' : 'loss';
 }
 
-async function metaFor(game: Game, record: Session): Promise<LibraryMeta> {
-  const evals = useAnalysis.getState().evals;
+async function metaFor(
+  game: Game,
+  record: Session,
+  evals: readonly (PositionEval | undefined)[],
+  savedAt = new Date().toISOString(),
+): Promise<LibraryMeta> {
   const book = await loadOpeningBook();
   const analysis = computeGameAnalysis(game, evals, book, useSettings.getState().thresholds);
   const counts = countCategories(game, analysis.plies, record.userColor);
   return {
     id: gameId(game.pgn),
-    savedAt: new Date().toISOString(),
+    savedAt,
     date: formatPgnDate(game.headers.Date) ?? null,
     white: headerValue(game.headers, 'White') ?? null,
     black: headerValue(game.headers, 'Black') ?? null,
@@ -80,6 +97,8 @@ async function metaFor(game: Game, record: Session): Promise<LibraryMeta> {
     plies: game.plies.length,
     depth: record.analysis?.depth ?? 0,
     multipv: record.analysis?.multipv ?? 0,
+    playedAt: isoDate(game.headers.Date),
+    stats: computeGameStats(game, evals, analysis, record.userColor),
   };
 }
 
@@ -90,6 +109,8 @@ interface LibraryState {
   /** Speichert die aktuelle Partie, sobald die Engine sie vollständig bewertet hat. */
   saveCurrent: () => Promise<void>;
   open: (id: string) => Promise<boolean>;
+  /** Rechnet fehlende Kennzahlen älterer Einträge aus den gespeicherten Bewertungen nach. */
+  ensureStats: () => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
 
@@ -114,7 +135,7 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
     if (source?.kind !== 'game' || analysis.source !== source || analysis.status !== 'done') return;
     const record = snapshot();
     if (!record) return;
-    const meta = await metaFor(source, record);
+    const meta = await metaFor(source, record, analysis.evals);
     await getLibraryStorage().save(meta.id, meta, record);
     set({ entries: [...get().entries.filter((e) => e.id !== meta.id), meta] });
   },
@@ -124,6 +145,31 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
       .get(id)
       .catch(() => null);
     return applySnapshot(record);
+  },
+
+  ensureStats: async () => {
+    const missing = get().entries.filter((e) => !e.stats);
+    if (missing.length === 0) return;
+    const updated: LibraryMeta[] = [];
+    for (const entry of missing) {
+      const raw = await getLibraryStorage()
+        .get(entry.id)
+        .catch(() => null);
+      const parsed = sessionSchema.safeParse(raw);
+      if (!parsed.success || parsed.data.source.kind !== 'game' || !parsed.data.analysis) continue;
+      const game = parsePgnGame(parsed.data.source.pgn);
+      if (!game.ok) continue;
+      const evals = parsed.data.analysis.evals.map(
+        (e) => (e ?? undefined) as PositionEval | undefined,
+      );
+      const meta = await metaFor(game.value, parsed.data, evals, entry.savedAt);
+      await getLibraryStorage().save(meta.id, meta, parsed.data);
+      updated.push(meta);
+    }
+    if (updated.length) {
+      const byId = new Map(updated.map((m) => [m.id, m]));
+      set({ entries: get().entries.map((e) => byId.get(e.id) ?? e) });
+    }
   },
 
   remove: async (id) => {

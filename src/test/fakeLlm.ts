@@ -43,6 +43,17 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
         choices: [{ message: { content: `Test-Antwort: ${facts.stellung.am_zug} ist am Zug.` } }],
       });
     }
+    if (user.startsWith('Erstelle aus den Mustern')) {
+      const content = JSON.stringify({
+        einschaetzung: 'Test-Einschätzung.',
+        empfehlungen: [1, 2, 3].map((n) => ({
+          titel: `Test-Empfehlung ${n}`,
+          text: 'Test-Text.',
+          uebung: 'Test-Übung.',
+        })),
+      });
+      return json(200, { choices: [{ message: { content } }] });
+    }
     if (user.startsWith('Schreibe eine Zusammenfassung')) {
       const facts = JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as {
         wendepunkte: { ply: number; zug: string }[];
