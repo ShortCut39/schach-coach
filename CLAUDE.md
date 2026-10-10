@@ -1,0 +1,55 @@
+# Schach-Coach – Hinweise für Claude
+
+Tauri-2-Desktop-App: Partien (PGN/FEN, Lichess, Chess.com) laden, Stockfish 19 bewertet jede Stellung, jeder Zug wird klassifiziert (Brillant bis Patzer), ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt. Dazu Bibliothek, Muster über viele Partien, Training aus eigenen Fehlern, Deutsch/Englisch. Alle geplanten Features (M0–M6, Version 3) sind fertig; Releases v0.1.0–v0.1.3 sind auf GitHub (öffentlich: ShortCut39/schach-coach). Details für Nutzer: `README.md` / `README.en.md`.
+
+## Arbeitsweise
+
+- Nach jeder Änderung müssen `pnpm typecheck`, `pnpm lint`, `pnpm test` und `pnpm format:check` grün sein.
+- `README.md` und `README.en.md` immer gemeinsam aktuell halten.
+- Kleine Commits. Persönliche Hinweise zur Zusammenarbeit stehen in `CLAUDE.local.md` (nur lokal).
+
+## Feste Regeln (aus dem Projektdokument)
+
+1. Das LLM rechnet nie selbst Schach. Es bekommt nur Daten von Stockfish und chess.js (Züge und Gefahren in Worten aus `src/llm/describe.ts`); der Prompt verbietet erfundene Züge, Varianten und Bewertungen.
+2. Stockfish ist die einzige Quelle für Bewertungen.
+3. Keine festen Texte in Komponenten: alles in `src/i18n/de.json` **und** `src/i18n/en.json` (gleiche Schlüssel und Platzhalter – Typecheck und `src/i18n/i18n.test.ts` prüfen das). Zahlen/Datum über `currentLocale()` bzw. `src/ui/format.ts`, nie `'de-DE'` fest.
+4. Keine erfundenen Daten in der echten App (nur Tests/Fixtures).
+5. Der API-Key wird nie geloggt, nie in Code geschrieben und nur an den eingestellten Endpunkt gesendet (Schlüsselbund, getrennt pro Origin: `src-tauri/src/secrets.rs`).
+
+## Befehle
+
+```bash
+pnpm tauri dev        # Desktop-App (lädt vorher die native Engine: pnpm fetch:engine)
+pnpm dev              # nur Frontend im Browser, Port 1420 (.claude/launch.json: "vite")
+pnpm typecheck && pnpm lint && pnpm test && pnpm format:check
+pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binaries/ (nicht im Git)
+```
+
+## Aufbau
+
+- `src/chess/` PGN/FEN, Notation · `src/engine/` UCI, Engine-Pool (native Sidecar oder WASM) · `src/classification/` Gewinnchance, Kategorien, Motive, Muster · `src/llm/` Prompts, Client, Fakten · `src/training/` Aufgaben, Zugprüfung, Leitner · `src/online/` Lichess/Chess.com · `src/store/` Zustand-Stores · `src/ui/` Komponenten · `src-tauri/` Rust (Datei-Import, Schlüsselbund, Bibliothek).
+- KI-Texte gibt es in beiden Sprachen (`ExplanationLanguage`); die **Feldnamen der Fakten und Antworten bleiben deutsch** (`zug_in_worten`, `was`/`warum`/…), damit gespeicherte Analysen gültig bleiben – der englische Prompt erklärt sie.
+- Gespeicherte Formate (Einstellungen, Sitzung, Bibliothek, `trainingCards`, `trainingExplanations`, `trainingPlan`) werden mit zod und `.catch(...)` gelesen; neue Felder immer abwärtskompatibel ergänzen.
+
+## Stolperfallen (schon einmal passiert)
+
+- **Tailwind-Breakpoints nur in rem:** große Fenster über `3xl:` (1700 px) / `4xl:` (1800 px) aus `src/styles/tokens.css`. `min-[…px]:` wird vor `lg:` einsortiert und überschrieben (Muster-Raster zerfiel). `src/ui/breakpoints.test.ts` verbietet Pixel-Breakpoints.
+- **Brettgröße nach Fensterhöhe:** `boardSizeFor(reservierteHöhe)` in `src/ui/analyse/boardStyle.ts`; die reservierte Höhe wurde im Browser gemessen (Analyse 400 px, Training 300 px).
+- **Keine knappen `max_tokens`:** Modelle mit „Nachdenken“ (z. B. Claude Haiku 5.5 über OpenRouter) verbrauchen das Limit sonst, bevor Text kommt. Fehlercodes `truncated` und `rejected` in `src/llm/client.ts`.
+- **Autosave und Bibliothek:** Das automatische Speichern legt die offene Partie bei jeder Änderung in der Bibliothek ab; gelöschte, noch offene Partien sperrt `removedSource` in `src/store/library.ts`.
+- **WebKitGTK:** Auswahllisten und Zahlenfelder sind in `src/styles/index.css` selbst gezeichnet (sonst unlesbar). Unter Linux setzt `main.rs` `WEBKIT_DISABLE_DMABUF_RENDERER=1` (NVIDIA + Wayland).
+- **react-chessboard:** `squareStyles` landen auf dem inneren Element des Felds. Die englischen dnd-kit-Screenreader-Texte sind per CSS ausgeblendet; die App sagt Züge selbst an.
+- **Tests:** jsdom braucht den `getBoundingClientRect`-Stub aus `src/test/setup.ts`; Test-Engine `src/test/fakeEngine.ts`, Test-KI `src/test/fakeLlm.ts` (erkennt deutsche und englische Prompts an ihren Markern); Bibliotheks-Fixture `src/test/libraryFixtures.ts`. Tests mit der nativen Engine werden übersprungen, wenn die Binary fehlt.
+- **pnpm:** `pnpm-workspace.yaml` schaltet das `postinstall` von `stockfish` bewusst ab (`allowBuilds`).
+- **Sichtprüfung großer Fenster** im Vorschau-Browser: Viewport per `resize_window` setzen, für Übersichtsbilder `document.documentElement.style.transform = 'scale(…)'` (ändert das Layout nicht), Maße per `getBoundingClientRect` ohne Transform. Testdaten im Vorschau-Speicher danach wieder löschen.
+
+## Release
+
+1. Version in `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `package.json` und im `schach-coach`-Eintrag von `src-tauri/Cargo.lock` erhöhen; `cargo check --locked` in `src-tauri/`.
+2. Committen, pushen, Tag `vX.Y.Z` setzen und pushen → `.github/workflows/build.yml` baut Linux, Windows, macOS (Universal, ad hoc signiert, **experimentell**) und legt einen Release-Entwurf an.
+3. Pakete am Entwurf prüfen, zweisprachigen Release-Text setzen (Deutsch, darunter Englisch), mit `gh release edit … --draft=false --latest` veröffentlichen.
+
+## Git
+
+- Die E-Mail für dieses Repository ist die GitHub-noreply-Adresse (`git config user.email`, nur lokal) – die private Adresse darf nicht in die öffentliche Historie.
+- `docs/mockups/` (Design-Vorlagen) bleibt lokal und ist in `.gitignore`.

@@ -12,3 +12,6 @@ dist-ssr
 
 # Design-Vorlagen bleiben lokal
 docs/mockups/
+
+# Persönliche Hinweise für Claude Code
+CLAUDE.local.md
