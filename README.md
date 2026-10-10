@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Neu: **Englisch** für Oberfläche und KI-Erklärungen. Noch offen: Windows- und macOS-Builds.
+> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Neu: **Pakete für Windows und macOS**, gebaut von GitHub Actions.
 
 ## Bedienung
 
@@ -131,6 +131,17 @@ Die Pakete liegen danach unter `src-tauri/target/release/bundle/`:
 - `appimage/Schach-Coach_<version>_amd64.AppImage`: direkt startbar (`chmod +x`, dann ausführen).
 - `deb/Schach-Coach_<version>_amd64.deb`: für Debian/Ubuntu. Unter Arch lieber das AppImage oder `pnpm tauri dev` nutzen.
 
+## Windows und macOS
+
+Pakete für alle drei Systeme baut GitHub Actions (`.github/workflows/build.yml`), denn eine macOS-App lässt sich nur auf einem Mac bauen und ein Windows-Installer nur sinnvoll unter Windows.
+
+- **Bauen:** auf GitHub im Reiter „Actions“ → „Build“ → „Run workflow“. Nach etwa 15–25 Minuten liegen die Pakete unten am Lauf unter „Artifacts“. Ein Git-Tag wie `v0.1.0` baut zusätzlich einen Release-Entwurf mit allen Paketen.
+- **Windows** (`Schach-Coach_<version>_x64-setup.exe`): Das Installationsprogramm installiert nur für den aktuellen Benutzer und braucht keine Administratorrechte. Weil das Paket nicht signiert ist, zeigt Windows beim ersten Start „Der Computer wurde durch Windows geschützt“: auf „Weitere Informationen“ → „Trotzdem ausführen“.
+- **macOS** (`Schach-Coach_<version>_universal.dmg`, für Apple Silicon und Intel, ab macOS 11): App aus dem DMG in „Programme“ ziehen. Die App ist nur ad hoc signiert (kein Apple-Entwicklerkonto). Beim ersten Öffnen meldet macOS deshalb, dass der Entwickler nicht überprüft werden kann. Dann: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“. Bei älteren macOS-Versionen geht auch Rechtsklick auf die App → „Öffnen“.
+- **Engine:** Jedes Paket enthält die offizielle Stockfish-19-Binary für sein System (`pnpm fetch:engine --target <triple>`, Prüfsummen fest im Skript). Unter macOS ist das die Universal-Binary für beide Prozessor-Typen.
+- **Schlüsselbund:** Der API-Key liegt unter Windows in der Anmeldeinformationsverwaltung, unter macOS im Schlüsselbund, je Endpunkt getrennt wie unter Linux.
+- **Daten:** Einstellungen und Bibliothek liegen im üblichen App-Datenordner des Systems, unter Windows in `%APPDATA%\de.schachcoach.desktop`, unter macOS in `~/Library/Application Support/de.schachcoach.desktop`.
+
 ## Prüfen und Testen
 
 ```bash
@@ -157,7 +168,7 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **Content-Security-Policy:** In `src-tauri/tauri.conf.json` ist sie streng gesetzt (nur eigene Dateien, WASM erlaubt, Netzwerk nur über das Tauri-HTTP-Plugin). Der Dev-Modus nutzt eine eigene, lockerere `devCsp` für Vites Hot-Reload. `style-src` ist von Tauris automatischen Nonces ausgenommen, weil React und react-chessboard Inline-Styles nutzen.
 - **HTTP-Freigabe:** Die App darf `https://` beliebig sowie `http://localhost` und `http://127.0.0.1` ansprechen (`src-tauri/capabilities/default.json`). Ein LLM-Server im Heimnetz über `http://192.168…` ist damit nicht erreichbar.
 - Im Browser-Modus (`pnpm dev` ohne Tauri) gibt es keinen Schlüsselbund: Der Key gilt dort nur bis zum Neuladen. Außerdem können CORS-Regeln Anfragen blockieren.
-- **Bibliothek auf der Festplatte:** `~/.local/share/de.schachcoach.desktop/library/` (je Partie eine Metadaten- und eine Datendatei). Im Browser-Modus liegt sie im `localStorage` des Browsers.
+- **Bibliothek auf der Festplatte:** unter Linux `~/.local/share/de.schachcoach.desktop/library/` (je Partie eine Metadaten- und eine Datendatei; Windows und macOS siehe oben). Im Browser-Modus liegt sie im `localStorage` des Browsers.
 - **Online-Import:** Lichess und Chess.com blockieren Anfragen ohne passenden User-Agent. Die App schickt den User-Agent des Tauri-HTTP-Plugins mit, und beide Schnittstellen nehmen ihn an (getestet im Oktober 2026). Ändert eine Plattform ihre Regeln, meldet die App „nicht verwertbar“ oder „nicht erreichbar“.
 - **Muster:** Die Motive sind einfache, regelbasierte Näherungen. Kombinationen und positionelle Fehler landen unter „Sonstiges“. Kennzahlen älterer Bibliothekseinträge rechnet die App beim ersten Öffnen der Muster-Seite einmal aus den gespeicherten Bewertungen nach.
 - **Training:** Aufgaben entstehen aus den gespeicherten Fehlern der Bibliothek. Wird eine Partie gelöscht, verschwinden ihre Aufgaben. Der Lernstand liegt in den Einstellungen der App (`trainingCards`). Die Zugprüfung vergleicht die gespeicherte Bewertung vor dem Zug mit einer neuen, oft etwas flacheren Rechnung danach; bei Zügen knapp an der 2-Punkte-Grenze kann das Urteil deshalb schwanken. Die englischen Screenreader-Hinweise der Zieh-Bibliothek (dnd-kit) sind ausgeblendet, weil react-chessboard sie nicht übersetzen lässt. Die App sagt Züge stattdessen selbst auf Deutsch an, und das Eingabefeld ist die Alternative zum Ziehen mit der Maus.

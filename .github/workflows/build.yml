@@ -1,0 +1,101 @@
+# Baut Schach-Coach für Linux, Windows und macOS (Universal: Apple Silicon + Intel).
+#
+# - Manuell starten: Reiter „Actions“ → „Build“ → „Run workflow“. Die Pakete liegen danach als
+#   Artefakte am Lauf (90 Tage).
+# - Ein Tag wie `v0.1.0` baut zusätzlich einen Release-Entwurf mit allen Paketen.
+#
+# Die Pakete sind nicht signiert (siehe README, „Windows und macOS“).
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # nur für den Release-Entwurf bei Tags
+
+jobs:
+  checks:
+    name: Typecheck, Lint, Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm format:check
+      # Ohne native Engine: Die Tests mit der nativen Stockfish-Binary werden übersprungen
+      - run: pnpm test
+
+  build:
+    name: Paket ${{ matrix.name }}
+    needs: checks
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            args: ''
+          - name: Windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: ''
+          - name: macOS (Universal)
+            os: macos-latest
+            target: universal-apple-darwin
+            args: '--target universal-apple-darwin'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux-Abhängigkeiten (WebKitGTK)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - run: pnpm install --frozen-lockfile
+
+      # Offizielle Stockfish-19-Binary für das Zielsystem (Prüfsumme fest im Skript)
+      - run: pnpm fetch:engine --target ${{ matrix.target }}
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: ${{ matrix.args }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: 'Schach-Coach ${{ github.ref_name }}'
+          releaseBody: 'Pakete für Linux, Windows und macOS. Hinweise zur Installation stehen in der README.'
+          releaseDraft: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schach-coach-${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
