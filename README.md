@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Neu: **Training aus eigenen Fehlern** mit Wiederholung. Noch offen: weitere Sprachen sowie Windows- und macOS-Builds.
+> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Neu: **Englisch** für Oberfläche und KI-Erklärungen. Noch offen: Windows- und macOS-Builds.
 
 ## Bedienung
 
@@ -27,6 +27,7 @@ Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stel
 - **Lichess / Chess.com:** Im Import Plattform wählen und Benutzernamen eingeben → „Partien laden“ holt die letzten 20 Partien (nur normales Schach, keine Varianten). „Du spielst“ wird automatisch auf deine Farbe gestellt. Gesendet wird nur der Benutzername, an die öffentliche Schnittstelle der Plattform.
 - **Chat zur Stellung:** Rechter Reiter „Chat“. Jede Frage bekommt automatisch die Engine-Daten der angezeigten Stellung mit (Linien und Figuren in Gefahr in Worten, dazu der letzte Zug). Die KI soll nur damit antworten.
 - **Farbschema:** Einstellungen → Darstellung → Dunkel oder Hell.
+- **Sprache:** Einstellungen → Darstellung & Sprache → Deutsch oder English. Die Sprache gilt für Oberfläche, Zahlen- und Datumsformat und die KI-Erklärungen. Beim Umschalten wechselt die Notation mit (D/T/L/S ↔ Q/R/B/N), danach ist sie weiter frei einstellbar.
 - **Weitermachen:** Die letzte Partie wird beim Start wiederhergestellt, mit Bewertungen, Erklärungen, Zusammenfassung und Stellung. Gespeichert wird automatisch.
 - **Tastatur:** In Reiterleisten wechseln ← / → den Reiter. Der Link „Zum Inhalt springen“ erscheint mit der Tab-Taste ganz oben.
 - **Engine:** In der Desktop-App läuft die **native Stockfish 19** als Sidecar, mehrere Prozesse rechnen gleichzeitig verschiedene Stellungen. Fehlt die Binary, nutzt die App automatisch die eingebaute WASM-Version. Unter Einstellungen → Engine gibt es die Wahl „Nativ“ oder „Eingebaut“ und die Threads, also wie viele Stellungen gleichzeitig gerechnet werden (Automatisch = halbe Kernzahl, höchstens 4). Sie startet beim Öffnen der App (Kopfleiste: „Stockfish 19 Lite WASM · Tiefe 20“ mit grünem Punkt). „Analysieren“ lässt jede Stellung bewerten, während du schon durchklicken kannst. Die Engine-Linien zeigen, was vor dem aktuellen Zug am besten war, alle Bewertungen aus Sicht von Weiß.
@@ -144,7 +145,7 @@ pnpm format         # Prettier
 Die App ist ein Tauri-2-Programm: ein schlanker Rust-Teil (`src-tauri/`) öffnet ein Fenster, die gesamte Oberfläche ist React + TypeScript (`src/`).
 Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish als Sidecar oder im Web Worker), `classification/` (Gewinnchance, Zugkategorien, Motive), `llm/` (Prompts, Client), `online/` (Lichess/Chess.com) und `training/` (Aufgaben, Zugprüfung, Wiederholung) – die einzeln mit Vitest getestet werden.
 Zustand liegt in Zustand-Stores (`store/`, inklusive Einstellungen, Sitzung und dem Ablauf Engine → KI), Komponenten liegen unter `ui/` (`shared/` für Bausteine, `screens/` für die vier Screens, `analyse/`, `import/` und `summary/` für deren Teile).
-Alle sichtbaren Texte stehen in `src/i18n/de.json` und werden über i18next geladen; die Schlüssel sind typisiert, ein falscher Schlüssel fällt beim Typecheck auf.
+Alle sichtbaren Texte stehen in `src/i18n/de.json` und `src/i18n/en.json` und werden über i18next geladen. Die Schlüssel sind typisiert: Ein falscher Schlüssel oder ein fehlender englischer Text fällt beim Typecheck auf, ein Test prüft zusätzlich gleiche Schlüssel und Platzhalter in beiden Sprachen. Die KI-Texte (Prompts und die Zugbeschreibungen in Worten aus `llm/describe.ts`) gibt es ebenfalls in beiden Sprachen; die Feldnamen der Daten bleiben deutsch, damit gespeicherte Analysen gültig bleiben, und der englische Prompt erklärt sie. Eine weitere Sprache braucht eine JSON-Datei, einen Eintrag in `src/i18n/index.ts` und die KI-Texte in `src/llm/`.
 Farben, Radien und Schriften sind Design-Tokens als CSS-Variablen in `src/styles/tokens.css` und werden als Tailwind-Klassen (`bg-panel`, `text-muted`, `rounded-panel` …) verwendet.
 
 Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur Maßreferenz).
@@ -164,7 +165,7 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **Kontrast:** Alle Texttöne erreichen in beiden Farbschemata WCAG AA (4,5:1). Dafür wurde das Token „schwach“ auf `#7f8999` aufgehellt (Design: `#6c7686`). Knapp darunter liegen weiterhin das Patzer-Icon (weiß auf `#e0453a`, 4,1:1) und die Brettkoordinaten (3,4:1), beide wie im Design.
 - Die Zusammenfassungs-Ansicht und der Reiter „Brett/Zusammenfassung“ werden nicht über einen Neustart gemerkt, die App startet immer auf dem Brett.
 - Die Einstellung „Threads“ ist ausgegraut: Die eingebaute Lite-Engine nutzt einen Thread.
-- Nur Deutsch.
+- **Sprachen:** Deutsch und Englisch (britische Schreibweise). Schon gespeicherte KI-Erklärungen, Zusammenfassungen und Trainingspläne bleiben in der Sprache, in der sie erstellt wurden; neu angeforderte kommen in der eingestellten Sprache. Trainings-Erklärungen werden je Sprache gespeichert. Eröffnungsnamen sind in beiden Sprachen englisch (Lichess-Daten), der App-Name bleibt „Schach-Coach“.
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
 - Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
 - Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
