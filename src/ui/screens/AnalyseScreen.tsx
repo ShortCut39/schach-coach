@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import { headerValue } from '../../chess/pgn';
@@ -7,6 +8,7 @@ import { selectCurrentFen, selectCurrentPly, useGame } from '../../store/game';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
 import { arrowsFor } from '../analyse/arrows';
+import { boardSizeFor } from '../analyse/boardStyle';
 import { BoardControls } from '../analyse/BoardControls';
 import { BoardOverlay } from '../analyse/BoardOverlay';
 import { AnalysisProgress } from '../analyse/AnalysisProgress';
@@ -25,6 +27,9 @@ import { useCurrentEvals } from '../analyse/useAnalysisFor';
 import { KnightIcon } from '../shared/KnightIcon';
 import { SummaryView } from '../summary/SummaryView';
 import { Panel } from '../shared/Panel';
+
+/** Kopfzeile, Abstände, beide Spielerzeilen und der Bewertungsverlauf unter dem Brett */
+const BOARD_SIZE = boardSizeFor(400);
 
 export function AnalyseScreen() {
   const source = useGame((s) => s.source);
@@ -121,10 +126,16 @@ function AnalyseLayout() {
         : t('analyse.engine.start');
 
   return (
-    <main id="main" className="flex flex-wrap items-start gap-5 p-5">
+    <main
+      id="main"
+      className="flex flex-wrap items-start justify-center gap-5 p-5"
+      // Brettgröße nach Fensterhöhe: Brett, Spielerzeilen und Bewertungsverlauf passen ohne
+      // Scrollen hinein. Mindestens so groß wie bisher, damit kleine Fenster unverändert bleiben.
+      style={{ '--board-size': BOARD_SIZE } as CSSProperties}
+    >
       <h1 className="sr-only">{t('analyse.title')}</h1>
 
-      <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4">
+      <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4 min-[1800px]:flex-[0_1_420px]">
         {source.kind === 'game' ? (
           <>
             <MoveList game={source} analyses={analysis.plies} />
@@ -137,7 +148,8 @@ function AnalyseLayout() {
 
       <section
         aria-label={t('analyse.board.label')}
-        className="flex max-w-[660px] min-w-0 flex-[1_1_520px] flex-col gap-3"
+        // Wächst bis zur Brettgröße (+ Bewertungsbalken), schrumpft bei schmalen Fenstern
+        className="flex max-w-[calc(var(--board-size)+32px)] min-w-0 flex-[1_1_520px] flex-col gap-3"
       >
         <PlayerRow
           color={topColor}
@@ -188,7 +200,7 @@ function AnalyseLayout() {
         )}
       </section>
 
-      <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-4">
+      <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-4 min-[1800px]:flex-[0_1_520px]">
         <SidePanel />
         <EngineLines
           fen={fens[linesIndex] ?? fen}

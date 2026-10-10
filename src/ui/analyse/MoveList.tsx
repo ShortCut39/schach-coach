@@ -141,7 +141,7 @@ export function MoveList({ game, analyses }: MoveListProps) {
             {t('analyse.moves.black')}
           </span>
         </div>
-        <div className="max-h-[max(320px,calc(100vh-190px))] overflow-y-auto">
+        <div className="max-h-[max(420px,calc(100dvh-560px))] overflow-y-auto">
           {rows.map((row) => (
             <div
               role="row"

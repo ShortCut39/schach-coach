@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { currentLocale } from '../../i18n';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
@@ -18,7 +18,11 @@ import { inputClass } from '../shared/form';
 import { Panel } from '../shared/Panel';
 import type { BoardArrow } from '../analyse/BoardOverlay';
 import { TrainingBoard } from '../training/TrainingBoard';
+import { boardSizeFor } from '../analyse/boardStyle';
 import { useOpenAt } from './useOpenAt';
+
+/** Kopfzeile, Überschrift und Reiter der Bibliothek und die Abstände darum */
+const TRAINING_BOARD_SIZE = boardSizeFor(300, 560);
 
 const arrow = (uci: string | undefined, kind: BoardArrow['kind']): BoardArrow[] =>
   uci && uci.length >= 4 ? [{ kind, from: uci.slice(0, 2), to: uci.slice(2, 4) }] : [];
@@ -395,7 +399,11 @@ function TrainingSession() {
   const canHint = attempt.status === 'ready' || attempt.status === 'wrong';
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
+    <div
+      className="grid items-start justify-center gap-5 lg:grid-cols-[minmax(0,var(--board-size))_minmax(360px,560px)]"
+      // Brett wächst mit der Fensterhöhe (Kopfzeile, Bibliothek-Überschrift und Reiter bleiben sichtbar)
+      style={{ '--board-size': TRAINING_BOARD_SIZE } as CSSProperties}
+    >
       {current && fen ? (
         <TrainingBoard
           fen={fen}

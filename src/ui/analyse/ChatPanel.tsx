@@ -86,7 +86,7 @@ export function ChatPanel() {
         ref={listRef}
         role="log"
         aria-live="polite"
-        className="flex max-h-[420px] flex-col gap-2 overflow-y-auto"
+        className="flex max-h-[max(420px,calc(100dvh-560px))] flex-col gap-2 overflow-y-auto"
       >
         {messages.map((message, i) =>
           message.role === 'user' ? (

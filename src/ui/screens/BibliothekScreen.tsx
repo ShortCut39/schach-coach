@@ -79,7 +79,7 @@ export function BibliothekScreen() {
   return (
     <main
       id="main"
-      className="mx-auto flex w-full max-w-[1240px] flex-col gap-[18px] px-5 pt-7 pb-10"
+      className="mx-auto flex w-full max-w-[1800px] flex-col gap-[18px] px-5 pt-7 pb-10"
     >
       <PageHeader
         title={t('bibliothek.title')}

@@ -431,11 +431,12 @@ export function PatternsView() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-muted">{t('patterns.preliminary', { count: report.games })}</p>
-      <div className="flex flex-wrap items-start gap-4">
+      {/* Breite Fenster: drei Karten nebeneinander, Eröffnungen darunter über die volle Breite */}
+      <div className="grid items-start gap-4 lg:grid-cols-2 min-[1700px]:grid-cols-3">
         <Card
           title={t('patterns.motifsTitle')}
           subtitle={t('patterns.motifsSubtitle', { count: report.totalErrors })}
-          className="min-w-0 flex-[1_1_480px]"
+          className="min-w-0"
         >
           {report.motifs.length === 0 ? (
             <p className="text-[13.5px] text-body">{t('patterns.noErrors')}</p>
@@ -447,18 +448,16 @@ export function PatternsView() {
             </ul>
           )}
         </Card>
-        <Card title={t('patterns.accuracyTitle')} className="min-w-0 flex-[1_1_420px]">
+        <Card title={t('patterns.accuracyTitle')} className="min-w-0">
           <AccuracyTimeline report={report} />
           <PhaseRows report={report} />
         </Card>
-      </div>
-      <div className="flex flex-wrap items-start gap-4">
-        <Card title={t('patterns.openingsTitle')} className="min-w-0 flex-[1_1_560px]">
-          <OpeningsTable report={report} />
-        </Card>
-        <div className="min-w-0 flex-[1_1_400px]">
+        <div className="min-w-0">
           <TrainingPlanCard report={report} />
         </div>
+        <Card title={t('patterns.openingsTitle')} className="min-w-0 min-[1700px]:col-span-3">
+          <OpeningsTable report={report} />
+        </Card>
       </div>
     </div>
   );

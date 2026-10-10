@@ -69,7 +69,7 @@ function Empty({ text }: { text: string }) {
   const { t } = useTranslation();
   const setView = useNavigation((s) => s.setAnalyseView);
   return (
-    <main id="main" className="flex flex-col gap-5 px-5 pt-6 pb-10">
+    <main id="main" className="mx-auto flex w-full max-w-[1800px] flex-col gap-5 px-5 pt-6 pb-10">
       <Panel className="flex max-w-[560px] flex-col items-start gap-2">
         <h1 className="text-lg font-semibold">{t('summary.emptyTitle')}</h1>
         <p className="text-muted">{text}</p>
@@ -152,7 +152,7 @@ function SummaryContent({ game }: { game: Game }) {
   }
 
   return (
-    <main id="main" className="flex flex-col gap-5 px-5 pt-6 pb-10">
+    <main id="main" className="mx-auto flex w-full max-w-[1800px] flex-col gap-5 px-5 pt-6 pb-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-bold tracking-[-0.01em]">{t('summary.title')}</h1>

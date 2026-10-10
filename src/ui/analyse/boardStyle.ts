@@ -14,3 +14,11 @@ export function prefersReducedMotion(): boolean {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
+
+/**
+ * Kantenlänge für ein Brett, das mit der Fensterhöhe wächst (als CSS-Ausdruck).
+ * `reserved`: Höhe in px, die neben dem Brett im Fenster bleiben muss (Kopfzeile, Abstände, …).
+ */
+export function boardSizeFor(reserved: number, min = 600, max = 1400): string {
+  return `clamp(${min}px, calc(100dvh - ${reserved}px), ${max}px)`;
+}
