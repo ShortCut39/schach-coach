@@ -9,3 +9,6 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .claude/
+
+# Design-Vorlagen bleiben lokal
+docs/mockups/

@@ -159,7 +159,7 @@ Zustand liegt in Zustand-Stores (`store/`, inklusive Einstellungen, Sitzung und 
 Alle sichtbaren Texte stehen in `src/i18n/de.json` und `src/i18n/en.json` und werden über i18next geladen. Die Schlüssel sind typisiert: Ein falscher Schlüssel oder ein fehlender englischer Text fällt beim Typecheck auf, ein Test prüft zusätzlich gleiche Schlüssel und Platzhalter in beiden Sprachen. Die KI-Texte (Prompts und die Zugbeschreibungen in Worten aus `llm/describe.ts`) gibt es ebenfalls in beiden Sprachen; die Feldnamen der Daten bleiben deutsch, damit gespeicherte Analysen gültig bleiben, und der englische Prompt erklärt sie. Eine weitere Sprache braucht eine JSON-Datei, einen Eintrag in `src/i18n/index.ts` und die KI-Texte in `src/llm/`.
 Farben, Radien und Schriften sind Design-Tokens als CSS-Variablen in `src/styles/tokens.css` und werden als Tailwind-Klassen (`bg-panel`, `text-muted`, `rounded-panel` …) verwendet.
 
-Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur Maßreferenz).
+Design-Vorlagen: `docs/mockups/` (nur lokal, nicht im Repository).
 
 ## Bekannte Einschränkungen
 
