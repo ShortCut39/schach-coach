@@ -135,7 +135,7 @@ function AnalyseLayout() {
     >
       <h1 className="sr-only">{t('analyse.title')}</h1>
 
-      <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4 min-[1800px]:flex-[0_1_420px]">
+      <aside className="flex min-w-[300px] flex-[0_1_360px] flex-col gap-4 4xl:flex-[0_1_420px]">
         {source.kind === 'game' ? (
           <>
             <MoveList game={source} analyses={analysis.plies} />
@@ -200,7 +200,7 @@ function AnalyseLayout() {
         )}
       </section>
 
-      <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-4 min-[1800px]:flex-[0_1_520px]">
+      <aside className="flex min-w-[320px] flex-[0_1_400px] flex-col gap-4 4xl:flex-[0_1_520px]">
         <SidePanel />
         <EngineLines
           fen={fens[linesIndex] ?? fen}

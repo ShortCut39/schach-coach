@@ -173,6 +173,16 @@
   --sc-line-text: #3a4352;
 }
 
+/*
+ * Zusätzliche Breakpoints für große Fenster. Bewusst in rem wie die eingebauten (lg = 64rem),
+ * damit Tailwind sie richtig einsortiert: Mit px-Werten (min-[1700px]) landeten die Regeln vor
+ * lg: und wurden von ihm überschrieben.
+ */
+@theme {
+  --breakpoint-3xl: 106.25rem; /* 1700 px */
+  --breakpoint-4xl: 112.5rem; /* 1800 px */
+}
+
 @theme inline {
   --color-bg: var(--sc-bg);
   --color-header: var(--sc-header);

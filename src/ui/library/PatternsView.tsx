@@ -432,7 +432,7 @@ export function PatternsView() {
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-muted">{t('patterns.preliminary', { count: report.games })}</p>
       {/* Breite Fenster: drei Karten nebeneinander, Eröffnungen darunter über die volle Breite */}
-      <div className="grid items-start gap-4 lg:grid-cols-2 min-[1700px]:grid-cols-3">
+      <div className="grid items-start gap-4 lg:grid-cols-2 3xl:grid-cols-3">
         <Card
           title={t('patterns.motifsTitle')}
           subtitle={t('patterns.motifsSubtitle', { count: report.totalErrors })}
@@ -455,7 +455,7 @@ export function PatternsView() {
         <div className="min-w-0">
           <TrainingPlanCard report={report} />
         </div>
-        <Card title={t('patterns.openingsTitle')} className="min-w-0 min-[1700px]:col-span-3">
+        <Card title={t('patterns.openingsTitle')} className="min-w-0 3xl:col-span-full">
           <OpeningsTable report={report} />
         </Card>
       </div>
