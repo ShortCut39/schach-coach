@@ -2,6 +2,7 @@ mod import_file;
 mod library;
 mod lichess;
 mod secrets;
+mod sound;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -34,7 +35,9 @@ pub fn run() {
             secrets::lichess_token_set,
             lichess::lichess_oauth_listen,
             lichess::lichess_oauth_cancel,
-            lichess::lichess_open
+            lichess::lichess_open,
+            sound::sound_register,
+            sound::sound_play
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

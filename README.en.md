@@ -97,8 +97,10 @@ System packages for Tauri 2 (list according to the [Tauri docs](https://v2.tauri
 
 ```bash
 sudo pacman -Syu
-sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg xdotool
+sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg xdotool alsa-lib
 ```
+
+`alsa-lib` is needed by the Rust part for the game sounds (rodio library).
 
 Rust via rustup (Arch package, or the official script from rustup.rs):
 
@@ -219,7 +221,7 @@ Schach-Coach is licensed under the **GNU General Public License v3.0 or later** 
 - Fonts: IBM Plex (SIL Open Font License), bundled locally via `@fontsource`.
 - Pieces: SVG set from `react-chessboard` (MIT), in the style of the Cburnett pieces from Wikimedia Commons.
 - Chess logic: `chess.js` (BSD-2-Clause).
-- Sounds while playing: computed by the app itself (`src/play/soundSynth.ts`); no third-party audio files and no Lichess sounds.
+- Sounds while playing: computed by the app itself (`src/play/soundSynth.ts`); no third-party audio files and no Lichess sounds. The desktop app plays them via `rodio` (MIT/Apache-2.0).
 - **Engine: Stockfish.js 19 (GPL-3.0)**, bundled from the npm package `stockfish`, and the **native Stockfish 19** (GPL-3.0) from the official release at github.com/official-stockfish/Stockfish as a sidecar.
 - Opening book: [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), see `data/chess-openings/`. `pnpm build:openings` generates `src/classification/data/openings.json` from it.
 - Test fixture `src/test/fixtures/opera-game-evals-d20.json`: real Stockfish evaluations of the example game (depth 20, Multi-PV 3), generated with `GENERATE_EVAL_FIXTURE=1 pnpm vitest run src/test/tools`.
