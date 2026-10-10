@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
+import { useApiKey } from '../../store/apiKey';
+import { isLlmConfigured } from '../../store/explanations';
 import { useLibrary } from '../../store/library';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
@@ -177,6 +179,89 @@ function MoveInput({ fen, onMove }: { fen: string; onMove: (uci: string) => void
   );
 }
 
+/**
+ * KI-Erklärung nach dem Lösen: warum der bessere Zug besser ist. Ohne KI-Anbindung wird die
+ * gespeicherte Erklärung aus der Analyse gezeigt (falls vorhanden) und auf die Einrichtung verwiesen.
+ */
+function AiExplanationBox({ data }: { data: PuzzleData }) {
+  const { t } = useTranslation();
+  const ai = useTraining((s) => s.ai);
+  const explain = useTraining((s) => s.explain);
+  const setScreen = useNavigation((s) => s.setScreen);
+  useApiKey((s) => s.key);
+  useSettings((s) => s.llm);
+  const frame = 'rounded-control border border-border bg-panel-sub px-3.5 py-2.5';
+  const heading = (text: string) => (
+    <div className="font-mono text-[11px] font-semibold tracking-[0.06em] text-faint uppercase">
+      {text}
+    </div>
+  );
+
+  if (!isLlmConfigured()) {
+    return (
+      <div className={`${frame} flex flex-col gap-1.5`}>
+        {data.explanation && (
+          <>
+            {heading(t('training.explanationTitle'))}
+            <p className="text-[13.5px] text-body">{data.explanation.warum}</p>
+            {data.explanation.merksatz && (
+              <p className="text-[13.5px] font-semibold">{data.explanation.merksatz}</p>
+            )}
+          </>
+        )}
+        <p className="text-[13px] text-muted">{t('training.aiNotConfigured')}</p>
+        <div>
+          <Button variant="ghost" onClick={() => setScreen('einstellungen')}>
+            {t('coach.setup')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${frame} flex flex-col gap-1.5`} aria-live="polite">
+      {heading(t('training.aiTitle'))}
+      {ai.status === 'idle' && (
+        <div>
+          <Button variant="ghost" onClick={() => void explain()}>
+            {t('coach.request')}
+          </Button>
+        </div>
+      )}
+      {ai.status === 'loading' && (
+        <p role="status" className="text-[13.5px] text-muted">
+          {t('training.aiLoading')}
+        </p>
+      )}
+      {ai.status === 'failed' && (
+        <div className="flex flex-col items-start gap-2">
+          <p role="alert" className="text-[13.5px] text-danger">
+            {t(`llmErrors.${ai.error ?? 'badResponse'}`)}
+          </p>
+          <Button variant="ghost" onClick={() => void explain()}>
+            {t('coach.retry')}
+          </Button>
+        </div>
+      )}
+      {ai.status === 'done' && ai.explanation && (
+        <>
+          <p className="text-[13.5px] text-body">{ai.explanation.was}</p>
+          <p className="text-[13.5px] text-body">{ai.explanation.warum}</p>
+          {ai.explanation.merksatz && (
+            <p className="text-[13.5px] font-semibold">{ai.explanation.merksatz}</p>
+          )}
+          {ai.model && (
+            <p className="font-mono text-[11.5px] text-faint">
+              {t('training.aiSource', { model: ai.model })}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 /** Rückmeldung nach dem Zug – alle Zahlen und Züge stammen von Stockfish bzw. chess.js. */
 function Feedback({ data }: { data: PuzzleData }) {
   const { t } = useTranslation();
@@ -259,17 +344,7 @@ function Feedback({ data }: { data: PuzzleData }) {
               })}
             </p>
           )}
-          {data.explanation && (
-            <div className="rounded-control border border-border bg-panel-sub px-3.5 py-2.5">
-              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] text-faint uppercase">
-                {t('training.explanationTitle')}
-              </div>
-              <p className="mt-1 text-[13.5px] text-body">{data.explanation.warum}</p>
-              {data.explanation.merksatz && (
-                <p className="mt-1 text-[13.5px] font-semibold">{data.explanation.merksatz}</p>
-              )}
-            </div>
-          )}
+          <AiExplanationBox data={data} />
           {card && attempt.recorded && (
             <p className="text-[12.5px] text-faint">
               {t('training.nextIn', { count: INTERVAL_DAYS[card.box] ?? 0 })}

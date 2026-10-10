@@ -14,7 +14,22 @@ import {
 } from '../training/puzzles';
 import { nextState, type AttemptResult, type CardState } from '../training/srs';
 import { DEFAULT_CLASSIFICATION } from '../classification/types';
+import { formatLineEval, formatPositionEval } from '../engine/evalFormat';
+import i18n from '../i18n';
+import { chatCompletion } from '../llm/client';
+import { withJsonFallback } from '../llm/explain';
+import { getFetch } from '../llm/http';
+import {
+  buildTrainingMoveFacts,
+  parseTrainingExplanation,
+  trainingExplainMessages,
+  type TrainingExplainFacts,
+  type TrainingExplanation,
+} from '../llm/trainingExplain';
+import { piecesInDanger } from '../llm/describe';
+import { LlmError, type LlmErrorCode } from '../llm/types';
 import { getEngine } from './engine';
+import { currentLlmConfig, isLlmConfigured } from './explanations';
 import type { LibraryMeta } from './library';
 import { getLibraryStorage, getSettingsStorage } from './persistence';
 import { gameTitle } from './patterns';
@@ -22,8 +37,18 @@ import { sessionSchema } from './session';
 import { useSettings } from './settings';
 
 const CARDS_KEY = 'trainingCards';
+/** Gespeicherte KI-Erklärungen „Warum ist der bessere Zug besser?“ je Aufgabe */
+const EXPLANATIONS_KEY = 'trainingExplanations';
 /** Höchste Tiefe beim Nachrechnen eines Zugs (schnelle Antwort statt voller Analysetiefe) */
 const MAX_CHECK_DEPTH = 18;
+
+const storedExplanationsSchema = z.record(
+  z.string(),
+  z.object({
+    explanation: z.object({ was: z.string(), warum: z.string(), merksatz: z.string().optional() }),
+    model: z.string(),
+  }),
+);
 
 const cardsSchema = z.record(
   z.string(),
@@ -58,6 +83,14 @@ export interface Attempt {
   recorded: boolean;
 }
 
+/** KI-Erklärung nach einer gelösten Aufgabe */
+export interface AiExplanation {
+  status: 'idle' | 'loading' | 'done' | 'failed';
+  explanation?: TrainingExplanation;
+  model?: string;
+  error?: LlmErrorCode;
+}
+
 export interface TrainingRun {
   queue: Puzzle[];
   index: number;
@@ -74,7 +107,10 @@ interface TrainingState {
   run: TrainingRun | null;
   current: PuzzleData | null;
   attempt: Attempt;
+  ai: AiExplanation;
   loadCards: () => Promise<void>;
+  /** Fragt die KI, warum der bessere Zug besser ist (nach Lösen oder „Lösung zeigen“). */
+  explain: () => Promise<void>;
   setMotif: (motif: Motif | null) => void;
   start: (entries: readonly LibraryMeta[]) => Promise<void>;
   tryMove: (uci: string) => Promise<void>;
@@ -139,6 +175,83 @@ async function loadPuzzle(puzzle: Puzzle): Promise<PuzzleData | null> {
 
 const freshAttempt = (status: AttemptStatus): Attempt => ({ status, hints: 0, recorded: false });
 
+/**
+ * Fakten für die KI – nur Engine-Daten und chess.js. `withOwnMove`: der Spieler hat einen anderen
+ * guten Zug als den Bestzug gefunden; der wird mit erklärt.
+ */
+export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExplainFacts {
+  const t = i18n.t.bind(i18n);
+  const { notation } = useSettings.getState();
+  const color = data.puzzle.color;
+  const opponent = color === 'w' ? 'b' : 'w';
+  const best = data.before.lines[0];
+  const facts: TrainingExplainFacts = {
+    am_zug: color === 'w' ? t('common.white') : t('common.black'),
+    fen: data.fen,
+    motiv: {
+      name: t(`motifs.${data.puzzle.motif}.name`),
+      erklaerung: t(`motifs.${data.puzzle.motif}.text`),
+    },
+    vor_dem_zug: {
+      figuren_des_spielers_in_gefahr: piecesInDanger(data.fen, color),
+      figuren_des_gegners_in_gefahr: piecesInDanger(data.fen, opponent),
+    },
+    bester_zug: buildTrainingMoveFacts(
+      data.fen,
+      {
+        uci: best?.pv[0] ?? '',
+        continuation: best?.pv.slice(1) ?? [],
+        evaluation: best ? formatLineEval(best) : null,
+        winLoss: 0,
+      },
+      color,
+      notation,
+    ),
+    partiezug: {
+      ...buildTrainingMoveFacts(
+        data.fen,
+        {
+          uci: data.played.uci,
+          continuation: data.played.after?.lines[0]?.pv ?? [],
+          evaluation: formatPositionEval(data.played.after) ?? null,
+          winLoss: data.puzzle.winLoss,
+        },
+        color,
+        notation,
+      ),
+      kategorie: t(`categories.${data.puzzle.category}`),
+    },
+  };
+  if (withOwnMove(data, attempt) && attempt.move && attempt.check) {
+    facts.dein_zug = buildTrainingMoveFacts(
+      data.fen,
+      {
+        uci: attempt.move,
+        continuation: attempt.check.continuation,
+        evaluation: null,
+        winLoss: attempt.check.winLoss,
+      },
+      color,
+      notation,
+    );
+  }
+  return facts;
+}
+
+/** Richtig gelöst, aber mit einem anderen Zug als dem Engine-Bestzug */
+function withOwnMove(data: PuzzleData, attempt: Attempt): boolean {
+  return attempt.status === 'correct' && attempt.move !== data.before.lines[0]?.pv[0];
+}
+
+async function storedExplanations() {
+  const parsed = storedExplanationsSchema.safeParse(
+    await getSettingsStorage()
+      .get(EXPLANATIONS_KEY)
+      .catch(() => null),
+  );
+  return parsed.success ? parsed.data : {};
+}
+
 export const useTraining = create<TrainingState>()((set, get) => {
   /** Speichert das Ergebnis der aktuellen Aufgabe (einmal pro Runde) für die Wiederholung. */
   async function record(result: AttemptResult) {
@@ -176,7 +289,12 @@ export const useTraining = create<TrainingState>()((set, get) => {
     for (let i = index; i < run.queue.length; i++) {
       const latest = get().run;
       if (!latest) return;
-      set({ run: { ...latest, index: i }, current: null, attempt: freshAttempt('loading') });
+      set({
+        run: { ...latest, index: i },
+        current: null,
+        attempt: freshAttempt('loading'),
+        ai: { status: 'idle' },
+      });
       const puzzle = run.queue[i];
       const data = puzzle ? await loadPuzzle(puzzle) : null;
       // Inzwischen beendet oder weitergeschaltet
@@ -202,6 +320,7 @@ export const useTraining = create<TrainingState>()((set, get) => {
     run: null,
     current: null,
     attempt: freshAttempt('ready'),
+    ai: { status: 'idle' },
 
     loadCards: async () => {
       const parsed = cardsSchema.safeParse(
@@ -213,7 +332,14 @@ export const useTraining = create<TrainingState>()((set, get) => {
     },
 
     // Ein neuer Filter beendet eine laufende Sitzung (sie gehört zum alten Filter)
-    setMotif: (motif) => set({ motif, run: null, current: null, attempt: freshAttempt('ready') }),
+    setMotif: (motif) =>
+      set({
+        motif,
+        run: null,
+        current: null,
+        attempt: freshAttempt('ready'),
+        ai: { status: 'idle' },
+      }),
 
     start: async (entries) => {
       const queue = buildSession(puzzlesFor(entries, get().motif), get().cards, new Date());
@@ -256,6 +382,7 @@ export const useTraining = create<TrainingState>()((set, get) => {
         await record(
           check.correct ? (get().attempt.hints >= 2 ? 'correctWithHelp' : 'correct') : 'wrong',
         );
+        if (check.correct && isLlmConfigured()) void get().explain();
       } catch {
         if (get().current === current) set({ attempt: { ...get().attempt, status: 'error' } });
       }
@@ -270,6 +397,7 @@ export const useTraining = create<TrainingState>()((set, get) => {
       if (!get().current) return;
       set({ attempt: { ...get().attempt, status: 'solution' } });
       await record('wrong');
+      if (isLlmConfigured()) void get().explain();
     },
 
     retry: () => {
@@ -284,6 +412,61 @@ export const useTraining = create<TrainingState>()((set, get) => {
       if (run) await show(run.index + 1);
     },
 
-    stop: () => set({ run: null, current: null, attempt: freshAttempt('ready') }),
+    explain: async () => {
+      const { current, attempt } = get();
+      if (!current || (attempt.status !== 'correct' && attempt.status !== 'solution')) return;
+      // Ohne eigenen Zug ist die Erklärung immer dieselbe – dann gespeicherte nehmen
+      const cacheable = !withOwnMove(current, attempt);
+      const id = current.puzzle.id;
+      if (cacheable) {
+        const cached = (await storedExplanations())[id];
+        if (cached && get().current === current) {
+          set({ ai: { status: 'done', explanation: cached.explanation, model: cached.model } });
+          return;
+        }
+      }
+      set({ ai: { status: 'loading' } });
+      const settings = useSettings.getState();
+      const config = currentLlmConfig();
+      try {
+        const ask = withJsonFallback(
+          (messages, jsonMode) =>
+            chatCompletion(config, messages, { jsonMode }, getFetch()).then((r) => r.content),
+          `${config.baseUrl}|${config.model}`,
+        );
+        const messages = trainingExplainMessages(
+          trainingFacts(current, attempt),
+          settings.level,
+          settings.notation,
+        );
+        let explanation: TrainingExplanation | undefined;
+        for (let attemptNo = 0; attemptNo < 2 && !explanation; attemptNo++) {
+          try {
+            explanation = parseTrainingExplanation(await ask(messages));
+          } catch (error) {
+            // Nur unverwertbare Antworten werden einmal automatisch wiederholt
+            if (!(error instanceof LlmError) || error.code !== 'badResponse' || attemptNo === 1)
+              throw error;
+          }
+        }
+        if (!explanation) throw new LlmError('badResponse');
+        if (get().current !== current) return;
+        set({ ai: { status: 'done', explanation, model: config.model } });
+        if (cacheable) {
+          const stored = await storedExplanations();
+          await getSettingsStorage()
+            .set(EXPLANATIONS_KEY, { ...stored, [id]: { explanation, model: config.model } })
+            .catch(() => undefined);
+        }
+      } catch (error) {
+        if (get().current !== current) return;
+        set({
+          ai: { status: 'failed', error: error instanceof LlmError ? error.code : 'badResponse' },
+        });
+      }
+    },
+
+    stop: () =>
+      set({ run: null, current: null, attempt: freshAttempt('ready'), ai: { status: 'idle' } }),
   };
 });

@@ -15,7 +15,8 @@ import {
   setLibraryStorage,
 } from '../store/persistence';
 import { DEFAULT_SETTINGS, useSettings } from '../store/settings';
-import { useTraining } from '../store/training';
+import { trainingFacts, useTraining } from '../store/training';
+import { fakeLlmFetch } from '../test/fakeLlm';
 import evalFixture from '../test/fixtures/opera-game-evals-d20.json';
 import { operaGame } from '../test/fixtures';
 import { App } from './App';
@@ -90,6 +91,7 @@ describe('Training aus eigenen Fehlern', () => {
     useLibrary.setState({ entries: [], loaded: false });
     useTraining.setState({ cards: {}, cardsLoaded: false, motif: null, run: null, current: null });
     await getSettingsStorage().set('trainingCards', null);
+    await getSettingsStorage().set('trainingExplanations', null);
     useNavigation.setState({ screen: 'bibliothek', bibliothekView: 'training' });
     await useSettings.getState().save(DEFAULT_SETTINGS);
   });
@@ -113,6 +115,8 @@ describe('Training aus eigenen Fehlern', () => {
     expect(await screen.findByText('Richtig!')).toBeInTheDocument();
     expect(screen.getByText(/genau der Zug der Engine/)).toBeInTheDocument();
     expect(screen.getByText('Kommt morgen wieder.')).toBeInTheDocument();
+    // Ohne KI-Anbindung: Hinweis zur Einrichtung statt Erklärung
+    expect(screen.getByText(/Richte die KI-Anbindung ein/)).toBeInTheDocument();
 
     // Zweite Aufgabe: Tipp, dann derselbe Zug wie in der Partie → falsch, dann Lösung
     fireEvent.click(screen.getByRole('button', { name: 'Nächste Aufgabe' }));
@@ -157,6 +161,60 @@ describe('Training aus eigenen Fehlern', () => {
     expect(await screen.findByText(/Richtig!|Das reicht noch nicht\./)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Training beenden' }));
     expect(await screen.findByText('Wiederholungen fällig')).toBeInTheDocument();
+  });
+
+  it('lässt die KI nach dem Lösen erklären, warum der bessere Zug besser ist', async () => {
+    const llm = fakeLlmFetch();
+    vi.stubGlobal('fetch', llm.fetchFn);
+    await useSettings.getState().save({
+      ...DEFAULT_SETTINGS,
+      llm: { preset: 'ollama', baseUrl: 'http://localhost:11434/v1', model: 'test-modell' },
+    });
+    await storeOperaGame();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Training starten (2 Aufgaben)' }));
+    await waitFor(() => expect(useTraining.getState().attempt.status).toBe('ready'));
+    const first = currentPuzzle();
+    await enterMove(first.before.lines[0]?.pv[0] ?? '');
+
+    expect(await screen.findByText('Warum dieser Zug besser ist')).toBeInTheDocument();
+    expect(await screen.findByText(/^Test: .+ ist der bessere Zug\.$/)).toBeInTheDocument();
+    expect(screen.getByText('Test-Merksatz.')).toBeInTheDocument();
+    expect(screen.getByText('KI · test-modell')).toBeInTheDocument();
+
+    // Die KI bekommt nur Engine- und chess.js-Daten, darunter Partiezug und Bestzug in Worten
+    const request = llm.calls.at(-1)?.body.messages.at(-1)?.content ?? '';
+    expect(request).toContain('"partiezug"');
+    expect(request).toContain('"folge_in_worten"');
+    expect(request).not.toContain('"dein_zug"');
+
+    // Gespeichert: bei der Wiederholung wird nicht erneut gefragt
+    const stored = (await getSettingsStorage().get('trainingExplanations')) as Record<
+      string,
+      unknown
+    >;
+    expect(stored[first.puzzle.id]).toBeDefined();
+    const calls = llm.calls.length;
+    useTraining.setState({
+      attempt: { ...useTraining.getState().attempt, status: 'solution' },
+      ai: { status: 'idle' },
+    });
+    await useTraining.getState().explain();
+    expect(llm.calls.length).toBe(calls);
+    expect(useTraining.getState().ai.status).toBe('done');
+
+    // Anderer guter Zug als der Bestzug: wird mit erklärt (und nicht gespeichert)
+    const second = first.before.lines[1]?.pv[0] ?? '';
+    const facts = trainingFacts(first, {
+      status: 'correct',
+      move: second,
+      check: { correct: true, isBest: false, winLoss: 1, continuation: [], source: 'stored' },
+      hints: 0,
+      recorded: true,
+    });
+    expect(facts.dein_zug?.zug_in_worten).toBeTruthy();
+    expect(facts.bester_zug.zug).not.toBe(facts.dein_zug?.zug);
+    vi.unstubAllGlobals();
   });
 
   it('nimmt nur die in den Einstellungen gewählten Fehlerarten', async () => {
