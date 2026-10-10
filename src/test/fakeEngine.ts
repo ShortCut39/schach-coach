@@ -20,9 +20,19 @@ export function fakeEngineTransport(): EngineTransport {
       } else if (command === 'isready') emit('readyok');
       else if (command.startsWith('setoption name MultiPV value '))
         multipv = Number(command.split(' ').at(-1));
-      else if (command.startsWith('position fen ')) fen = command.slice('position fen '.length);
-      else if (command.startsWith('go depth ')) {
-        const depth = command.split(' ').at(-1);
+      else if (command.startsWith('position fen ')) {
+        const [position = '', moves] = command.slice('position fen '.length).split(' moves ');
+        const chess = new Chess(position);
+        for (const uci of moves?.split(' ') ?? []) {
+          chess.move({
+            from: uci.slice(0, 2),
+            to: uci.slice(2, 4),
+            ...(uci[4] ? { promotion: uci[4] } : {}),
+          });
+        }
+        fen = chess.fen();
+      } else if (command.startsWith('go')) {
+        const depth = /depth (\d+)/.exec(command)?.[1] ?? '1';
         const moves = new Chess(fen).moves({ verbose: true }).slice(0, multipv);
         moves.forEach((move, i) =>
           emit(

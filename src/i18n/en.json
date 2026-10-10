@@ -7,7 +7,8 @@
     "analyse": "Analysis",
     "import": "Import",
     "bibliothek": "Library",
-    "einstellungen": "Settings"
+    "einstellungen": "Settings",
+    "spielen": "Play"
   },
   "status": {
     "label": "Status",
@@ -17,7 +18,8 @@
     "engineLoading": "Stockfish loading …",
     "engineReady": "{{name}} · depth {{depth}}",
     "engineError": "Engine not available",
-    "llmReady": "{{model}}"
+    "llmReady": "{{model}}",
+    "engineLocked": "Engine off · live game"
   },
   "common": {
     "comingInMilestone": "Coming in milestone {{milestone}}",
@@ -302,7 +304,8 @@
       "engine": "Engine",
       "analyse": "Analysis & explanations",
       "training": "Training",
-      "darstellung": "Appearance & language"
+      "darstellung": "Appearance & language",
+      "spielen": "Play"
     },
     "ki": {
       "subtitle": "Any OpenAI-compatible endpoint works: cloud or local.",
@@ -400,7 +403,12 @@
     "save": "Save",
     "saved": "Saved.",
     "saveFailed": "Saving failed.",
-    "unsaved": "Unsaved changes"
+    "unsaved": "Unsaved changes",
+    "spielen": {
+      "subtitle": "Games against Stockfish (and later live on Lichess).",
+      "sounds": "Sounds",
+      "soundsHint": "Short sounds for moves, captures, checks, the end of the game and low time."
+    }
   },
   "categories": {
     "brilliant": "Brilliant",
@@ -470,7 +478,8 @@
     "jsonModeUnsupported": "The endpoint does not support JSON mode.",
     "rejected": "The server rejected the request. Check the model name and whether the model is available from this provider.",
     "truncated": "The AI used up its length limit before giving an answer. This mainly happens with models that “think” before answering. Try again or use a different model.",
-    "badResponse": "The AI's answer could not be used."
+    "badResponse": "The AI's answer could not be used.",
+    "liveGame": "The AI is off during a live game on Lichess (fair play). It is back after the game."
   },
   "explainScope": {
     "errorsAndMyGood": "Errors + my good moves",
@@ -710,5 +719,125 @@
       "n": "Knight"
     },
     "cancel": "Cancel"
+  },
+  "liveLock": {
+    "title": "Live game in progress – assistance is off",
+    "text": "During a game on Lichess, the engine, analysis, training and AI are switched off, as Lichess requires (fair play). Everything is back after the game.",
+    "back": "Back to the game",
+    "short": "Locked during the live game"
+  },
+  "play": {
+    "title": "Play",
+    "boardRegion": "Game board",
+    "boardLabel": "Game board, {{color}} to move. Drag a piece with the mouse or click a piece and its target square.",
+    "boardLabelIdle": "Game board in the starting position. Start a new game on the right.",
+    "players": {
+      "you": "You",
+      "opponent": "Opponent",
+      "stockfish": "Stockfish (level {{level}})"
+    },
+    "clock": {
+      "label": "{{color}} clock: {{time}}"
+    },
+    "moves": {
+      "title": "Moves",
+      "empty": "No moves yet.",
+      "last": "Last move: {{move}}"
+    },
+    "status": {
+      "yourTurn": "Your move.",
+      "opponentTurn": "Your opponent is to move.",
+      "opponentThinking": "Stockfish is thinking …"
+    },
+    "notices": {
+      "moveRejected": "This move was not accepted.",
+      "drawDeclined": "Stockfish declines the draw.",
+      "drawOfferSent": "Draw offered.",
+      "opponentError": "Stockfish could not calculate a move. Take back your last move or start a new game.",
+      "connectionLost": "Connection lost."
+    },
+    "newGame": {
+      "title": "New game",
+      "subtitle": "Against Stockfish, with learning aids. After the game you can analyse it.",
+      "time": "Time control",
+      "custom": "Custom",
+      "noClock": "No clock",
+      "minutes": "Minutes",
+      "increment": "Increment (seconds)",
+      "speedInfo": "{{time}} counts as {{speed}}.",
+      "color": "Your colour",
+      "randomColor": "Random",
+      "level": "Strength",
+      "levelNote": "The levels are rough estimates, not exact Elo ratings.",
+      "helpersInfo": "During the game you can ask for hints, take back moves and switch on the evaluation bar.",
+      "start": "Start game"
+    },
+    "speed": {
+      "ultraBullet": "UltraBullet",
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "easy": "Easy",
+      "medium": "Medium",
+      "strong": "Strong",
+      "max": "Maximum"
+    },
+    "levelHints": {
+      "beginner": "often makes big mistakes",
+      "easy": "plays simply, misses a lot",
+      "medium": "solid club player range",
+      "strong": "strong club player",
+      "max": "full strength"
+    },
+    "actions": {
+      "label": "Game actions",
+      "resign": "Resign",
+      "resignConfirm": "Really resign?",
+      "resignYes": "Yes, resign",
+      "keepPlaying": "Keep playing",
+      "offerDraw": "Offer draw",
+      "abort": "Abort",
+      "flip": "Flip board"
+    },
+    "helpers": {
+      "title": "Assistance",
+      "hint": "Hint",
+      "hintLoading": "Calculating …",
+      "hintsUsed_one": "{{count}} hint used",
+      "hintsUsed_other": "{{count}} hints used",
+      "takeback": "Take back move",
+      "evalBar": "Evaluation bar"
+    },
+    "result": {
+      "win": "You won",
+      "loss": "You lost",
+      "draw": "Draw",
+      "aborted": "Game aborted",
+      "moves": "Moves",
+      "timeControl": "Time control",
+      "hints": "Hints",
+      "takebacks": "Takebacks",
+      "newGame": "New game"
+    },
+    "reasons": {
+      "checkmate": "by checkmate",
+      "stalemate": "by stalemate",
+      "insufficientMaterial": "insufficient material to checkmate",
+      "threefoldRepetition": "threefold repetition",
+      "fiftyMoves": "fifty-move rule",
+      "timeout": "time ran out",
+      "timeoutVsInsufficient": "time ran out, but the opponent can no longer checkmate",
+      "resign": "by resignation",
+      "agreement": "by agreement",
+      "aborted": "before the first move, does not count",
+      "opponentLeft": "the opponent left the game",
+      "noStart": "the game was never started",
+      "cheat": "ended by Lichess (fair play)",
+      "unknown": "for an unknown reason"
+    }
   }
 }

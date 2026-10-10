@@ -7,7 +7,8 @@
     "analyse": "Analyse",
     "import": "Import",
     "bibliothek": "Bibliothek",
-    "einstellungen": "Einstellungen"
+    "einstellungen": "Einstellungen",
+    "spielen": "Spielen"
   },
   "status": {
     "label": "Status",
@@ -17,7 +18,8 @@
     "engineLoading": "Stockfish lädt …",
     "engineReady": "{{name}} · Tiefe {{depth}}",
     "engineError": "Engine nicht verfügbar",
-    "llmReady": "{{model}}"
+    "llmReady": "{{model}}",
+    "engineLocked": "Engine aus · Live-Partie"
   },
   "common": {
     "comingInMilestone": "Kommt in Meilenstein {{milestone}}",
@@ -302,7 +304,8 @@
       "engine": "Engine",
       "analyse": "Analyse & Erklärungen",
       "training": "Training",
-      "darstellung": "Darstellung & Sprache"
+      "darstellung": "Darstellung & Sprache",
+      "spielen": "Spielen"
     },
     "ki": {
       "subtitle": "Jeder OpenAI-kompatible Endpunkt funktioniert: Cloud oder lokal.",
@@ -400,7 +403,12 @@
     "save": "Speichern",
     "saved": "Gespeichert.",
     "saveFailed": "Speichern fehlgeschlagen.",
-    "unsaved": "Ungespeicherte Änderungen"
+    "unsaved": "Ungespeicherte Änderungen",
+    "spielen": {
+      "subtitle": "Partien gegen Stockfish (und später live auf Lichess).",
+      "sounds": "Töne",
+      "soundsHint": "Kurze Töne bei Zügen, Schlagen, Schach, Partieende und knapper Zeit."
+    }
   },
   "categories": {
     "brilliant": "Brillant",
@@ -470,7 +478,8 @@
     "jsonModeUnsupported": "Der Endpunkt unterstützt den JSON-Modus nicht.",
     "rejected": "Der Server hat die Anfrage abgelehnt. Prüfe den Modellnamen und ob das Modell bei diesem Anbieter verfügbar ist.",
     "truncated": "Die KI hat ihr Längenlimit aufgebraucht, bevor eine Antwort kam. Das passiert vor allem bei Modellen, die vor der Antwort „nachdenken“. Versuche es erneut oder nimm ein anderes Modell.",
-    "badResponse": "Die Antwort der KI war nicht verwertbar."
+    "badResponse": "Die Antwort der KI war nicht verwertbar.",
+    "liveGame": "Während einer Live-Partie auf Lichess ist die KI aus (Fair Play). Nach Partieende geht es wieder."
   },
   "explainScope": {
     "errorsAndMyGood": "Fehler + meine guten Züge",
@@ -710,5 +719,125 @@
       "n": "Springer"
     },
     "cancel": "Abbrechen"
+  },
+  "liveLock": {
+    "title": "Live-Partie läuft – Hilfen sind aus",
+    "text": "Während einer Partie auf Lichess sind Engine, Analyse, Training und KI ausgeschaltet. So verlangt es Lichess (Fair Play). Nach Partieende ist alles wieder da.",
+    "back": "Zur Partie",
+    "short": "Während der Live-Partie gesperrt"
+  },
+  "play": {
+    "title": "Spielen",
+    "boardRegion": "Spielbrett",
+    "boardLabel": "Spielbrett, {{color}} am Zug. Ziehe eine Figur mit der Maus oder klicke Figur und Zielfeld an.",
+    "boardLabelIdle": "Spielbrett in der Grundstellung. Starte rechts eine neue Partie.",
+    "players": {
+      "you": "Du",
+      "opponent": "Gegner",
+      "stockfish": "Stockfish (Stufe {{level}})"
+    },
+    "clock": {
+      "label": "Uhr {{color}}: {{time}}"
+    },
+    "moves": {
+      "title": "Züge",
+      "empty": "Noch keine Züge.",
+      "last": "Letzter Zug: {{move}}"
+    },
+    "status": {
+      "yourTurn": "Du bist am Zug.",
+      "opponentTurn": "Dein Gegner ist am Zug.",
+      "opponentThinking": "Stockfish überlegt …"
+    },
+    "notices": {
+      "moveRejected": "Dieser Zug wurde nicht angenommen.",
+      "drawDeclined": "Stockfish lehnt das Remis ab.",
+      "drawOfferSent": "Remis angeboten.",
+      "opponentError": "Stockfish konnte keinen Zug berechnen. Nimm deinen letzten Zug zurück oder starte eine neue Partie.",
+      "connectionLost": "Verbindung unterbrochen."
+    },
+    "newGame": {
+      "title": "Neue Partie",
+      "subtitle": "Gegen Stockfish, mit Lern-Hilfen. Nach der Partie kannst du sie analysieren.",
+      "time": "Bedenkzeit",
+      "custom": "Eigene",
+      "noClock": "Ohne Uhr",
+      "minutes": "Minuten",
+      "increment": "Inkrement (Sekunden)",
+      "speedInfo": "{{time}} zählt als {{speed}}.",
+      "color": "Deine Farbe",
+      "randomColor": "Zufall",
+      "level": "Stärke",
+      "levelNote": "Die Stufen sind ungefähre Einordnungen, keine genauen Elo-Werte.",
+      "helpersInfo": "Während der Partie kannst du dir Tipps zeigen lassen, Züge zurücknehmen und den Bewertungsbalken einschalten.",
+      "start": "Partie starten"
+    },
+    "speed": {
+      "ultraBullet": "UltraBullet",
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical"
+    },
+    "levels": {
+      "beginner": "Anfänger",
+      "easy": "Leicht",
+      "medium": "Mittel",
+      "strong": "Stark",
+      "max": "Maximal"
+    },
+    "levelHints": {
+      "beginner": "macht oft grobe Fehler",
+      "easy": "spielt einfach, übersieht viel",
+      "medium": "solider Vereinsspieler-Bereich",
+      "strong": "starker Vereinsspieler",
+      "max": "volle Stärke"
+    },
+    "actions": {
+      "label": "Partieaktionen",
+      "resign": "Aufgeben",
+      "resignConfirm": "Wirklich aufgeben?",
+      "resignYes": "Ja, aufgeben",
+      "keepPlaying": "Weiterspielen",
+      "offerDraw": "Remis anbieten",
+      "abort": "Abbrechen",
+      "flip": "Brett drehen"
+    },
+    "helpers": {
+      "title": "Hilfen",
+      "hint": "Tipp",
+      "hintLoading": "Rechnet …",
+      "hintsUsed_one": "{{count}} Tipp genutzt",
+      "hintsUsed_other": "{{count}} Tipps genutzt",
+      "takeback": "Zug zurücknehmen",
+      "evalBar": "Bewertungsbalken"
+    },
+    "result": {
+      "win": "Du hast gewonnen",
+      "loss": "Du hast verloren",
+      "draw": "Remis",
+      "aborted": "Partie abgebrochen",
+      "moves": "Züge",
+      "timeControl": "Bedenkzeit",
+      "hints": "Tipps",
+      "takebacks": "Rücknahmen",
+      "newGame": "Neue Partie"
+    },
+    "reasons": {
+      "checkmate": "durch Matt",
+      "stalemate": "durch Patt",
+      "insufficientMaterial": "zu wenig Material zum Mattsetzen",
+      "threefoldRepetition": "dreifache Stellungswiederholung",
+      "fiftyMoves": "50-Züge-Regel",
+      "timeout": "Zeit abgelaufen",
+      "timeoutVsInsufficient": "Zeit abgelaufen, aber der Gegner kann nicht mehr mattsetzen",
+      "resign": "durch Aufgabe",
+      "agreement": "durch Einigung",
+      "aborted": "vor dem ersten Zug, zählt nicht",
+      "opponentLeft": "der Gegner hat die Partie verlassen",
+      "noStart": "die Partie wurde nicht begonnen",
+      "cheat": "von Lichess beendet (Fair Play)",
+      "unknown": "aus unbekanntem Grund"
+    }
   }
 }

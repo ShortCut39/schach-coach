@@ -1,3 +1,4 @@
+import { isLiveGuardActive, onLiveGuardChange } from '../play/liveGuard';
 import { LlmError, type ChatMessage, type FetchFn, type LlmConfig } from './types';
 
 export interface ChatOptions {
@@ -16,6 +17,12 @@ export interface ChatResult {
 }
 
 const DEFAULT_TIMEOUT_MS = 120_000;
+
+/** Laufende Anfragen: Beginnt eine Live-Partie, werden sie sofort abgebrochen (Fair Play). */
+const inFlight = new Set<AbortController>();
+onLiveGuardChange(({ active }) => {
+  if (active) for (const controller of inFlight) controller.abort();
+});
 
 /** `https://x/v1/` + `/chat/completions` → `https://x/v1/chat/completions`; nur http(s). */
 export function endpointUrl(baseUrl: string, path: string): string {
@@ -72,6 +79,8 @@ export async function chatCompletion(
   options: ChatOptions,
   fetchFn: FetchFn,
 ): Promise<ChatResult> {
+  // Fair Play: keine KI während einer Live-Partie (siehe play/liveGuard.ts)
+  if (isLiveGuardActive()) throw new LlmError('liveGame');
   const url = endpointUrl(config.baseUrl, '/chat/completions');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (config.apiKey.trim()) headers.Authorization = `Bearer ${config.apiKey.trim()}`;
@@ -92,6 +101,7 @@ export async function chatCompletion(
   }, options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
   const onAbort = () => controller.abort();
   options.signal?.addEventListener('abort', onAbort);
+  inFlight.add(controller);
 
   const started = performance.now();
   let response: Response;
@@ -103,12 +113,14 @@ export async function chatCompletion(
       signal: controller.signal,
     });
   } catch {
+    if (isLiveGuardActive()) throw new LlmError('liveGame');
     if (timedOut) throw new LlmError('timeout');
     if (options.signal?.aborted) throw new LlmError('aborted');
     throw new LlmError('unreachable');
   } finally {
     clearTimeout(timer);
     options.signal?.removeEventListener('abort', onAbort);
+    inFlight.delete(controller);
   }
 
   if (!response.ok) {

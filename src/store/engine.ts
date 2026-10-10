@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { UciEngine, type EngineOptions, type EngineTransport } from '../engine/engine';
 import { createSidecarTransport } from '../engine/sidecarTransport';
 import { createWorkerTransport } from '../engine/workerTransport';
+import { assertNotLive, onLiveGuardChange } from '../play/liveGuard';
 import { useSettings } from './settings';
 
 export type EngineStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -64,7 +65,12 @@ export function setEngineTransportFactory(
   useEngine.setState({ status: 'idle', name: undefined, kind: null, nativeUnavailable: false });
 }
 
+/** Fertig gestartete Engines, damit `disposePool` sie sofort (synchron) beenden kann */
+const running = new Set<UciEngine>();
+
 function disposePool(): void {
+  for (const engine of running) engine.dispose();
+  running.clear();
   for (const engine of pool) void engine.then((e) => e.dispose()).catch(() => undefined);
   pool = [];
   poolKind = null;
@@ -82,7 +88,10 @@ async function startEngine(kind: EngineKind): Promise<UciEngine> {
     }
   });
   const options: EngineOptions = { hashMb: HASH_MB[kind] };
-  const promise = engine.init(undefined, options).then(() => engine);
+  const promise = engine.init(undefined, options).then(() => {
+    running.add(engine);
+    return engine;
+  });
   return promise;
 }
 
@@ -107,6 +116,8 @@ async function startFirst(): Promise<UciEngine> {
 
 /** Liefert `count` Engines (der Pool wächst bei Bedarf) und startet sie beim ersten Aufruf. */
 export async function getEngines(count: number): Promise<UciEngine[]> {
+  // Fair Play: Während einer Live-Partie startet keine Engine
+  assertNotLive('engine');
   if (pool.length === 0) {
     useEngine.setState({ status: 'loading' });
     const first = startFirst();
@@ -139,9 +150,57 @@ export async function getEngine(): Promise<UciEngine> {
   return engine;
 }
 
+/** Eigenständige Engines außerhalb des Pools (Gegner im Spielmodus) */
+const standalone = new Set<UciEngine>();
+
+/**
+ * Startet eine eigene Engine-Instanz, getrennt vom Analyse-Pool (z. B. der Gegner im lokalen
+ * Spiel). Gleiche Art wie eingestellt (nativ, sonst WASM). Während einer Live-Partie verweigert.
+ * Der Aufrufer beendet sie mit `dispose()`.
+ */
+export async function startStandaloneEngine(): Promise<UciEngine> {
+  assertNotLive('engine');
+  const wantNative =
+    useSettings.getState().engine === 'native' && (isTauri() || factory !== defaultFactory);
+  let transport: EngineTransport | undefined;
+  if (wantNative) transport = await factory('native').catch(() => undefined);
+  transport ??= await factory('wasm');
+  const engine = new UciEngine(transport);
+  standalone.add(engine);
+  try {
+    await engine.init(undefined, { hashMb: 16 });
+  } catch (error) {
+    standalone.delete(engine);
+    engine.dispose();
+    throw error;
+  }
+  return engine;
+}
+
+/** Beendet eine mit `startStandaloneEngine` gestartete Engine. */
+export function disposeStandaloneEngine(engine: UciEngine): void {
+  standalone.delete(engine);
+  engine.dispose();
+}
+
 /** Nach geänderten Einstellungen (Engine-Art, Threads): Pool beenden und neu starten. */
 export async function restartEngines(): Promise<void> {
   disposePool();
   useEngine.setState({ status: 'idle', name: undefined, kind: null });
   await getEngine().catch(() => undefined);
 }
+
+/**
+ * Live-Partie beginnt: alle Analyse-Engines beenden (Worker bzw. Prozesse werden gestoppt, nicht nur
+ * ausgeblendet). Nach Partieende startet die Engine wieder im Hintergrund.
+ */
+onLiveGuardChange(({ active }) => {
+  if (active) {
+    disposePool();
+    for (const engine of standalone) engine.dispose();
+    standalone.clear();
+    useEngine.setState({ status: 'idle', name: undefined, kind: null });
+  } else {
+    void getEngine().catch(() => undefined);
+  }
+});

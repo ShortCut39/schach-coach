@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js';
 import { sideToMove } from '../chess/line';
+import { assertNotLive } from '../play/liveGuard';
 import type { EngineLine, SearchSettings } from './types';
 import { parseBestMove, parseEngineName, parseInfo, toEngineLine } from './uci';
 
@@ -68,6 +69,8 @@ export class UciEngine {
 
   /** Startet die Engine: `uci` → Name + `uciok`, dann Hash setzen und auf `readyok` warten. */
   async init(timeoutMs = INIT_TIMEOUT_MS, options: EngineOptions = {}): Promise<void> {
+    // Fair Play: Während einer Live-Partie rechnet keine Engine (siehe play/liveGuard.ts)
+    assertNotLive('engine');
     await this.exchange(
       'uci',
       (line) => {
@@ -100,6 +103,29 @@ export class UciEngine {
     return this.enqueue(() => this.runSearch(fen, settings, onDepth));
   }
 
+  /** Setzt UCI-Optionen (z. B. `Skill Level`) und wartet, bis die Engine bereit ist. */
+  setOptions(options: Record<string, string | number | boolean>): Promise<void> {
+    return this.enqueue(async () => {
+      for (const [name, value] of Object.entries(options)) {
+        this.transport.send(`setoption name ${name} value ${String(value)}`);
+      }
+      await this.ready(INIT_TIMEOUT_MS);
+    });
+  }
+
+  /**
+   * Bester Zug für eine Partie (Startstellung + Züge, damit die Engine Wiederholungen kennt).
+   * Grenzen: Tiefe und/oder Bedenkzeit. Ein abgebrochenes `signal` stoppt die Suche.
+   * @returns UCI-Zug oder `null`, wenn es keinen legalen Zug gibt
+   */
+  bestMove(
+    position: { startFen: string; moves: readonly string[] },
+    limits: MoveLimits,
+    signal?: AbortSignal,
+  ): Promise<string | null> {
+    return this.enqueue(() => this.runBestMove(position, limits, signal));
+  }
+
   /** Bricht die laufende Suche ab (die Engine antwortet dann mit `bestmove`). */
   stop(): void {
     if (this.searching && !this.stopRequested) {
@@ -109,7 +135,11 @@ export class UciEngine {
   }
 
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
+    // Wartende Aufträge sofort beenden, statt sie ohne Antwort hängen zu lassen
+    const disposed = new EngineError('disposed');
+    for (const listener of [...this.crashListeners]) listener(disposed);
     try {
       this.transport.send('quit');
     } finally {
@@ -120,6 +150,7 @@ export class UciEngine {
   private enqueue<T>(job: () => Promise<T>): Promise<T> {
     const run = this.queue.then(() => {
       if (this.disposed) throw new EngineError('disposed');
+      assertNotLive('engine');
       return job();
     });
     this.queue = run.catch(() => undefined);
@@ -142,9 +173,9 @@ export class UciEngine {
         offLine();
         this.crashListeners.delete(onCrash);
       };
-      const onCrash = () => {
+      const onCrash = (error: unknown) => {
         cleanup();
-        reject(new EngineError('crashed'));
+        reject(error instanceof EngineError ? error : new EngineError('crashed'));
       };
       const timer = setTimeout(() => {
         cleanup();
@@ -158,6 +189,44 @@ export class UciEngine {
       });
       this.crashListeners.add(onCrash);
       this.transport.send(command);
+    });
+  }
+
+  private runBestMove(
+    position: { startFen: string; moves: readonly string[] },
+    limits: MoveLimits,
+    signal?: AbortSignal,
+  ): Promise<string | null> {
+    if (this.multipv !== 1) {
+      this.transport.send('setoption name MultiPV value 1');
+      this.multipv = 1;
+    }
+    this.searching = true;
+    this.stopRequested = false;
+    return new Promise<string | null>((resolve, reject) => {
+      const onAbort = () => this.stop();
+      const cleanup = () => {
+        offLine();
+        this.crashListeners.delete(onCrash);
+        signal?.removeEventListener('abort', onAbort);
+        this.searching = false;
+      };
+      const onCrash = (error: unknown) => {
+        cleanup();
+        reject(error instanceof EngineError ? error : new EngineError('crashed'));
+      };
+      const offLine = this.transport.onLine((line) => {
+        const move = parseBestMove(line);
+        if (move === undefined) return;
+        cleanup();
+        resolve(move);
+      });
+      this.crashListeners.add(onCrash);
+      signal?.addEventListener('abort', onAbort);
+      const moves = position.moves.length ? ` moves ${position.moves.join(' ')}` : '';
+      this.transport.send(`position fen ${position.startFen}${moves}`);
+      this.transport.send(goCommand(limits));
+      if (signal?.aborted) onAbort();
     });
   }
 
@@ -187,9 +256,9 @@ export class UciEngine {
         this.crashListeners.delete(onCrash);
         this.searching = false;
       };
-      const onCrash = () => {
+      const onCrash = (error: unknown) => {
         cleanup();
-        reject(new EngineError('crashed'));
+        reject(error instanceof EngineError ? error : new EngineError('crashed'));
       };
       const offLine = this.transport.onLine((line) => {
         const info = parseInfo(line);
@@ -230,6 +299,22 @@ export class UciEngine {
       this.transport.send(`go depth ${settings.depth}`);
     });
   }
+}
+
+export interface MoveLimits {
+  depth?: number;
+  /** Bedenkzeit in ms */
+  movetime?: number;
+}
+
+/** `go`-Befehl aus den Grenzen; ohne Grenzen eine Sekunde. */
+export function goCommand(limits: MoveLimits): string {
+  const parts = ['go'];
+  if (limits.depth !== undefined) parts.push(`depth ${Math.max(1, Math.round(limits.depth))}`);
+  if (limits.movetime !== undefined)
+    parts.push(`movetime ${Math.max(1, Math.round(limits.movetime))}`);
+  if (parts.length === 1) parts.push('movetime 1000');
+  return parts.join(' ');
 }
 
 function sortedLines(byPv: Map<number, EngineLine>): EngineLine[] {

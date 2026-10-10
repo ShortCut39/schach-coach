@@ -3,6 +3,7 @@ import { EvalCache } from '../engine/cache';
 import { analysePositions, type QueueProgress } from '../engine/queue';
 import type { PositionEval, SearchSettings } from '../engine/types';
 import { DEFAULT_SEARCH } from '../engine/types';
+import { isLiveGuardActive, onLiveGuardChange } from '../play/liveGuard';
 import { getEngines, poolSize } from './engine';
 import type { LoadedSource } from './game';
 
@@ -91,7 +92,8 @@ export const useAnalysis = create<AnalysisState>()((set, get) => {
       );
       if (isCurrent()) set({ status: outcome === 'done' ? 'done' : 'aborted' });
     } catch {
-      if (isCurrent()) set({ status: 'error' });
+      // Von einer Live-Partie unterbrochen: kein Fehler, nach Partieende fortsetzbar
+      if (isCurrent()) set({ status: isLiveGuardActive() ? 'aborted' : 'error' });
     }
   }
 
@@ -119,4 +121,9 @@ export const useAnalysis = create<AnalysisState>()((set, get) => {
       set({ source: null, fens: [], evals: [], status: 'idle', progress: emptyProgress });
     },
   };
+});
+
+// Live-Partie beginnt: laufende Analyse sofort abbrechen (die Engines beendet store/engine.ts)
+onLiveGuardChange(({ active }) => {
+  if (active) useAnalysis.getState().cancel();
 });

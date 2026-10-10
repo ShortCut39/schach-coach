@@ -27,6 +27,8 @@ export type LlmErrorCode =
   | 'rejected'
   /** Längenlimit erreicht, bevor Text kam (z. B. weil das Modell erst „nachdenkt“) */
   | 'truncated'
+  /** Fair Play: Während einer Live-Partie auf Lichess ist die KI gesperrt */
+  | 'liveGame'
   | 'badResponse';
 
 export class LlmError extends Error {
