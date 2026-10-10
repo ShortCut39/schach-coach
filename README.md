@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Neu: **Muster über viele Partien** mit typischen Fehlern, Genauigkeit über die Zeit, Eröffnungen und einem KI-Trainingsplan. Noch offen: Training aus eigenen Fehlern, weitere Sprachen sowie Windows- und macOS-Builds.
+> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Neu: **Training aus eigenen Fehlern** mit Wiederholung. Noch offen: weitere Sprachen sowie Windows- und macOS-Builds.
 
 ## Bedienung
 
@@ -16,6 +16,13 @@ Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stel
   - **Eröffnungen:** Bilanz, Genauigkeit und Theorie-Länge je Eröffnung, getrennt nach deiner Farbe.
   - **Trainingsplan:** Die KI schreibt aus diesen Zahlen und konkreten Beispielen (in Worten) drei Empfehlungen mit je einer Übung. Der Plan wird gespeichert.
   - Die Karte in der Zusammenfassung zeigt das häufigste Muster.
+- **Training aus eigenen Fehlern:** Bibliothek → Reiter „Training“. Jede Aufgabe ist die Stellung vor einem deiner Fehler, deine Aufgabe: einen besseren Zug finden.
+  - **Welche Fehler:** Einstellungen → Training: „Patzer und Fehler“, „Verpasste Chancen“ und „Ungenauigkeiten“ einzeln an- oder abschaltbar (Standard: die ersten beiden).
+  - **Ziehen:** Figur mit der Maus ziehen, oder Figur anklicken und dann das Zielfeld (mögliche Felder werden markiert). Alternativ den Zug eintippen, deutsch oder englisch („Sf3“, „Nf3“, „exd5“, „0-0“, „e7e8=D“). Bei einer Umwandlung fragt die App nach der Figur.
+  - **Prüfung:** Richtig ist jeder Zug, der höchstens so viel Gewinnchance kostet wie ein „Ausgezeichnet“-Zug (2 Prozentpunkte). Ist der Zug einer der gespeicherten Engine-Züge, reicht die gespeicherte Analyse; sonst rechnet Stockfish die Stellung danach kurz nach (Tiefe wie in der Analyse, höchstens 18). Danach zeigt die App die beste Antwort des Gegners, was nach deinem Partiezug gedroht hätte, und die gespeicherte KI-Erklärung, falls es eine gibt.
+  - **Hilfen:** „Tipp“ zeigt einen Hinweis zum Fehlermotiv, „Figur zeigen“ markiert die Figur des besten Zugs, „Lösung zeigen“ verrät den Zug (zählt als nicht gelöst).
+  - **Wiederholung:** Lernkarten-Prinzip mit Fächern. Richtig gelöste Aufgaben kommen nach 1, 3, 7, 14 und 30 Tagen wieder, falsch gelöste sofort und in derselben Sitzung noch einmal. Mit „Figur zeigen“ gelöst bleibt die Aufgabe in ihrem Fach. Eine Sitzung hat höchstens 12 Aufgaben: zuerst fällige Wiederholungen, dann neue (schwerste Fehler der neuesten Partien zuerst). Die Übersicht zeigt, was heute fällig ist.
+  - **Muster gezielt üben:** Auf der Muster-Seite startet „Dieses Muster trainieren“ das Training nur mit Aufgaben dieses Motivs.
 - **Lichess / Chess.com:** Im Import Plattform wählen und Benutzernamen eingeben → „Partien laden“ holt die letzten 20 Partien (nur normales Schach, keine Varianten). „Du spielst“ wird automatisch auf deine Farbe gestellt. Gesendet wird nur der Benutzername, an die öffentliche Schnittstelle der Plattform.
 - **Chat zur Stellung:** Rechter Reiter „Chat“. Jede Frage bekommt automatisch die Engine-Daten der angezeigten Stellung mit (Linien und Figuren in Gefahr in Worten, dazu der letzte Zug). Die KI soll nur damit antworten.
 - **Farbschema:** Einstellungen → Darstellung → Dunkel oder Hell.
@@ -134,7 +141,7 @@ pnpm format         # Prettier
 ## Architektur
 
 Die App ist ein Tauri-2-Programm: ein schlanker Rust-Teil (`src-tauri/`) öffnet ein Fenster, die gesamte Oberfläche ist React + TypeScript (`src/`).
-Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish im Web Worker), `classification/` (Gewinnchance, Zugkategorien), `llm/` (Prompts, Client) und `online/` (Lichess/Chess.com) – die einzeln mit Vitest getestet werden.
+Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish als Sidecar oder im Web Worker), `classification/` (Gewinnchance, Zugkategorien, Motive), `llm/` (Prompts, Client), `online/` (Lichess/Chess.com) und `training/` (Aufgaben, Zugprüfung, Wiederholung) – die einzeln mit Vitest getestet werden.
 Zustand liegt in Zustand-Stores (`store/`, inklusive Einstellungen, Sitzung und dem Ablauf Engine → KI), Komponenten liegen unter `ui/` (`shared/` für Bausteine, `screens/` für die vier Screens, `analyse/`, `import/` und `summary/` für deren Teile).
 Alle sichtbaren Texte stehen in `src/i18n/de.json` und werden über i18next geladen; die Schlüssel sind typisiert, ein falscher Schlüssel fällt beim Typecheck auf.
 Farben, Radien und Schriften sind Design-Tokens als CSS-Variablen in `src/styles/tokens.css` und werden als Tailwind-Klassen (`bg-panel`, `text-muted`, `rounded-panel` …) verwendet.
@@ -151,11 +158,12 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - **Bibliothek auf der Festplatte:** `~/.local/share/de.schachcoach.desktop/library/` (je Partie eine Metadaten- und eine Datendatei). Im Browser-Modus liegt sie im `localStorage` des Browsers.
 - **Online-Import:** Lichess und Chess.com blockieren Anfragen ohne passenden User-Agent. Die App schickt den User-Agent des Tauri-HTTP-Plugins mit, und beide Schnittstellen nehmen ihn an (getestet im Oktober 2026). Ändert eine Plattform ihre Regeln, meldet die App „nicht verwertbar“ oder „nicht erreichbar“.
 - **Muster:** Die Motive sind einfache, regelbasierte Näherungen. Kombinationen und positionelle Fehler landen unter „Sonstiges“. Kennzahlen älterer Bibliothekseinträge rechnet die App beim ersten Öffnen der Muster-Seite einmal aus den gespeicherten Bewertungen nach.
+- **Training:** Aufgaben entstehen aus den gespeicherten Fehlern der Bibliothek. Wird eine Partie gelöscht, verschwinden ihre Aufgaben. Der Lernstand liegt in den Einstellungen der App (`trainingCards`). Die Zugprüfung vergleicht die gespeicherte Bewertung vor dem Zug mit einer neuen, oft etwas flacheren Rechnung danach; bei Zügen knapp an der 2-Punkte-Grenze kann das Urteil deshalb schwanken. Die englischen Screenreader-Hinweise der Zieh-Bibliothek (dnd-kit) sind ausgeblendet, weil react-chessboard sie nicht übersetzen lässt. Die App sagt Züge stattdessen selbst auf Deutsch an, und das Eingabefeld ist die Alternative zum Ziehen mit der Maus.
 - **Chat:** Er braucht eine Engine-Bewertung der angezeigten Stellung. Solange die Engine noch rechnet, ist Senden gesperrt.
 - **Kontrast:** Alle Texttöne erreichen in beiden Farbschemata WCAG AA (4,5:1). Dafür wurde das Token „schwach“ auf `#7f8999` aufgehellt (Design: `#6c7686`). Knapp darunter liegen weiterhin das Patzer-Icon (weiß auf `#e0453a`, 4,1:1) und die Brettkoordinaten (3,4:1), beide wie im Design.
 - Die Zusammenfassungs-Ansicht und der Reiter „Brett/Zusammenfassung“ werden nicht über einen Neustart gemerkt, die App startet immer auf dem Brett.
 - Die Einstellung „Threads“ ist ausgegraut: Die eingebaute Lite-Engine nutzt einen Thread.
-- Nur Deutsch, nur dunkles Farbschema.
+- Nur Deutsch.
 - Zellen der Zugliste sind wie im Mockup 32 px hoch, also kleiner als die sonst geltenden 44 px. Zur Bedienung gibt es zusätzlich die Tastatur.
 - Fehlt einer FEN etwas, ergänzt die App die hinteren Felder mit Standardwerten: Weiß am Zug, keine Rochaderechte.
 - Die Eingabe auf dem Import-Screen bleibt beim Wechsel zwischen den Screens erhalten, aber nicht über einen Neustart der App hinweg.
