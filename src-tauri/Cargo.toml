@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Schach-Coach: Partieanalyse mit Stockfish und KI-Erklärungen"
 authors = []
 license = "GPL-3.0-or-later"
-repository = ""
+repository = "https://github.com/ShortCut39/schach-coach"
 edition = "2024"
 rust-version = "1.90"
 
