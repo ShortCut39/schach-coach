@@ -5,7 +5,7 @@ import { parsePgnGame } from '../chess/pgn';
 import type { PatternGame, PatternReport } from '../classification/patterns';
 import { PHASES } from '../classification/accuracy';
 import type { GameStats } from '../classification/gameStats';
-import i18n from '../i18n';
+import i18n, { currentLanguage } from '../i18n';
 import { chatCompletion } from '../llm/client';
 import { describeLine, describeUci } from '../llm/describe';
 import { withJsonFallback } from '../llm/explain';
@@ -96,8 +96,8 @@ async function exampleFacts(gameId: string, ply: number, title: string) {
   return {
     partie: title,
     zug: `${formatMoveNumber(move.moveNumber, move.color)} ${formatSan(move.san, notation)}`,
-    zug_in_worten: describeUci(move.fenBefore, move.uci),
-    folge: describeLine(move.fenAfter, reply)[0] ?? null,
+    zug_in_worten: describeUci(move.fenBefore, move.uci, currentLanguage()),
+    folge: describeLine(move.fenAfter, reply, currentLanguage())[0] ?? null,
   };
 }
 
@@ -193,7 +193,9 @@ export const usePatterns = create<PatternsState>()((set) => ({
       for (let attempt = 0; attempt < 2 && !plan; attempt++) {
         try {
           plan = parseTrainingPlan(
-            await ask(trainingPlanMessages(facts, settings.level, settings.notation)),
+            await ask(
+              trainingPlanMessages(facts, settings.level, settings.notation, currentLanguage()),
+            ),
           );
         } catch (error) {
           // Nur ungültige Antworten werden einmal automatisch wiederholt

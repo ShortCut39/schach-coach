@@ -3,7 +3,7 @@ import type { Game } from '../chess/types';
 import { computeGameAnalysis } from '../classification/gameAnalysis';
 import { loadOpeningBook } from '../classification/openingBook';
 import { CATEGORIES, type Category } from '../classification/types';
-import i18n from '../i18n';
+import i18n, { currentLanguage } from '../i18n';
 import { chatCompletion } from '../llm/client';
 import { requestExplanations, withJsonFallback } from '../llm/explain';
 import { buildMoveFacts, buildPositionFacts, type FactLabels } from '../llm/facts';
@@ -97,6 +97,7 @@ export function labels(): FactLabels {
     >,
     color: { w: t('common.white'), b: t('common.black') },
     unnoticed: t('coach.unnoticedFact'),
+    language: currentLanguage(),
   };
 }
 
@@ -185,6 +186,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
               missing.flatMap((ply) => factsByPly.get(ply) ?? []),
               settings.level,
               notation,
+              currentLanguage(),
             ),
           batch,
         );
@@ -251,7 +253,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
       try {
         const { explanations } = await requestExplanations(
           createAsk(),
-          () => detailMessages(facts, mode, settings.level, settings.notation),
+          () => detailMessages(facts, mode, settings.level, settings.notation, currentLanguage()),
           [ply],
         );
         const explanation = explanations.get(ply);
@@ -279,7 +281,7 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
       try {
         const { explanations } = await requestExplanations(
           createAsk(),
-          () => positionMessages(facts, settings.level, settings.notation),
+          () => positionMessages(facts, settings.level, settings.notation, currentLanguage()),
           [0],
         );
         const explanation = explanations.get(0);
@@ -309,7 +311,9 @@ export const useExplanations = create<ExplanationsState>()((set, get) => {
       setSummary({ status: 'loading' });
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          const content = await ask(summaryMessages(facts, settings.level, settings.notation));
+          const content = await ask(
+            summaryMessages(facts, settings.level, settings.notation, currentLanguage()),
+          );
           setSummary({ status: 'done', data: parseSummary(content) });
           return;
         } catch (error) {

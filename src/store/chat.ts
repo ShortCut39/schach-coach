@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { currentLanguage } from '../i18n';
 import { formatMoveNumber, formatSan } from '../chess/notation';
 import { chatMessages, cleanChatAnswer, type ChatFacts } from '../llm/chat';
 import { chatCompletion } from '../llm/client';
@@ -88,7 +89,7 @@ export const useChat = create<ChatState>()((set, get) => ({
     try {
       const { content } = await chatCompletion(
         currentLlmConfig(),
-        chatMessages(history, text, facts, settings.level, settings.notation),
+        chatMessages(history, text, facts, settings.level, settings.notation, currentLanguage()),
         { jsonMode: false, maxTokens: 600 },
         getFetch(),
       );

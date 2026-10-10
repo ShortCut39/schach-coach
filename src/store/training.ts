@@ -15,7 +15,7 @@ import {
 import { nextState, type AttemptResult, type CardState } from '../training/srs';
 import { DEFAULT_CLASSIFICATION } from '../classification/types';
 import { formatLineEval, formatPositionEval } from '../engine/evalFormat';
-import i18n from '../i18n';
+import i18n, { currentLanguage } from '../i18n';
 import { chatCompletion } from '../llm/client';
 import { withJsonFallback } from '../llm/explain';
 import { getFetch } from '../llm/http';
@@ -47,6 +47,8 @@ const storedExplanationsSchema = z.record(
   z.object({
     explanation: z.object({ was: z.string(), warum: z.string(), merksatz: z.string().optional() }),
     model: z.string(),
+    /** Sprache der Erklärung; ältere Einträge sind deutsch */
+    language: z.enum(['de', 'en']).catch('de'),
   }),
 );
 
@@ -182,6 +184,7 @@ const freshAttempt = (status: AttemptStatus): Attempt => ({ status, hints: 0, re
 export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExplainFacts {
   const t = i18n.t.bind(i18n);
   const { notation } = useSettings.getState();
+  const language = currentLanguage();
   const color = data.puzzle.color;
   const opponent = color === 'w' ? 'b' : 'w';
   const best = data.before.lines[0];
@@ -193,8 +196,8 @@ export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExpla
       erklaerung: t(`motifs.${data.puzzle.motif}.text`),
     },
     vor_dem_zug: {
-      figuren_des_spielers_in_gefahr: piecesInDanger(data.fen, color),
-      figuren_des_gegners_in_gefahr: piecesInDanger(data.fen, opponent),
+      figuren_des_spielers_in_gefahr: piecesInDanger(data.fen, color, language),
+      figuren_des_gegners_in_gefahr: piecesInDanger(data.fen, opponent, language),
     },
     bester_zug: buildTrainingMoveFacts(
       data.fen,
@@ -206,6 +209,7 @@ export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExpla
       },
       color,
       notation,
+      language,
     ),
     partiezug: {
       ...buildTrainingMoveFacts(
@@ -218,6 +222,7 @@ export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExpla
         },
         color,
         notation,
+        language,
       ),
       kategorie: t(`categories.${data.puzzle.category}`),
     },
@@ -233,6 +238,7 @@ export function trainingFacts(data: PuzzleData, attempt: Attempt): TrainingExpla
       },
       color,
       notation,
+      language,
     );
   }
   return facts;
@@ -420,7 +426,8 @@ export const useTraining = create<TrainingState>()((set, get) => {
       const id = current.puzzle.id;
       if (cacheable) {
         const cached = (await storedExplanations())[id];
-        if (cached && get().current === current) {
+        // Nur eine Erklärung in der aktuellen Sprache übernehmen
+        if (cached?.language === currentLanguage() && get().current === current) {
           set({ ai: { status: 'done', explanation: cached.explanation, model: cached.model } });
           return;
         }
@@ -438,6 +445,7 @@ export const useTraining = create<TrainingState>()((set, get) => {
           trainingFacts(current, attempt),
           settings.level,
           settings.notation,
+          currentLanguage(),
         );
         let explanation: TrainingExplanation | undefined;
         for (let attemptNo = 0; attemptNo < 2 && !explanation; attemptNo++) {
@@ -455,7 +463,10 @@ export const useTraining = create<TrainingState>()((set, get) => {
         if (cacheable) {
           const stored = await storedExplanations();
           await getSettingsStorage()
-            .set(EXPLANATIONS_KEY, { ...stored, [id]: { explanation, model: config.model } })
+            .set(EXPLANATIONS_KEY, {
+              ...stored,
+              [id]: { explanation, model: config.model, language: currentLanguage() },
+            })
             .catch(() => undefined);
         }
       } catch (error) {
