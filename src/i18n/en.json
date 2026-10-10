@@ -307,7 +307,8 @@
       "analyse": "Analysis & explanations",
       "training": "Training",
       "darstellung": "Appearance & language",
-      "spielen": "Play"
+      "spielen": "Play",
+      "lichess": "Lichess"
     },
     "ki": {
       "subtitle": "Any OpenAI-compatible endpoint works: cloud or local.",
@@ -850,6 +851,45 @@
     "pgn": {
       "localEvent": "Game against Stockfish",
       "localSite": "Schach-Coach (local)"
+    }
+  },
+  "lichess": {
+    "subtitle": "Live games against people on lichess.org. All assistance is off during a live game.",
+    "loggedInAs": "Signed in as",
+    "rapid": "Rapid {{rating}}",
+    "loggedOut": "Not signed in",
+    "checking": "Checking sign-in …",
+    "waitingForBrowser": "Waiting for the sign-in in your browser …",
+    "login": "Sign in with Lichess",
+    "cancelLogin": "Cancel sign-in",
+    "logout": "Sign out",
+    "desktopOnly": "Signing in via the browser only works in the desktop app. Here you can only use a personal token.",
+    "loginHint": "Opens lichess.org in your browser. Sign in there and allow Schach-Coach to play games for you (permission “board:play”). Then you can close the browser window.",
+    "tokenTitle": "Use a personal token instead",
+    "tokenStep1": "Create a token on Lichess with the permission “Play games with the board API”:",
+    "tokenOpen": "Open token page",
+    "tokenStep2": "Copy the token shown (Lichess shows it only once).",
+    "tokenStep3": "Paste it here and click “Check and save”.",
+    "tokenLabel": "Personal token",
+    "tokenSave": "Check and save",
+    "privacy": "The token is stored in the system keyring and only sent to lichess.org. Signing out deletes it here and revokes it on Lichess.",
+    "revokeFailed": "The token was deleted here but could not be revoked on Lichess. You can delete it yourself at lichess.org/account/oauth/token.",
+    "errors": {
+      "notLoggedIn": "Not signed in.",
+      "unauthorized": "Lichess rejected the token. Check that it has the “board:play” permission and is still valid.",
+      "rateLimited": "Lichess reports too many requests. Please wait a minute and try again.",
+      "unreachable": "Lichess cannot be reached. Check your internet connection.",
+      "notFound": "Lichess does not know this request.",
+      "rejected": "Lichess rejected the request.",
+      "server": "Lichess reports a server error. Try again later.",
+      "badResponse": "The response from Lichess could not be used.",
+      "aborted": "Cancelled.",
+      "denied": "The sign-in was declined on Lichess.",
+      "stateMismatch": "The reply from Lichess did not match this sign-in and was discarded. Please try again.",
+      "timeout": "The sign-in took too long. Please try again.",
+      "cancelled": "Sign-in cancelled.",
+      "failed": "The sign-in did not work. Try again or use a personal token.",
+      "keyring": "No keyring available: the sign-in only lasts until you close the app."
     }
   }
 }

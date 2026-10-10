@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApiKey } from '../store/apiKey';
+import { useLichessAuth } from '../store/lichessAuth';
 import { getEngine } from '../store/engine';
 import { restoreSession, startSessionAutosave } from '../store/session';
 import { useSettings } from '../store/settings';
@@ -35,6 +36,8 @@ export function App() {
       .getState()
       .load()
       .then(() => useApiKey.getState().loadFor(useSettings.getState().llm.baseUrl));
+    // Gespeicherte Lichess-Anmeldung prüfen (nur, wenn ein Token im Schlüsselbund liegt)
+    void useLichessAuth.getState().load();
     // Letzte Partie samt Bewertungen wiederherstellen, danach Änderungen automatisch speichern
     let stopAutosave: (() => void) | undefined;
     let cancelled = false;

@@ -25,8 +25,17 @@ import { FieldLabel } from '../shared/FieldLabel';
 import { SelectField, TextField, Toggle, inputClass } from '../shared/form';
 import { IconAlert, IconCheck } from '../shared/icons';
 import { Segmented } from '../shared/Segmented';
+import { LichessCard } from '../play/LichessCard';
 
-const sections = ['ki', 'engine', 'analyse', 'training', 'spielen', 'darstellung'] as const;
+const sections = [
+  'ki',
+  'engine',
+  'analyse',
+  'training',
+  'spielen',
+  'lichess',
+  'darstellung',
+] as const;
 type Section = (typeof sections)[number];
 
 type TestState =
@@ -605,6 +614,14 @@ export function EinstellungenScreen() {
               {t('einstellungen.spielen.testSound')}
             </Button>
           </div>
+        </SettingsCard>
+
+        <SettingsCard
+          id="lichess"
+          title={t('einstellungen.sections.lichess')}
+          subtitle={t('lichess.subtitle')}
+        >
+          <LichessCard />
         </SettingsCard>
 
         <SettingsCard id="darstellung" title={t('einstellungen.sections.darstellung')}>

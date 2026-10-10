@@ -164,3 +164,40 @@ export function getLibraryStorage(): LibraryStorage {
 export function setLibraryStorage(storage: LibraryStorage): void {
   libraryStorage = storage;
 }
+
+/** Ablage des Lichess-Tokens (Schlüsselbund; ohne Tauri nur im Arbeitsspeicher). */
+export interface TokenStorage {
+  get(): Promise<string | null>;
+  set(token: string): Promise<void>;
+}
+
+export function memoryTokenStorage(): TokenStorage {
+  let value: string | null = null;
+  return {
+    get: async () => value,
+    set: async (token) => {
+      value = token.trim() || null;
+    },
+  };
+}
+
+function keyringToken(): TokenStorage {
+  return {
+    get: () => invoke<string | null>('lichess_token_get'),
+    set: async (token) => {
+      await invoke('lichess_token_set', { token });
+    },
+  };
+}
+
+let tokenStorage: TokenStorage | null = null;
+
+export function getTokenStorage(): TokenStorage {
+  tokenStorage ??= isTauri() ? keyringToken() : memoryTokenStorage();
+  return tokenStorage;
+}
+
+/** Nur für Tests */
+export function setTokenStorage(storage: TokenStorage): void {
+  tokenStorage = storage;
+}

@@ -307,7 +307,8 @@
       "analyse": "Analyse & Erklärungen",
       "training": "Training",
       "darstellung": "Darstellung & Sprache",
-      "spielen": "Spielen"
+      "spielen": "Spielen",
+      "lichess": "Lichess"
     },
     "ki": {
       "subtitle": "Jeder OpenAI-kompatible Endpunkt funktioniert: Cloud oder lokal.",
@@ -850,6 +851,45 @@
     "pgn": {
       "localEvent": "Partie gegen Stockfish",
       "localSite": "Schach-Coach (lokal)"
+    }
+  },
+  "lichess": {
+    "subtitle": "Live-Partien gegen Menschen auf lichess.org. Während einer Live-Partie sind alle Hilfen aus.",
+    "loggedInAs": "Angemeldet als",
+    "rapid": "Rapid {{rating}}",
+    "loggedOut": "Nicht angemeldet",
+    "checking": "Anmeldung wird geprüft …",
+    "waitingForBrowser": "Warte auf die Anmeldung im Browser …",
+    "login": "Mit Lichess anmelden",
+    "cancelLogin": "Anmeldung abbrechen",
+    "logout": "Abmelden",
+    "desktopOnly": "Die Anmeldung per Browser gibt es nur in der Desktop-App. Hier geht nur ein persönliches Token.",
+    "loginHint": "Öffnet lichess.org in deinem Browser. Dort meldest du dich an und erlaubst dem Schach-Coach, Partien für dich zu spielen (Berechtigung „board:play“). Danach kannst du das Browserfenster schließen.",
+    "tokenTitle": "Stattdessen ein persönliches Token verwenden",
+    "tokenStep1": "Auf Lichess ein Token mit der Berechtigung „Play games with the board API“ erzeugen:",
+    "tokenOpen": "Token-Seite öffnen",
+    "tokenStep2": "Das angezeigte Token kopieren (Lichess zeigt es nur einmal).",
+    "tokenStep3": "Hier einfügen und auf „Prüfen und speichern“ klicken.",
+    "tokenLabel": "Persönliches Token",
+    "tokenSave": "Prüfen und speichern",
+    "privacy": "Der Token liegt im Schlüsselbund des Systems und wird nur an lichess.org gesendet. Abmelden löscht ihn hier und widerruft ihn bei Lichess.",
+    "revokeFailed": "Der Token wurde hier gelöscht, konnte bei Lichess aber nicht widerrufen werden. Du kannst ihn unter lichess.org/account/oauth/token selbst löschen.",
+    "errors": {
+      "notLoggedIn": "Nicht angemeldet.",
+      "unauthorized": "Lichess hat den Token abgelehnt. Prüfe, ob er die Berechtigung „board:play“ hat und noch gültig ist.",
+      "rateLimited": "Lichess meldet zu viele Anfragen. Bitte warte eine Minute und versuche es dann erneut.",
+      "unreachable": "Lichess ist nicht erreichbar. Prüfe die Internetverbindung.",
+      "notFound": "Lichess kennt diese Anfrage nicht.",
+      "rejected": "Lichess hat die Anfrage abgelehnt.",
+      "server": "Lichess meldet einen Serverfehler. Versuche es später erneut.",
+      "badResponse": "Die Antwort von Lichess war nicht verwertbar.",
+      "aborted": "Abgebrochen.",
+      "denied": "Die Anmeldung wurde auf Lichess abgelehnt.",
+      "stateMismatch": "Die Rückmeldung von Lichess passte nicht zu dieser Anmeldung und wurde verworfen. Bitte erneut versuchen.",
+      "timeout": "Die Anmeldung hat zu lange gedauert. Bitte erneut versuchen.",
+      "cancelled": "Anmeldung abgebrochen.",
+      "failed": "Die Anmeldung hat nicht geklappt. Versuche es erneut oder nimm ein persönliches Token.",
+      "keyring": "Kein Schlüsselbund verfügbar: Die Anmeldung gilt nur, bis du die App schließt."
     }
   }
 }

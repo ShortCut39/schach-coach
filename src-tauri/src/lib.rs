@@ -1,5 +1,6 @@
 mod import_file;
 mod library;
+mod lichess;
 mod secrets;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,7 +29,12 @@ pub fn run() {
             library::library_delete,
             secrets::api_key_available,
             secrets::api_key_get,
-            secrets::api_key_set
+            secrets::api_key_set,
+            secrets::lichess_token_get,
+            secrets::lichess_token_set,
+            lichess::lichess_oauth_listen,
+            lichess::lichess_oauth_cancel,
+            lichess::lichess_open
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

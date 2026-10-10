@@ -2,7 +2,8 @@
 //! oder KWallet). Der Key wird je Endpunkt-Origin gespeichert (`https://openrouter.ai`),
 //! damit er nie an einen anderen Server gerät, wenn die Base-URL geändert wird.
 //!
-//! Der Key wird hier weder geloggt noch in Fehlermeldungen aufgenommen.
+//! Der Key wird hier weder geloggt noch in Fehlermeldungen aufgenommen. Dasselbe gilt für den
+//! Lichess-Token, der in einem eigenen Eintrag liegt.
 
 use keyring::{Entry, Error};
 
@@ -62,6 +63,42 @@ pub fn api_key_set(base_url: String, key: String) -> Result<(), String> {
         }
     } else {
         entry.set_password(key)
+    };
+    result.map_err(|_| ERR_FAILED.into())
+}
+
+/// Konto für den Lichess-Token (fest an https://lichess.org gebunden)
+const LICHESS_ACCOUNT: &str = "lichess-token@https://lichess.org";
+
+fn lichess_entry() -> Result<Entry, &'static str> {
+    Entry::new(SERVICE, LICHESS_ACCOUNT).map_err(|e| match e {
+        Error::NoDefaultStore => ERR_UNAVAILABLE,
+        _ => ERR_FAILED,
+    })
+}
+
+/// Liest den Lichess-Token; `None`, wenn keiner gespeichert ist.
+#[tauri::command]
+pub fn lichess_token_get() -> Result<Option<String>, String> {
+    match lichess_entry()?.get_password() {
+        Ok(token) => Ok(Some(token)),
+        Err(Error::NoEntry) => Ok(None),
+        Err(_) => Err(ERR_FAILED.into()),
+    }
+}
+
+/// Speichert den Lichess-Token; ein leerer Token löscht den Eintrag.
+#[tauri::command]
+pub fn lichess_token_set(token: String) -> Result<(), String> {
+    let entry = lichess_entry()?;
+    let token = token.trim();
+    let result = if token.is_empty() {
+        match entry.delete_credential() {
+            Err(Error::NoEntry) => Ok(()),
+            other => other,
+        }
+    } else {
+        entry.set_password(token)
     };
     result.map_err(|_| ERR_FAILED.into())
 }
