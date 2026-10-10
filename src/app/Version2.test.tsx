@@ -37,7 +37,7 @@ describe('Version 2', () => {
     await useLibrary.getState().saveCurrent();
 
     nav('Bibliothek');
-    const table = await screen.findByRole('table', { name: 'Analysierte Partien' });
+    const table = await screen.findByRole('table', { name: 'Gespeicherte Partien' });
     expect(within(table).getByText('Philidor Defense')).toBeInTheDocument();
     expect(within(table).getByText('Sieg')).toBeInTheDocument();
     expect(screen.getByText('1 Partie')).toBeInTheDocument();

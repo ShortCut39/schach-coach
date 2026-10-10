@@ -250,7 +250,7 @@
   },
   "bibliothek": {
     "title": "Library",
-    "subtitle": "Analysed games are stored locally on this computer. Nothing is calculated twice.",
+    "subtitle": "Analysed and self-played games are stored locally on this computer. Nothing is calculated twice.",
     "count_one": "{{count}} game",
     "count_other": "{{count}} games",
     "averageAccuracy": "Avg. accuracy",
@@ -269,7 +269,7 @@
       "accuracy": "Accuracy",
       "blunders": "Most blunders"
     },
-    "tableLabel": "Analysed games",
+    "tableLabel": "Saved games",
     "columns": {
       "date": "Date",
       "game": "Game",
@@ -294,7 +294,9 @@
     "emptyText": "Every game the engine has fully evaluated ends up here automatically.",
     "noMatches": "No game matches the search and filter.",
     "untitled": "Untitled game",
-    "openFailed": "The game could not be opened."
+    "openFailed": "The game could not be opened.",
+    "notAnalysed": "not analysed",
+    "analyse": "Analyse"
   },
   "einstellungen": {
     "title": "Settings",
@@ -409,7 +411,9 @@
       "sounds": "Sounds",
       "soundsHint": "Sounds for moves, captures, castling, check, promotion, the start and end of a game and low time.",
       "volume": "Volume",
-      "testSound": "Test sound"
+      "testSound": "Test sound",
+      "autoAnalyse": "Analyse automatically after the game",
+      "autoAnalyseHint": "Switches straight to the analysis after the game, from your point of view."
     }
   },
   "categories": {
@@ -823,7 +827,9 @@
       "timeControl": "Time control",
       "hints": "Hints",
       "takebacks": "Takebacks",
-      "newGame": "New game"
+      "newGame": "New game",
+      "analyse": "Analyse game",
+      "saved": "The game is in your library (not analysed yet)."
     },
     "reasons": {
       "checkmate": "by checkmate",
@@ -840,6 +846,10 @@
       "noStart": "the game was never started",
       "cheat": "ended by Lichess (fair play)",
       "unknown": "for an unknown reason"
+    },
+    "pgn": {
+      "localEvent": "Game against Stockfish",
+      "localSite": "Schach-Coach (local)"
     }
   }
 }

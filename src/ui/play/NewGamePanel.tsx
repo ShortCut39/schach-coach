@@ -67,6 +67,8 @@ export function NewGamePanel() {
       increment: play.increment,
       playerName: t('play.players.you'),
       opponentName: t('play.players.stockfish', { level: t(`play.levels.${play.level}`) }),
+      event: t('play.pgn.localEvent'),
+      site: t('play.pgn.localSite'),
     });
   }
 

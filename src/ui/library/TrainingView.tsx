@@ -61,7 +61,8 @@ function TrainingOverview() {
     .join(', ');
 
   let status: string | null = null;
-  if (loaded && entries.length === 0) status = t('training.emptyLibrary');
+  // Nur gespielte, noch nicht analysierte Partien liefern keine Aufgaben
+  if (loaded && !entries.some((e) => e.analysed)) status = t('training.emptyLibrary');
   else if (stats.total === 0)
     status = motif ? t('training.noPuzzlesMotif') : t('training.noPuzzles');
   else if (sessionCount === 0) status = t('training.allDone');

@@ -3,7 +3,7 @@ import { operaGame } from '../test/fixtures';
 import { useAnalysis } from './analysis';
 import { useExplanations } from './explanations';
 import { useGame } from './game';
-import { gameId, outcomeFor, useLibrary } from './library';
+import { gameId, metaSchema, outcomeFor, useLibrary } from './library';
 import { keyValueLibrary, memoryStorage, setLibraryStorage } from './persistence';
 import { analyseAndExplain } from './pipeline';
 
@@ -77,5 +77,60 @@ describe('Bibliothek', () => {
     expect(start).not.toHaveBeenCalled();
     expect(useAnalysis.getState().status).toBe('done');
     start.mockRestore();
+  });
+
+  it('legt eine gespielte Partie als „nicht analysiert“ an und ersetzt sie nach der Analyse', async () => {
+    const game = opera();
+    await useLibrary.getState().savePlayed(game, 'b');
+    await useLibrary.getState().refresh();
+    const [played] = useLibrary.getState().entries;
+    expect(played).toMatchObject({
+      id: gameId(game.pgn),
+      analysed: false,
+      accuracy: null,
+      userColor: 'b',
+      outcome: 'loss',
+    });
+    expect(played?.stats).toBeUndefined();
+
+    // Öffnen lädt die Partie aus der gespeicherten Sicht, noch ohne Bewertungen
+    expect(await useLibrary.getState().open(played!.id)).toBe(true);
+    expect(useGame.getState().userColor).toBe('b');
+    expect(useAnalysis.getState().source).not.toBe(useGame.getState().source);
+
+    // Nach der Analyse überschreibt das automatische Speichern den Eintrag
+    const source = useGame.getState().source!;
+    await analyseAndExplain(source, 8, 'errorsOnly');
+    await useLibrary.getState().saveCurrent();
+    const [analysed] = useLibrary.getState().entries;
+    expect(useLibrary.getState().entries).toHaveLength(1);
+    expect(analysed).toMatchObject({ analysed: true, userColor: 'b', depth: 8 });
+    expect(analysed?.accuracy).not.toBeNull();
+
+    // Ein zweites Speichern derselben gespielten Partie ändert nichts mehr
+    await useLibrary.getState().savePlayed(game, 'b');
+    await useLibrary.getState().refresh();
+    expect(useLibrary.getState().entries[0]?.analysed).toBe(true);
+  });
+
+  it('liest ältere Einträge ohne das Feld „analysed“ als analysiert', () => {
+    const parsed = metaSchema.parse({
+      id: 'x',
+      savedAt: '2026-10-01T10:00:00Z',
+      date: null,
+      white: null,
+      black: null,
+      event: null,
+      opening: null,
+      userColor: 'w',
+      outcome: 'win',
+      accuracy: 80,
+      mistakes: 0,
+      blunders: 0,
+      plies: 10,
+      depth: 20,
+      multipv: 3,
+    });
+    expect(parsed.analysed).toBe(true);
   });
 });

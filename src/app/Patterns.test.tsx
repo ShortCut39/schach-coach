@@ -41,6 +41,7 @@ function meta(id: string, partial: Partial<LibraryMeta>): LibraryMeta {
     depth: 20,
     multipv: 3,
     playedAt: null,
+    analysed: true,
     stats: stats([
       {
         motif: 'hangingPiece',

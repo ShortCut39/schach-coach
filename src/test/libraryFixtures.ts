@@ -43,6 +43,7 @@ export async function storeOperaGame(copies = 1) {
     multipv: 3,
     playedAt: null,
     stats: computeGameStats(parsed.value, evals, analysis, 'b'),
+    analysed: true,
   };
   const record = {
     version: 1,

@@ -2,8 +2,11 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatPgnDate } from '../../chess/pgn';
 import { currentLocale } from '../../i18n';
+import { useGame } from '../../store/game';
 import { useLibrary, type LibraryMeta, type Outcome } from '../../store/library';
 import { useNavigation } from '../../store/navigation';
+import { analyseAndExplain } from '../../store/pipeline';
+import { useSettings } from '../../store/settings';
 import { colorName } from '../chessText';
 import { accuracyColor, formatPercent } from '../format';
 import { filterLibrary, type LibraryFilter, type LibrarySort } from '../library/filter';
@@ -70,7 +73,14 @@ export function BibliothekScreen() {
   async function openEntry(entry: LibraryMeta) {
     const ok = await open(entry.id);
     setOpenError(!ok);
-    if (ok) setAnalyseView('board');
+    if (!ok) return;
+    // Gespielte, noch nicht bewertete Partie: gleich analysieren (aus der gespeicherten Sicht)
+    const source = useGame.getState().source;
+    if (!entry.analysed && source) {
+      const { engineDepth, explainScope } = useSettings.getState();
+      void analyseAndExplain(source, engineDepth, explainScope);
+    }
+    setAnalyseView('board');
   }
 
   const title = (e: LibraryMeta) =>
@@ -235,23 +245,29 @@ export function BibliothekScreen() {
                         </span>
                       </td>
                       <td className="px-2 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div aria-hidden="true" className="h-1.5 flex-1 rounded-full bg-track">
-                            <div
-                              className="h-1.5 rounded-full"
-                              style={{
-                                width: `${entry.accuracy ?? 0}%`,
-                                background: accuracyColor(entry.accuracy ?? undefined),
-                              }}
-                            />
-                          </div>
-                          <span className="min-w-[52px] text-right font-mono text-[13px] font-semibold">
-                            {formatPercent(entry.accuracy ?? undefined)}
+                        {!entry.analysed ? (
+                          <span className="inline-flex rounded-full border border-border-input px-2.5 py-0.5 text-[12.5px] font-medium text-muted">
+                            {t('bibliothek.notAnalysed')}
                           </span>
-                        </div>
+                        ) : (
+                          <div className="flex items-center gap-2.5">
+                            <div aria-hidden="true" className="h-1.5 flex-1 rounded-full bg-track">
+                              <div
+                                className="h-1.5 rounded-full"
+                                style={{
+                                  width: `${entry.accuracy ?? 0}%`,
+                                  background: accuracyColor(entry.accuracy ?? undefined),
+                                }}
+                              />
+                            </div>
+                            <span className="min-w-[52px] text-right font-mono text-[13px] font-semibold">
+                              {formatPercent(entry.accuracy ?? undefined)}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-2 py-3 font-mono text-[13px] font-medium text-body">
-                        {entry.mistakes} · {entry.blunders}
+                        {entry.analysed ? `${entry.mistakes} · ${entry.blunders}` : '–'}
                       </td>
                       <td className="px-4 py-2 text-right whitespace-nowrap">
                         {confirming === entry.id ? (
@@ -281,7 +297,7 @@ export function BibliothekScreen() {
                               className="min-h-hit px-4 text-[13.5px]"
                               onClick={() => void openEntry(entry)}
                             >
-                              {t('bibliothek.open')}
+                              {entry.analysed ? t('bibliothek.open') : t('bibliothek.analyse')}
                             </Button>
                             <button
                               type="button"

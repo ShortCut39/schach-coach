@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { Color } from '../chess/types';
+import { parsePgnGame } from '../chess/pgn';
+import type { Color, Game } from '../chess/types';
 import type { PositionEval } from '../engine/types';
 import { remainingAt, LOW_TIME_MS } from '../play/clock/clock';
 import { StockfishOpponent } from '../play/opponent/stockfishOpponent';
@@ -7,9 +8,13 @@ import type { Level } from '../play/opponent/levels';
 import { timeControl } from '../play/rules/timeControl';
 import { LocalSession } from '../play/session/LocalSession';
 import type { BoardMoveInput, GameSession, GameViewState } from '../play/session/types';
+import { buildPgn, type PgnInfo } from '../play/pgn';
 import { moveSound, playSound, type SoundKind } from '../play/sound';
 import { getEngine } from './engine';
-import type { Orientation } from './game';
+import { useGame, type Orientation } from './game';
+import { useLibrary } from './library';
+import { useNavigation } from './navigation';
+import { analyseAndExplain } from './pipeline';
 import { pickSettings, useSettings } from './settings';
 
 export interface LocalSetup {
@@ -22,6 +27,9 @@ export interface LocalSetup {
   playerName: string;
   /** Anzeigename des Gegners, z. B. „Stockfish (Stufe Mittel)“ */
   opponentName: string;
+  /** PGN-Kopfzeilen `Event` und `Site` (übersetzt) */
+  event: string;
+  site: string;
 }
 
 interface PlayState {
@@ -33,6 +41,10 @@ interface PlayState {
   hintLoading: boolean;
   /** Bewertung der aktuellen Stellung für den Balken (nur lokal, nur wenn eingeschaltet) */
   evaluation: PositionEval | null;
+  /** Angaben fürs PGN der laufenden Partie */
+  pgnInfo: PgnInfo | null;
+  /** Die beendete Partie als eingelesenes PGN (für „Partie analysieren“); `null` bei Abbruch */
+  finishedGame: Game | null;
 
   startLocal: (setup: LocalSetup) => void;
   playMove: (move: BoardMoveInput) => void;
@@ -42,6 +54,8 @@ interface PlayState {
   offerDraw: () => Promise<void>;
   respondDraw: (accept: boolean) => Promise<void>;
   abort: () => Promise<void>;
+  /** Beendete Partie an die Analyse übergeben (aus meiner Sicht) und dorthin wechseln */
+  analyseFinished: () => void;
   flip: () => void;
   /** Partie verlassen (zurück zum Dialog „Neue Partie“) */
   close: () => void;
@@ -82,11 +96,30 @@ function soundFor(previous: GameViewState | null, next: GameViewState): void {
 }
 
 export const usePlay = create<PlayState>()((set, get) => {
-  function attach(session: GameSession, myColor: Color): void {
+  /**
+   * Partie zu Ende: PGN bauen, in der Bibliothek ablegen („nicht analysiert“) und – falls
+   * eingestellt – gleich analysieren. Abgebrochene Partien zählen nicht.
+   */
+  function onFinished(state: GameViewState): void {
+    const info = get().pgnInfo;
+    if (!info || state.outcome?.reason === 'aborted' || state.plies.length === 0) return;
+    const parsed = parsePgnGame(buildPgn(state, info));
+    if (!parsed.ok) return;
+    set({ finishedGame: parsed.value });
+    void useLibrary
+      .getState()
+      .savePlayed(parsed.value, state.myColor)
+      .catch(() => undefined);
+    if (useSettings.getState().play.autoAnalyse) get().analyseFinished();
+  }
+
+  function attach(session: GameSession, myColor: Color, pgnInfo: PgnInfo): void {
     get().session?.dispose();
     unsubscribe?.();
     lowTimeWarned = false;
     set({
+      pgnInfo,
+      finishedGame: null,
       session,
       view: session.state,
       orientation: myColor === 'w' ? 'white' : 'black',
@@ -100,6 +133,7 @@ export const usePlay = create<PlayState>()((set, get) => {
       const moved = previous && previous.fen !== state.fen;
       set({ view: state, ...(moved ? { hint: null, evaluation: null } : {}) });
       if (moved) void refreshEvalBar();
+      if (state.status === 'ended' && previous?.status !== 'ended') onFinished(state);
     });
     startLowTimeWatch();
     sound('gameStart');
@@ -126,6 +160,8 @@ export const usePlay = create<PlayState>()((set, get) => {
     hint: null,
     hintLoading: false,
     evaluation: null,
+    pgnInfo: null,
+    finishedGame: null,
 
     startLocal: (setup) => {
       const myColor = resolveColor(setup.color);
@@ -141,7 +177,11 @@ export const usePlay = create<PlayState>()((set, get) => {
         opponent,
         players,
       });
-      attach(session, myColor);
+      attach(session, myColor, {
+        event: setup.event,
+        site: setup.site,
+        names: { w: players.w.name, b: players.b.name },
+      });
       // Engine schon jetzt starten, damit der erste Gegnerzug nicht warten muss
       void opponent.prepare().catch(() => undefined);
       session.start();
@@ -188,6 +228,14 @@ export const usePlay = create<PlayState>()((set, get) => {
     abort: async () => {
       await get().session?.abort();
     },
+    analyseFinished: () => {
+      const { finishedGame, view } = get();
+      if (!finishedGame || !view) return;
+      const { engineDepth, explainScope } = useSettings.getState();
+      useGame.getState().load(finishedGame, view.myColor);
+      void analyseAndExplain(finishedGame, engineDepth, explainScope);
+      useNavigation.getState().setAnalyseView('board');
+    },
     flip: () => set((s) => ({ orientation: s.orientation === 'white' ? 'black' : 'white' })),
     close: () => {
       get().session?.dispose();
@@ -195,7 +243,15 @@ export const usePlay = create<PlayState>()((set, get) => {
       unsubscribe = null;
       if (lowTimeTimer) clearInterval(lowTimeTimer);
       lowTimeTimer = null;
-      set({ session: null, view: null, hint: null, hintLoading: false, evaluation: null });
+      set({
+        session: null,
+        view: null,
+        hint: null,
+        hintLoading: false,
+        evaluation: null,
+        pgnInfo: null,
+        finishedGame: null,
+      });
     },
   };
 });

@@ -9,10 +9,12 @@ interface ResultCardProps {
   view: GameViewState;
   /** Zusätzliche Schaltflächen (z. B. „Partie analysieren“) */
   actions?: ReactNode;
+  /** Die Partie liegt in der Bibliothek */
+  saved?: boolean;
 }
 
 /** Nach der Partie: Ergebnis mit Grund, Zugzahl, Bedenkzeit, genutzte Hilfen, „Neue Partie“. */
-export function ResultCard({ view, actions }: ResultCardProps) {
+export function ResultCard({ view, actions, saved = false }: ResultCardProps) {
   const { t } = useTranslation();
   const close = usePlay((s) => s.close);
   const outcome = view.outcome;
@@ -70,9 +72,14 @@ export function ResultCard({ view, actions }: ResultCardProps) {
           </div>
         ))}
       </dl>
+      {saved && <p className="text-[12.5px] text-muted">{t('play.result.saved')}</p>}
       <div className="flex flex-wrap gap-2">
         {actions}
-        <Button variant={actions ? 'secondary' : 'primary'} className="flex-1" onClick={close}>
+        <Button
+          variant={actions ? 'secondary' : 'primary'}
+          className="flex-1 px-5 whitespace-nowrap"
+          onClick={close}
+        >
           {t('play.result.newGame')}
         </Button>
       </div>

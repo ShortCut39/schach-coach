@@ -250,7 +250,7 @@
   },
   "bibliothek": {
     "title": "Bibliothek",
-    "subtitle": "Analysierte Partien liegen lokal auf diesem Rechner. Nichts wird doppelt berechnet.",
+    "subtitle": "Analysierte und selbst gespielte Partien liegen lokal auf diesem Rechner. Nichts wird doppelt berechnet.",
     "count_one": "{{count}} Partie",
     "count_other": "{{count}} Partien",
     "averageAccuracy": "Ø Genauigkeit",
@@ -269,7 +269,7 @@
       "accuracy": "Genauigkeit",
       "blunders": "Meiste Patzer"
     },
-    "tableLabel": "Analysierte Partien",
+    "tableLabel": "Gespeicherte Partien",
     "columns": {
       "date": "Datum",
       "game": "Partie",
@@ -294,7 +294,9 @@
     "emptyText": "Jede Partie, die die Engine vollständig bewertet hat, landet automatisch hier.",
     "noMatches": "Keine Partie passt zu Suche und Filter.",
     "untitled": "Partie ohne Namen",
-    "openFailed": "Die Partie konnte nicht geöffnet werden."
+    "openFailed": "Die Partie konnte nicht geöffnet werden.",
+    "notAnalysed": "nicht analysiert",
+    "analyse": "Analysieren"
   },
   "einstellungen": {
     "title": "Einstellungen",
@@ -409,7 +411,9 @@
       "sounds": "Töne",
       "soundsHint": "Töne für Zug, Schlagen, Rochade, Schach, Umwandlung, Partiebeginn, Partieende und knappe Zeit.",
       "volume": "Lautstärke",
-      "testSound": "Ton testen"
+      "testSound": "Ton testen",
+      "autoAnalyse": "Nach der Partie automatisch analysieren",
+      "autoAnalyseHint": "Wechselt nach Partieende direkt zur Analyse, aus deiner Sicht."
     }
   },
   "categories": {
@@ -823,7 +827,9 @@
       "timeControl": "Bedenkzeit",
       "hints": "Tipps",
       "takebacks": "Rücknahmen",
-      "newGame": "Neue Partie"
+      "newGame": "Neue Partie",
+      "analyse": "Partie analysieren",
+      "saved": "Die Partie liegt in der Bibliothek (noch nicht analysiert)."
     },
     "reasons": {
       "checkmate": "durch Matt",
@@ -840,6 +846,10 @@
       "noStart": "die Partie wurde nicht begonnen",
       "cheat": "von Lichess beendet (Fair Play)",
       "unknown": "aus unbekanntem Grund"
+    },
+    "pgn": {
+      "localEvent": "Partie gegen Stockfish",
+      "localSite": "Schach-Coach (lokal)"
     }
   }
 }

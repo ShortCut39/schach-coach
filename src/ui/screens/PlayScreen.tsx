@@ -16,6 +16,7 @@ import { NewGamePanel } from '../play/NewGamePanel';
 import { PlayerCard } from '../play/PlayerCard';
 import { PlayMoveList } from '../play/PlayMoveList';
 import { ResultCard } from '../play/ResultCard';
+import { Button } from '../shared/Button';
 import { TrainingBoard } from '../training/TrainingBoard';
 
 /** Kopfzeile und Abstände; daneben steht nichts unter oder über dem Brett */
@@ -52,6 +53,8 @@ export function PlayScreen() {
   const hint = usePlay((s) => s.hint);
   const evaluation = usePlay((s) => s.evaluation);
   const playMove = usePlay((s) => s.playMove);
+  const finishedGame = usePlay((s) => s.finishedGame);
+  const analyseFinished = usePlay((s) => s.analyseFinished);
   const evalBarOn = useSettings((s) => s.play.evalBar);
   const notice = useNotice(view);
 
@@ -129,7 +132,21 @@ export function PlayScreen() {
                   : ''}
             </p>
             {view.status === 'ended' ? (
-              <ResultCard view={view} />
+              <ResultCard
+                view={view}
+                actions={
+                  finishedGame && (
+                    <Button
+                      variant="primary"
+                      className="flex-1 px-5 whitespace-nowrap"
+                      onClick={analyseFinished}
+                    >
+                      {t('play.result.analyse')}
+                    </Button>
+                  )
+                }
+                saved={!!finishedGame}
+              />
             ) : (
               <ActionBar
                 view={view}

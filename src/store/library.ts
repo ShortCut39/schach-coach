@@ -40,6 +40,8 @@ export const metaSchema = z.object({
   playedAt: z.string().nullable().catch(null),
   /** Kennzahlen für „Muster über viele Partien“; fehlt bei älteren Einträgen */
   stats: gameStatsSchema.optional().catch(undefined),
+  /** `false` = gespielt, aber noch nicht von der Engine bewertet (ältere Einträge sind alle analysiert) */
+  analysed: z.boolean().catch(true),
 });
 
 export type LibraryMeta = z.infer<typeof metaSchema>;
@@ -99,6 +101,32 @@ async function metaFor(
     multipv: record.analysis?.multipv ?? 0,
     playedAt: isoDate(game.headers.Date),
     stats: computeGameStats(game, evals, analysis, record.userColor),
+    analysed: true,
+  };
+}
+
+/** Eintrag für eine gespielte, noch nicht analysierte Partie (Eröffnung aus dem Buch, sonst leer). */
+async function unanalysedMeta(game: Game, userColor: Color): Promise<LibraryMeta> {
+  const book = await loadOpeningBook();
+  const opening = computeGameAnalysis(game, [], book, useSettings.getState().thresholds).opening;
+  return {
+    id: gameId(game.pgn),
+    savedAt: new Date().toISOString(),
+    date: formatPgnDate(game.headers.Date) ?? null,
+    white: headerValue(game.headers, 'White') ?? null,
+    black: headerValue(game.headers, 'Black') ?? null,
+    event: headerValue(game.headers, 'Event') ?? null,
+    opening: opening ? { name: opening.name, eco: opening.eco } : null,
+    userColor,
+    outcome: outcomeFor(game.result, userColor),
+    accuracy: null,
+    mistakes: 0,
+    blunders: 0,
+    plies: game.plies.length,
+    depth: 0,
+    multipv: 0,
+    playedAt: isoDate(game.headers.Date),
+    analysed: false,
   };
 }
 
@@ -108,6 +136,11 @@ interface LibraryState {
   refresh: () => Promise<void>;
   /** Speichert die aktuelle Partie, sobald die Engine sie vollständig bewertet hat. */
   saveCurrent: () => Promise<void>;
+  /**
+   * Legt eine gerade gespielte Partie ohne Bewertungen an („nicht analysiert“). Eine schon
+   * vorhandene Partie mit derselben Kennung bleibt unverändert.
+   */
+  savePlayed: (game: Game, userColor: Color) => Promise<void>;
   open: (id: string) => Promise<boolean>;
   /** Rechnet fehlende Kennzahlen älterer Einträge aus den gespeicherten Bewertungen nach. */
   ensureStats: () => Promise<void>;
@@ -148,6 +181,25 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
     set({ entries: [...get().entries.filter((e) => e.id !== meta.id), meta] });
   },
 
+  savePlayed: async (game, userColor) => {
+    const storage = getLibraryStorage();
+    const id = gameId(game.pgn);
+    if (await storage.get(id).catch(() => null)) return;
+    const meta = await unanalysedMeta(game, userColor);
+    const record: Session = {
+      version: 1,
+      source: { kind: 'game', pgn: game.pgn },
+      userColor,
+      orientation: userColor === 'w' ? 'white' : 'black',
+      current: -1,
+      analysis: null,
+      explanations: {},
+      summary: null,
+    };
+    await storage.save(id, meta, record);
+    set({ entries: [...get().entries.filter((e) => e.id !== id), meta] });
+  },
+
   open: async (id) => {
     const record = await getLibraryStorage()
       .get(id)
@@ -156,7 +208,8 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
   },
 
   ensureStats: async () => {
-    const missing = get().entries.filter((e) => !e.stats);
+    // Nicht analysierte Partien haben keine Bewertungen, aus denen sich etwas nachrechnen ließe
+    const missing = get().entries.filter((e) => !e.stats && e.analysed);
     if (missing.length === 0) return;
     const updated: LibraryMeta[] = [];
     for (const entry of missing) {

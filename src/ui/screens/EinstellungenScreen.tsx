@@ -563,6 +563,19 @@ export function EinstellungenScreen() {
               label={t('einstellungen.spielen.sounds')}
             />
           </div>
+          <div className="flex min-h-hit items-center gap-3">
+            <div className="flex-1">
+              <div className="font-semibold">{t('einstellungen.spielen.autoAnalyse')}</div>
+              <div className="text-[13px] text-muted">
+                {t('einstellungen.spielen.autoAnalyseHint')}
+              </div>
+            </div>
+            <Toggle
+              checked={draft.play.autoAnalyse}
+              onChange={(autoAnalyse) => update({ play: { ...draft.play, autoAnalyse } })}
+              label={t('einstellungen.spielen.autoAnalyse')}
+            />
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <label htmlFor={ids.volume} className="min-w-[110px] font-semibold">
               {t('einstellungen.spielen.volume')}

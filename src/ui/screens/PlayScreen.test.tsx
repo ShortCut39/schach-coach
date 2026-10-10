@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { activateLiveGuard, releaseLiveGuard } from '../../play/liveGuard';
+import { useGame } from '../../store/game';
+import { gameId, useLibrary } from '../../store/library';
+import { useNavigation } from '../../store/navigation';
 import { usePlay } from '../../store/play';
 import { DEFAULT_SETTINGS, useSettings } from '../../store/settings';
 import { AnalyseScreen } from './AnalyseScreen';
@@ -58,6 +61,61 @@ describe('Spielen-Seite', () => {
     expect(screen.getByText('durch Aufgabe')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Neue Partie' }));
     expect(screen.getByRole('heading', { name: 'Neue Partie' })).toBeInTheDocument();
+  });
+
+  it('übergibt die beendete Partie aus meiner Sicht an die Analyse und speichert sie', async () => {
+    render(<PlayScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Partie starten' }));
+    fireEvent.click(square('e2'));
+    fireEvent.click(square('e4'));
+    await screen.findByText('Du bist am Zug.', {}, { timeout: 3000 });
+    fireEvent.click(screen.getByRole('button', { name: 'Aufgeben' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ja, aufgeben' }));
+
+    expect(await screen.findByText(/liegt in der Bibliothek/)).toBeInTheDocument();
+    // Frühere Tests speichern ihre Partien ebenfalls: nach der Kennung dieser Partie suchen
+    const id = gameId(usePlay.getState().finishedGame!.pgn);
+    await vi.waitFor(() =>
+      expect(useLibrary.getState().entries.some((e) => e.id === id)).toBe(true),
+    );
+    expect(useLibrary.getState().entries.find((e) => e.id === id)).toMatchObject({
+      analysed: false,
+      userColor: 'w',
+      outcome: 'loss',
+      white: 'Du',
+      black: 'Stockfish (Stufe Mittel)',
+      event: 'Partie gegen Stockfish',
+    });
+
+    useNavigation.setState({ screen: 'spielen' });
+    fireEvent.click(screen.getByRole('button', { name: 'Partie analysieren' }));
+    const { source, userColor } = useGame.getState();
+    expect(userColor).toBe('w');
+    expect(source?.kind === 'game' && source.headers.TimeControl).toBe('600+0');
+    expect(source?.kind === 'game' && source.result).toBe('0-1');
+    expect(useNavigation.getState().screen).toBe('analyse');
+  });
+
+  it('analysiert auf Wunsch automatisch nach der Partie', async () => {
+    const settings = useSettings.getState();
+    await settings.save({ ...DEFAULT_SETTINGS, play: { ...settings.play, autoAnalyse: true } });
+    useNavigation.setState({ screen: 'spielen' });
+    render(<PlayScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Partie starten' }));
+    fireEvent.click(square('e2'));
+    fireEvent.click(square('e4'));
+    await screen.findByText('Du bist am Zug.', {}, { timeout: 3000 });
+    fireEvent.click(screen.getByRole('button', { name: 'Aufgeben' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ja, aufgeben' }));
+    await vi.waitFor(() => expect(useNavigation.getState().screen).toBe('analyse'));
+  });
+
+  it('bietet nach einem Abbruch keine Analyse an', () => {
+    render(<PlayScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Partie starten' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(screen.getByRole('heading', { name: 'Partie abgebrochen' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Partie analysieren' })).not.toBeInTheDocument();
   });
 
   it('zeigt Hilfen nur in der lokalen Partie', () => {
