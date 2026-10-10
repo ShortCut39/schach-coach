@@ -1,7 +1,13 @@
 import { Chess, type Square } from 'chess.js';
 import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Chessboard, type PieceDropHandlerArgs, type SquareHandlerArgs } from 'react-chessboard';
+import {
+  Chessboard,
+  type PieceDropHandlerArgs,
+  type PieceHandlerArgs,
+  type SquareHandlerArgs,
+} from 'react-chessboard';
+import { resolveBoardMove, targetSquares } from '../../training/boardMoves';
 import type { Orientation } from '../../store/game';
 import { useSettings } from '../../store/settings';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
@@ -49,36 +55,42 @@ export function TrainingBoard({
 
   const chess = new Chess(fen);
   const turn = chess.turn();
-  const targets = selectedSquare
-    ? chess.moves({ square: selectedSquare as Square, verbose: true }).map((m) => m.to)
-    : [];
+  const targets = selectedSquare ? targetSquares(fen, selectedSquare) : [];
+  const isOwn = (pieceType: string | undefined) => !!pieceType?.startsWith(turn);
 
   /** Versucht den Zug; `false`, wenn er nicht legal ist. */
   function attempt(from: string, to: string): boolean {
-    const legal = chess.moves({ square: from as Square, verbose: true }).filter((m) => m.to === to);
-    if (legal.length === 0) return false;
+    const move = resolveBoardMove(fen, from, to);
+    if (!move) return false;
     setSelected(null);
-    if (legal.some((m) => m.promotion)) {
-      setPromotion({ fen, from, to });
+    if (move.needsPromotion) {
+      setPromotion({ fen, from: move.from, to: move.to });
       return false;
     }
-    onMove(from + to);
+    onMove(move.from + move.to);
     return true;
   }
 
   function onSquareClick({ piece, square }: SquareHandlerArgs) {
     if (!interactive || pendingPromotion) return;
-    if (selectedSquare && targets.includes(square as Square)) {
-      attempt(selectedSquare, square);
-      return;
-    }
-    const own = piece?.pieceType.startsWith(turn);
-    setSelected(own && square !== selectedSquare ? { fen, square } : null);
+    // Zielfeld oder (bei der Rochade) der eigene Turm
+    if (selectedSquare && selectedSquare !== square && attempt(selectedSquare, square)) return;
+    // Eigene Figur anklicken wählt sie aus; alles andere hebt die Auswahl auf
+    setSelected(isOwn(piece?.pieceType) ? { fen, square } : null);
+  }
+
+  /** Schon beim Anfassen die möglichen Felder zeigen (auch, wenn ein Klick als Ziehen beginnt). */
+  function onPieceDrag({ piece, square }: PieceHandlerArgs) {
+    if (interactive && square && isOwn(piece.pieceType)) setSelected({ fen, square });
   }
 
   function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
     if (!interactive || !targetSquare || pendingPromotion) return false;
-    return attempt(sourceSquare, targetSquare);
+    // Auf dasselbe Feld zurückgelegt = angeklickt: Auswahl bleibt für den Klick aufs Zielfeld
+    if (targetSquare === sourceSquare) return false;
+    const moved = attempt(sourceSquare, targetSquare);
+    if (!moved) setSelected(null);
+    return moved;
   }
 
   const squareStyles: Record<string, CSSProperties> = {};
@@ -96,9 +108,9 @@ export function TrainingBoard({
   for (const square of targets) {
     squareStyles[square] = {
       ...squareStyles[square],
-      backgroundImage: chess.get(square)
-        ? 'radial-gradient(circle, transparent 58%, var(--sc-move-target) 60%)'
-        : 'radial-gradient(circle, var(--sc-move-target) 18%, transparent 20%)',
+      backgroundImage: chess.get(square as Square)
+        ? 'radial-gradient(circle, transparent 56%, var(--sc-move-target) 58%)'
+        : 'radial-gradient(circle, var(--sc-move-target) 23%, transparent 25%)',
     };
   }
 
@@ -116,6 +128,7 @@ export function TrainingBoard({
           allowDragging: interactive && !pendingPromotion,
           allowDrawingArrows: false,
           canDragPiece: ({ piece }) => interactive && piece.pieceType.startsWith(turn),
+          onPieceDrag,
           onPieceDrop,
           onSquareClick,
           showAnimations: !prefersReducedMotion(),
