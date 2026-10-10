@@ -93,3 +93,13 @@ input[type='number']::-webkit-outer-spin-button {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Englische Screenreader-Texte der Zieh-Bibliothek (dnd-kit) im Trainingsbrett ausblenden:
+ * react-chessboard lässt sie nicht übersetzen. Züge sagt die App selbst auf Deutsch an
+ * (Statusmeldung nach dem Zug, Eingabefeld „Zug eingeben“ als Alternative zum Ziehen).
+ */
+[id^='DndLiveRegion-'],
+[id^='DndDescribedBy-'] {
+  display: none;
+}

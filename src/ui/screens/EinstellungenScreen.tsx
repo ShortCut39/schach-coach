@@ -23,7 +23,7 @@ import { SelectField, TextField, Toggle, inputClass } from '../shared/form';
 import { IconAlert, IconCheck } from '../shared/icons';
 import { Segmented } from '../shared/Segmented';
 
-const sections = ['ki', 'engine', 'analyse', 'darstellung'] as const;
+const sections = ['ki', 'engine', 'analyse', 'training', 'darstellung'] as const;
 type Section = (typeof sections)[number];
 
 type TestState =
@@ -137,7 +137,8 @@ export function EinstellungenScreen() {
     draft.thresholds.inaccuracy < draft.thresholds.mistake &&
     draft.thresholds.mistake < draft.thresholds.blunder &&
     draft.thresholds.blunder <= 60;
-  const canSave = thresholdsValid && (urlValid || draft.llm.baseUrl.trim() === '');
+  const trainingValid = Object.values(draft.training).some(Boolean);
+  const canSave = thresholdsValid && trainingValid && (urlValid || draft.llm.baseUrl.trim() === '');
 
   async function runTest() {
     if (!urlValid || !draft.llm.model.trim()) {
@@ -496,6 +497,50 @@ export function EinstellungenScreen() {
               {t('einstellungen.analyse.automatic')}
             </p>
           </div>
+        </SettingsCard>
+
+        <SettingsCard
+          id="training"
+          title={t('einstellungen.sections.training')}
+          subtitle={t('einstellungen.training.subtitle')}
+        >
+          <div
+            role="group"
+            aria-label={t('einstellungen.training.sources')}
+            className="flex flex-col gap-1"
+          >
+            {(
+              [
+                ['blunders', ['blunder', 'mistake']],
+                ['missed', ['miss']],
+                ['inaccuracies', ['inaccuracy']],
+              ] as const
+            ).map(([key, categories]) => (
+              <div key={key} className="flex min-h-hit items-center gap-3">
+                <span className="flex gap-1" aria-hidden="true">
+                  {categories.map((category) => (
+                    <CategoryIcon key={category} category={category} size={16} decorative />
+                  ))}
+                </span>
+                <div className="flex-1">
+                  <div className="font-semibold">{t(`einstellungen.training.${key}`)}</div>
+                  <div className="text-[13px] text-muted">
+                    {t(`einstellungen.training.${key}Hint`)}
+                  </div>
+                </div>
+                <Toggle
+                  checked={draft.training[key]}
+                  onChange={(value) => update({ training: { ...draft.training, [key]: value } })}
+                  label={t(`einstellungen.training.${key}`)}
+                />
+              </div>
+            ))}
+          </div>
+          {!trainingValid && (
+            <p role="alert" className="text-[12.5px] text-danger">
+              {t('einstellungen.training.noneSelected')}
+            </p>
+          )}
         </SettingsCard>
 
         <SettingsCard id="darstellung" title={t('einstellungen.sections.darstellung')}>

@@ -1,5 +1,6 @@
 import { Chessboard } from 'react-chessboard';
 import type { CSSProperties, ReactNode } from 'react';
+import { notationBase, prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
 import { useSettings } from '../../store/settings';
 import { boardColors } from '../boardThemes';
@@ -11,20 +12,6 @@ interface BoardViewProps {
   lastMove?: { from: string; to: string } | undefined;
   label: string;
   overlay?: ReactNode;
-}
-
-const notationBase: CSSProperties = {
-  fontFamily: 'var(--sc-font-mono)',
-  fontWeight: 600,
-  fontSize: 'clamp(9px, 1.9cqw, 13px)',
-  userSelect: 'none',
-};
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
 }
 
 /** Nur-Anzeige-Brett (kein Ziehen). Figuren: SVG-Satz von react-chessboard. */

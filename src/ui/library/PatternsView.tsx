@@ -11,8 +11,8 @@ import {
 } from '../../classification/patterns';
 import { useApiKey } from '../../store/apiKey';
 import { isLlmConfigured } from '../../store/explanations';
-import { useGame } from '../../store/game';
 import { useLibrary } from '../../store/library';
+import { useTraining } from '../../store/training';
 import { useNavigation } from '../../store/navigation';
 import { toPatternGames, usePatterns } from '../../store/patterns';
 import { useSettings } from '../../store/settings';
@@ -21,17 +21,7 @@ import { accuracyColor, formatPercent } from '../format';
 import { Button } from '../shared/Button';
 import { CategoryIcon } from '../shared/CategoryIcon';
 import { Panel } from '../shared/Panel';
-
-/** Öffnet eine Partie aus der Bibliothek an einem bestimmten Halbzug. */
-function useOpenAt() {
-  const open = useLibrary((s) => s.open);
-  const setAnalyseView = useNavigation((s) => s.setAnalyseView);
-  return async (gameId: string, ply?: number) => {
-    if (!(await open(gameId))) return;
-    if (ply !== undefined) useGame.getState().goTo(ply);
-    setAnalyseView('board');
-  };
-}
+import { useOpenAt } from './useOpenAt';
 
 function Card({
   title,
@@ -61,6 +51,7 @@ function MotifRow({ summary }: { summary: MotifSummary }) {
   const { t } = useTranslation();
   const notation = useSettings((s) => s.notation);
   const openAt = useOpenAt();
+  const setBibliothekView = useNavigation((s) => s.setBibliothekView);
   const [expanded, setExpanded] = useState(false);
   const share = new Intl.NumberFormat('de-DE', { style: 'percent' }).format(summary.share);
   return (
@@ -80,6 +71,19 @@ function MotifRow({ summary }: { summary: MotifSummary }) {
       <p className="text-[13px] text-muted">{t(`motifs.${summary.motif}.text`)}</p>
       {summary.examples.length > 0 && (
         <div>
+          <button
+            type="button"
+            aria-label={t('patterns.trainMotifLabel', {
+              motif: t(`motifs.${summary.motif}.name`),
+            })}
+            onClick={() => {
+              useTraining.getState().setMotif(summary.motif);
+              setBibliothekView('training');
+            }}
+            className="mr-2 min-h-8 rounded-small px-1 text-[12.5px] font-semibold text-accent-text hover:underline"
+          >
+            {t('patterns.trainMotif')}
+          </button>
           <button
             type="button"
             aria-expanded={expanded}

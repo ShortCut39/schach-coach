@@ -301,6 +301,7 @@
       "ki": "KI-Anbindung",
       "engine": "Engine",
       "analyse": "Analyse & Erklärungen",
+      "training": "Training",
       "darstellung": "Darstellung & Sprache"
     },
     "ki": {
@@ -361,6 +362,17 @@
       "blunder": "Patzer ab",
       "thresholdsInvalid": "Die Schwellen müssen aufsteigen: Ungenauigkeit < Fehler < Patzer.",
       "automatic": "Brillant und Großartig werden automatisch erkannt (Multi-PV, Figurenopfer)."
+    },
+    "training": {
+      "subtitle": "Aus welchen eigenen Fehlern Trainingsaufgaben entstehen (Bibliothek → Training).",
+      "sources": "Fehlerarten für Trainingsaufgaben",
+      "blunders": "Patzer und Fehler",
+      "blundersHint": "Züge, die viel gekostet haben – die wichtigsten Aufgaben.",
+      "missed": "Verpasste Chancen",
+      "missedHint": "Der Gegner hatte gerade einen Fehler gemacht, und du hast es nicht ausgenutzt.",
+      "inaccuracies": "Ungenauigkeiten",
+      "inaccuraciesHint": "Kleinere Fehler. Mehr Aufgaben, aber oft schwer zu erkennen.",
+      "noneSelected": "Wähle mindestens eine Fehlerart aus."
     },
     "darstellung": {
       "scheme": "Farbschema",
@@ -542,33 +554,40 @@
   "motifs": {
     "hangingPiece": {
       "name": "Material eingestellt",
-      "text": "Dein Zug brachte eine Figur oder einen Bauern in Gefahr, und der Gegner hat sie geschlagen."
+      "text": "Dein Zug brachte eine Figur oder einen Bauern in Gefahr, und der Gegner hat sie geschlagen.",
+      "hint": "Prüfe vor dem Zug: Welche deiner Figuren stünde danach ungedeckt oder könnte geschlagen werden?"
     },
     "threatIgnored": {
       "name": "Drohung übersehen",
-      "text": "Eine Figur war schon angegriffen, du hast sie nicht gerettet, und der Gegner hat sie geschlagen."
+      "text": "Eine Figur war schon angegriffen, du hast sie nicht gerettet, und der Gegner hat sie geschlagen.",
+      "hint": "Eine deiner Figuren ist angegriffen. Rette sie, decke sie oder greife selbst stärker an."
     },
     "missedCapture": {
       "name": "Schlag verpasst",
-      "text": "Eine gegnerische Figur stand ungedeckt, und der beste Zug hätte sie geschlagen."
+      "text": "Eine gegnerische Figur stand ungedeckt, und der beste Zug hätte sie geschlagen.",
+      "hint": "Schau genau hin: Steht eine gegnerische Figur ungedeckt?"
     },
     "mateAllowed": {
       "name": "Matt zugelassen",
-      "text": "Nach deinem Zug konnte der Gegner erzwungen matt setzen."
+      "text": "Nach deinem Zug konnte der Gegner erzwungen matt setzen.",
+      "hint": "Achte auf deinen König: Mit welchen Zügen könnte der Gegner Schach geben?"
     },
     "mateMissed": {
       "name": "Matt verpasst",
-      "text": "Du hattest ein erzwungenes Matt und hast es nicht gespielt."
+      "text": "Du hattest ein erzwungenes Matt und hast es nicht gespielt.",
+      "hint": "Suche nach Schachgeboten – hier gibt es ein erzwungenes Matt."
     },
     "other": {
       "name": "Sonstiges",
-      "text": "Fehler ohne einfaches taktisches Motiv, zum Beispiel positionelle Fehler oder Kombinationen."
+      "text": "Fehler ohne einfaches taktisches Motiv, zum Beispiel positionelle Fehler oder Kombinationen.",
+      "hint": "Vergleiche mehrere Kandidatenzüge und prüfe jeweils die beste Antwort des Gegners."
     }
   },
   "patterns": {
     "tabsLabel": "Ansicht der Bibliothek",
     "tabGames": "Partien",
     "tabPatterns": "Muster",
+    "tabTraining": "Training",
     "tooFewTitle": "Noch zu wenige Partien",
     "tooFew": "Muster erscheinen ab {{min}} analysierten Partien. Bisher: {{count}}.",
     "preliminary": "Grundlage: {{count}} Partien. Mit mehr Partien werden die Aussagen verlässlicher.",
@@ -609,6 +628,78 @@
     "exercise": "Übung",
     "summaryTop": "Häufigstes Muster: {{motif}} ({{count}}×)",
     "summaryOpen": "Muster ansehen",
-    "summaryTooFew": "Erscheint ab {{min}} Partien in der Bibliothek ({{count}} bisher)"
+    "summaryTooFew": "Erscheint ab {{min}} Partien in der Bibliothek ({{count}} bisher)",
+    "trainMotif": "Dieses Muster trainieren",
+    "trainMotifLabel": "{{motif}} trainieren"
+  },
+  "training": {
+    "overviewTitle": "Training aus deinen Fehlern",
+    "overviewText": "Jede Aufgabe ist eine Stellung aus deinen Partien, in der du einen Fehler gemacht hast. Finde einen besseren Zug – Stockfish prüft ihn.",
+    "dueReviews": "Wiederholungen fällig",
+    "fresh": "Neue Aufgaben",
+    "learned": "Sicher gelernt",
+    "total": "Aufgaben insgesamt",
+    "start_one": "Training starten (1 Aufgabe)",
+    "start_other": "Training starten ({{count}} Aufgaben)",
+    "sources": "Aufgaben aus: {{list}}",
+    "changeSources": "In den Einstellungen ändern",
+    "sourceNames": {
+      "blunders": "Patzer und Fehler",
+      "missed": "Verpasste Chancen",
+      "inaccuracies": "Ungenauigkeiten"
+    },
+    "motifFilter": "Nur Muster: {{motif}}",
+    "clearMotif": "Alle Muster",
+    "schedule": "Richtig gelöste Aufgaben kommen nach 1, 3, 7, 14 und 30 Tagen wieder, falsch gelöste gleich noch einmal.",
+    "emptyLibrary": "Noch keine analysierten Partien. Analysiere zuerst eine Partie – sie landet automatisch in der Bibliothek.",
+    "noPuzzles": "Aus den gewählten Fehlerarten gibt es noch keine Aufgaben.",
+    "noPuzzlesMotif": "Zu diesem Muster gibt es aus den gewählten Fehlerarten keine Aufgaben.",
+    "allDone": "Für heute ist alles erledigt.",
+    "nextDue": "Nächste Wiederholung: {{date}}",
+    "progress": "Aufgabe {{current}} von {{total}}",
+    "task": "{{color}} am Zug. Finde einen besseren Zug als in der Partie.",
+    "from": "{{game}} · Zug {{move}}",
+    "playedWas": "In der Partie gespielt:",
+    "boardLabel": "Trainingsbrett, {{color}} am Zug. Ziehe eine Figur mit der Maus oder gib den Zug unten ein.",
+    "moveInput": "Zug eingeben",
+    "moveInputPlaceholder": "z. B. Sf3, exd5 oder 0-0",
+    "moveInputSubmit": "Prüfen",
+    "moveInputInvalid": "Diesen Zug gibt es in der Stellung nicht.",
+    "loading": "Aufgabe wird geladen …",
+    "checking": "Stockfish prüft deinen Zug …",
+    "correct": "Richtig!",
+    "correctBest": "{{move}} ist genau der Zug der Engine.",
+    "correctGood": "{{move}} ist gut genug – du verlierst höchstens {{loss}} Prozentpunkte Gewinnchance. Die Engine spielt {{best}}.",
+    "wrong": "Das reicht noch nicht.",
+    "wrongLoss": "Nach {{move}} sinkt deine Gewinnchance um {{loss}} Prozentpunkte.",
+    "sameAsGame": "Das ist derselbe Zug wie in der Partie.",
+    "reply": "Beste Antwort des Gegners: {{line}}",
+    "solutionTitle": "Lösung",
+    "solution": "Die Engine spielt {{line}}.",
+    "gameLine": "Nach deinem Partiezug {{move}} wäre die beste Antwort gewesen: {{line}}",
+    "explanationTitle": "Erklärung aus deiner Analyse",
+    "hint": "Tipp",
+    "hintPiece": "Figur zeigen",
+    "hintPieceText": "Die markierte Figur macht den besten Zug.",
+    "showSolution": "Lösung zeigen",
+    "retry": "Nochmal versuchen",
+    "next": "Nächste Aufgabe",
+    "finish": "Training beenden",
+    "openGame": "In der Partie ansehen",
+    "error": "Die Engine konnte den Zug nicht prüfen. Versuche es noch einmal.",
+    "nextIn_zero": "Kommt in dieser Sitzung noch einmal.",
+    "nextIn_one": "Kommt morgen wieder.",
+    "nextIn_other": "Kommt in {{count}} Tagen wieder.",
+    "doneTitle": "Training beendet",
+    "doneText": "{{correct}} von {{total}} Aufgaben beim ersten Versuch gelöst.",
+    "back": "Zur Übersicht",
+    "promotion": "Umwandeln in",
+    "promotionPieces": {
+      "q": "Dame",
+      "r": "Turm",
+      "b": "Läufer",
+      "n": "Springer"
+    },
+    "cancel": "Abbrechen"
   }
 }

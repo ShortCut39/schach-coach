@@ -9,6 +9,7 @@ import { Button } from '../shared/Button';
 import { inputClass } from '../shared/form';
 import { PageHeader } from '../shared/PageHeader';
 import { PatternsView } from '../library/PatternsView';
+import { TrainingView } from '../library/TrainingView';
 import { Segmented } from '../shared/Segmented';
 import { Panel } from '../shared/Panel';
 import { PieceColorChip } from '../shared/PieceColorChip';
@@ -102,11 +103,14 @@ export function BibliothekScreen() {
         options={[
           { value: 'games', label: t('patterns.tabGames') },
           { value: 'patterns', label: t('patterns.tabPatterns') },
+          { value: 'training', label: t('patterns.tabTraining') },
         ]}
       />
 
       {view === 'patterns' ? (
         <PatternsView />
+      ) : view === 'training' ? (
+        <TrainingView />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2.5">

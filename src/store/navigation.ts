@@ -5,8 +5,8 @@ export type Screen = (typeof screens)[number];
 
 /** Ansicht innerhalb von „Analyse“: Brett oder Zusammenfassung */
 export type AnalyseView = 'board' | 'summary';
-/** Ansicht innerhalb der Bibliothek: Partienliste oder Muster */
-export type BibliothekView = 'games' | 'patterns';
+/** Ansicht innerhalb der Bibliothek: Partienliste, Muster oder Training */
+export type BibliothekView = 'games' | 'patterns' | 'training';
 
 interface NavigationState {
   screen: Screen;
