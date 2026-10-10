@@ -43,6 +43,14 @@ export const settingsSchema = z.object({
   notation: z.enum(['de', 'en']).catch('de'),
   boardTheme: z.enum(['standard', 'wood', 'sage']).catch('standard'),
   showArrows: z.boolean().catch(true),
+  /** Aus welchen eigenen Fehlern Trainingsaufgaben entstehen */
+  training: z
+    .object({
+      blunders: z.boolean().catch(true),
+      missed: z.boolean().catch(true),
+      inaccuracies: z.boolean().catch(false),
+    })
+    .catch({ blunders: true, missed: true, inaccuracies: false }),
   /** Zuletzt genutztes Konto für den Online-Import */
   online: z
     .object({
@@ -82,6 +90,7 @@ export function pickSettings(state: Settings): Settings {
     boardTheme: state.boardTheme,
     showArrows: state.showArrows,
     online: state.online,
+    training: state.training,
   });
 }
 
