@@ -407,7 +407,9 @@
     "spielen": {
       "subtitle": "Games against Stockfish (and later live on Lichess).",
       "sounds": "Sounds",
-      "soundsHint": "Short sounds for moves, captures, checks, the end of the game and low time."
+      "soundsHint": "Sounds for moves, captures, castling, check, promotion, the start and end of a game and low time.",
+      "volume": "Volume",
+      "testSound": "Test sound"
     }
   },
   "categories": {

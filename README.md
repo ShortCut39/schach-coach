@@ -215,6 +215,7 @@ Schach-Coach steht unter der **GNU General Public License v3.0 oder später** (s
 - Schriften: IBM Plex (SIL Open Font License), lokal gebündelt über `@fontsource`.
 - Figuren: SVG-Satz aus `react-chessboard` (MIT), im Stil der Cburnett-Figuren von Wikimedia Commons.
 - Schachlogik: `chess.js` (BSD-2-Clause).
+- Töne beim Spielen: von der App selbst berechnet (`src/play/soundSynth.ts`), keine fremden Audiodateien und keine Lichess-Töne.
 - **Engine: Stockfish.js 19 (GPL-3.0)**, gebündelt aus dem npm-Paket `stockfish`, und die **native Stockfish 19** (GPL-3.0) aus dem offiziellen Release von github.com/official-stockfish/Stockfish als Sidecar.
 - Eröffnungsbuch: [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), siehe `data/chess-openings/`. `pnpm build:openings` erzeugt daraus `src/classification/data/openings.json`.
 - Test-Fixture `src/test/fixtures/opera-game-evals-d20.json`: echte Stockfish-Bewertungen der Beispielpartie (Tiefe 20, Multi-PV 3), erzeugt mit `GENERATE_EVAL_FIXTURE=1 pnpm vitest run src/test/tools`.

@@ -20,6 +20,7 @@ const threshold = z.number().min(1).max(60);
 const DEFAULT_PLAY = {
   autoAnalyse: false,
   sounds: true,
+  volume: 70,
   minutes: 10,
   increment: 0,
   noClock: false,
@@ -73,6 +74,8 @@ export const settingsSchema = z.object({
       /** Nach der Partie automatisch analysieren */
       autoAnalyse: z.boolean().catch(DEFAULT_PLAY.autoAnalyse),
       sounds: z.boolean().catch(DEFAULT_PLAY.sounds),
+      /** Lautstärke der Töne in Prozent */
+      volume: z.number().int().min(0).max(100).catch(DEFAULT_PLAY.volume),
       /** Grundzeit in Minuten (wie bei Lichess höchstens 180) */
       minutes: z.number().min(1).max(180).catch(DEFAULT_PLAY.minutes),
       /** Inkrement in Sekunden */

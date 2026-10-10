@@ -1,57 +1,54 @@
+import type { PlyBase } from '../chess/types';
+import { encodeWav, renderSound, type SoundKind } from './soundSynth';
+
+export type { SoundKind } from './soundSynth';
+
 /**
- * Einfache Töne, erzeugt per WebAudio (keine Audiodateien, also keine Lizenzfragen).
- * Ohne WebAudio (Tests, alte Systeme) bleibt es still.
+ * Töne fürs Spielen.
+ *
+ * Befund (Oktober 2026, Linux, WebKitGTK 2.54, PipeWire): WebAudio erzeugt in der WebView zwar
+ * einen Tonstrom, der aber nur Stille enthält – gemessen am Monitor-Ausgang des Kopfhörers. Ein
+ * HTMLAudioElement mit einer WAV-Datei (auch als Blob-URL) kommt dagegen mit vollem Pegel an.
+ * Deshalb werden die Töne einmal selbst berechnet (`soundSynth.ts`), als WAV-Blob abgelegt und
+ * über `Audio` abgespielt. Ohne Audio-Unterstützung (Tests) bleibt es still.
  */
-export type SoundKind = 'move' | 'capture' | 'check' | 'end' | 'lowTime';
 
-interface Tone {
-  frequency: number;
-  duration: number;
-  type: OscillatorType;
-  volume: number;
-  /** Zweiter Ton kurz danach (Schach, Partieende) */
-  then?: number;
+/** Ton zu einem Zug, nur aus den Zugdaten (SAN-Zeichen bzw. chess.js-Flags). */
+export function moveSound(ply: Pick<PlyBase, 'flags'>): SoundKind {
+  const { flags } = ply;
+  if (flags.check || flags.mate) return 'check';
+  if (flags.promotion) return 'promotion';
+  if (flags.castle) return 'castle';
+  if (flags.capture) return 'capture';
+  return 'move';
 }
 
-const TONES: Record<SoundKind, Tone> = {
-  move: { frequency: 520, duration: 0.07, type: 'triangle', volume: 0.18 },
-  capture: { frequency: 330, duration: 0.11, type: 'triangle', volume: 0.22 },
-  check: { frequency: 660, duration: 0.09, type: 'square', volume: 0.08, then: 880 },
-  end: { frequency: 440, duration: 0.18, type: 'sine', volume: 0.2, then: 660 },
-  lowTime: { frequency: 990, duration: 0.06, type: 'sine', volume: 0.12 },
-};
+const urls = new Map<SoundKind, string>();
 
-let context: AudioContext | null = null;
-
-function audio(): AudioContext | null {
-  if (typeof window === 'undefined' || typeof window.AudioContext !== 'function') return null;
-  context ??= new window.AudioContext();
-  if (context.state === 'suspended') void context.resume().catch(() => undefined);
-  return context;
+function urlFor(kind: SoundKind): string | null {
+  const cached = urls.get(kind);
+  if (cached) return cached;
+  if (typeof URL.createObjectURL !== 'function') return null;
+  const wav = encodeWav(renderSound(kind));
+  const url = URL.createObjectURL(new Blob([wav.buffer as ArrayBuffer], { type: 'audio/wav' }));
+  urls.set(kind, url);
+  return url;
 }
 
-function beep(ctx: AudioContext, tone: Tone, frequency: number, start: number): void {
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-  oscillator.type = tone.type;
-  oscillator.frequency.value = frequency;
-  // Kurzes Ein- und Ausblenden verhindert Knacken
-  gain.gain.setValueAtTime(0, start);
-  gain.gain.linearRampToValueAtTime(tone.volume, start + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + tone.duration);
-  oscillator.connect(gain).connect(ctx.destination);
-  oscillator.start(start);
-  oscillator.stop(start + tone.duration + 0.02);
+function audioSupported(): boolean {
+  return typeof window !== 'undefined' && typeof window.Audio === 'function';
 }
 
-export function playSound(kind: SoundKind): void {
+/** Spielt einen Ton; `volume` von 0 bis 1. Jeder Aufruf bekommt ein eigenes Element (Überlappen). */
+export function playSound(kind: SoundKind, volume = 0.7): void {
+  if (volume <= 0 || !audioSupported()) return;
   try {
-    const ctx = audio();
-    if (!ctx) return;
-    const tone = TONES[kind];
-    const now = ctx.currentTime;
-    beep(ctx, tone, tone.frequency, now);
-    if (tone.then) beep(ctx, tone, tone.then, now + tone.duration * 0.9);
+    const url = urlFor(kind);
+    if (!url) return;
+    const audio = new window.Audio(url);
+    audio.volume = Math.min(1, volume);
+    const played = audio.play() as Promise<void> | undefined;
+    void played?.catch(() => undefined);
   } catch {
     // Kein Ton ist kein Fehler
   }

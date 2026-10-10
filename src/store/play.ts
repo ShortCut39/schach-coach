@@ -7,7 +7,7 @@ import type { Level } from '../play/opponent/levels';
 import { timeControl } from '../play/rules/timeControl';
 import { LocalSession } from '../play/session/LocalSession';
 import type { BoardMoveInput, GameSession, GameViewState } from '../play/session/types';
-import { playSound } from '../play/sound';
+import { moveSound, playSound, type SoundKind } from '../play/sound';
 import { getEngine } from './engine';
 import type { Orientation } from './game';
 import { pickSettings, useSettings } from './settings';
@@ -60,17 +60,25 @@ function resolveColor(color: Color | 'random'): Color {
   return Math.random() < 0.5 ? 'w' : 'b';
 }
 
-/** Ton zum letzten Zug bzw. zum Partieende */
+/** Ton mit der eingestellten Lautstärke (nichts, wenn Töne aus sind) */
+function sound(kind: SoundKind): void {
+  const { sounds, volume } = useSettings.getState().play;
+  if (sounds) playSound(kind, volume / 100);
+}
+
+/**
+ * Ton zum letzten Zug (eigener Zug wie Gegnerzug) bzw. zum Partieende. Welcher Ton, entscheidet
+ * der Zug selbst (`moveSound`), nicht die Oberfläche.
+ */
 function soundFor(previous: GameViewState | null, next: GameViewState): void {
-  if (!useSettings.getState().play.sounds) return;
-  if (next.status === 'ended' && previous?.status !== 'ended') {
-    playSound('end');
-    return;
-  }
-  if (!previous || next.plies.length <= previous.plies.length) return;
+  const moved = !!previous && next.plies.length > previous.plies.length;
   const last = next.plies.at(-1);
-  if (!last) return;
-  playSound(last.flags.check ? 'check' : last.flags.capture ? 'capture' : 'move');
+  if (moved && last) sound(moveSound(last));
+  if (next.status === 'ended' && previous?.status !== 'ended') {
+    // Nach dem Zugton (z. B. Matt) kurz warten, damit beide zu hören sind
+    if (moved) setTimeout(() => sound('gameEnd'), 220);
+    else sound('gameEnd');
+  }
 }
 
 export const usePlay = create<PlayState>()((set, get) => {
@@ -94,6 +102,7 @@ export const usePlay = create<PlayState>()((set, get) => {
       if (moved) void refreshEvalBar();
     });
     startLowTimeWatch();
+    sound('gameStart');
     void refreshEvalBar();
   }
 
@@ -105,7 +114,7 @@ export const usePlay = create<PlayState>()((set, get) => {
       if (!view?.clock || view.status !== 'playing' || lowTimeWarned) return;
       if (remainingAt(view.clock, view.myColor, performance.now()) < LOW_TIME_MS) {
         lowTimeWarned = true;
-        if (useSettings.getState().play.sounds) playSound('lowTime');
+        sound('lowTime');
       }
     }, 250);
   }

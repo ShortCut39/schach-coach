@@ -8,6 +8,8 @@ import { LlmError } from '../../llm/types';
 import { useAnalysis } from '../../store/analysis';
 import { useApiKey } from '../../store/apiKey';
 import { autoPoolSize, restartEngines, useEngine } from '../../store/engine';
+import { playSound } from '../../play/sound';
+import { formatNumber } from '../format';
 import { getSecretStorage } from '../../store/persistence';
 import {
   DEFAULT_THRESHOLDS,
@@ -99,6 +101,7 @@ export function EinstellungenScreen() {
     t1: useId(),
     t2: useId(),
     t3: useId(),
+    volume: useId(),
   };
 
   const update = (patch: Partial<Settings>) => {
@@ -559,6 +562,35 @@ export function EinstellungenScreen() {
               onChange={(sounds) => update({ play: { ...draft.play, sounds } })}
               label={t('einstellungen.spielen.sounds')}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label htmlFor={ids.volume} className="min-w-[110px] font-semibold">
+              {t('einstellungen.spielen.volume')}
+            </label>
+            <input
+              id={ids.volume}
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={draft.play.volume}
+              disabled={!draft.play.sounds}
+              onChange={(e) => update({ play: { ...draft.play, volume: Number(e.target.value) } })}
+              className="min-w-[160px] flex-1 accent-accent disabled:opacity-45"
+            />
+            <span className="w-12 text-right font-mono text-[13px] text-muted">
+              {formatNumber(draft.play.volume / 100, {
+                style: 'percent',
+                maximumFractionDigits: 0,
+              })}
+            </span>
+            <Button
+              variant="ghost"
+              disabled={!draft.play.sounds}
+              onClick={() => playSound('move', draft.play.volume / 100)}
+            >
+              {t('einstellungen.spielen.testSound')}
+            </Button>
           </div>
         </SettingsCard>
 

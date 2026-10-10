@@ -407,7 +407,9 @@
     "spielen": {
       "subtitle": "Partien gegen Stockfish (und später live auf Lichess).",
       "sounds": "Töne",
-      "soundsHint": "Kurze Töne bei Zügen, Schlagen, Schach, Partieende und knapper Zeit."
+      "soundsHint": "Töne für Zug, Schlagen, Rochade, Schach, Umwandlung, Partiebeginn, Partieende und knappe Zeit.",
+      "volume": "Lautstärke",
+      "testSound": "Ton testen"
     }
   },
   "categories": {
