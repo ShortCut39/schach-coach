@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { headerValue } from '../../chess/pgn';
 import type { Color, Game } from '../../chess/types';
@@ -10,6 +10,9 @@ import { useApiKey } from '../../store/apiKey';
 import { useEngine } from '../../store/engine';
 import { isLlmConfigured, useExplanations, type PlyExplanations } from '../../store/explanations';
 import { useGame } from '../../store/game';
+import { useLibrary } from '../../store/library';
+import { toPatternGames } from '../../store/patterns';
+import { buildPatternReport, MIN_PATTERN_GAMES } from '../../classification/patterns';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
 import i18n from '../../i18n';
@@ -20,7 +23,6 @@ import { useGameAnalysis } from '../analyse/useGameAnalysis';
 import { colorName } from '../chessText';
 import { Button } from '../shared/Button';
 import { Panel } from '../shared/Panel';
-import { VersionBadge } from '../shared/VersionBadge';
 import { AccuracyCard } from './AccuracyCard';
 import { buildMarkdown, exportFileName } from './markdown';
 import { OpeningCard } from './OpeningCard';
@@ -29,6 +31,39 @@ import { TipsCard } from './TipsCard';
 import { TurningPoints } from './TurningPoints';
 
 const NO_ENTRIES: Record<number, PlyExplanations> = {};
+
+/** Karte „Muster über mehrere Partien“: häufigstes Muster oder wie viele Partien noch fehlen. */
+function PatternTeaser() {
+  const { t } = useTranslation();
+  const entries = useLibrary((s) => s.entries);
+  const refresh = useLibrary((s) => s.refresh);
+  const setBibliothekView = useNavigation((s) => s.setBibliothekView);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+  const games = toPatternGames(entries);
+  const top = buildPatternReport(games).motifs.find((m) => m.motif !== 'other');
+  const enough = games.length >= MIN_PATTERN_GAMES;
+  return (
+    <section className="flex flex-wrap items-center gap-3 rounded-panel border border-border bg-panel px-[18px] py-3.5">
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold">{t('summary.patterns')}</div>
+        <div className="text-[13px] text-muted">
+          {!enough
+            ? t('patterns.summaryTooFew', { min: MIN_PATTERN_GAMES, count: games.length })
+            : top
+              ? t('patterns.summaryTop', { motif: t(`motifs.${top.motif}.name`), count: top.count })
+              : t('patterns.noErrors')}
+        </div>
+      </div>
+      {enough && (
+        <Button variant="ghost" onClick={() => setBibliothekView('patterns')}>
+          {t('patterns.summaryOpen')}
+        </Button>
+      )}
+    </section>
+  );
+}
 
 function Empty({ text }: { text: string }) {
   const { t } = useTranslation();
@@ -184,16 +219,7 @@ function SummaryContent({ game }: { game: Game }) {
             model={llm.model}
             onRequest={() => void useExplanations.getState().explainSummary()}
           />
-          <section
-            aria-disabled="true"
-            className="flex items-center gap-3 rounded-panel border border-divider bg-panel-sub px-[18px] py-3.5 text-faint"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-muted">{t('summary.patterns')}</div>
-              <div className="text-[13px]">{t('summary.patternsText')}</div>
-            </div>
-            <VersionBadge version={3} />
-          </section>
+          <PatternTeaser />
         </div>
       </div>
 

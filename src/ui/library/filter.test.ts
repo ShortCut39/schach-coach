@@ -17,6 +17,7 @@ function meta(partial: Partial<LibraryMeta> & Pick<LibraryMeta, 'id'>): LibraryM
     plies: 40,
     depth: 20,
     multipv: 3,
+    playedAt: null,
     ...partial,
   };
 }

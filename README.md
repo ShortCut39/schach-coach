@@ -2,7 +2,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachem Deutsch – auch die guten.
 
-> **Stand: Meilenstein 6 (Version 2).** Partien laden, bewerten, klassifizieren und von einer KI erklären lassen, dazu Zusammenfassung mit Tipps und Markdown-Export. Neu: lokale **Bibliothek** (automatisch gespeichert, nichts wird doppelt berechnet), **Chat zur Stellung**, **Import von Lichess und Chess.com** per Benutzername und ein **helles Farbschema**. Später (Version 3): Muster über viele Partien, Training aus eigenen Fehlern, native Stockfish-Engine, weitere Sprachen, Windows- und macOS-Builds.
+> **Stand: Version 3 (in Arbeit).** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Neu: **Muster über viele Partien** mit typischen Fehlern, Genauigkeit über die Zeit, Eröffnungen und einem KI-Trainingsplan. Noch offen: Training aus eigenen Fehlern, weitere Sprachen sowie Windows- und macOS-Builds.
 
 ## Bedienung
 
@@ -10,6 +10,12 @@ Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stel
 - **Analyse:** Zug in der Liste anklicken oder per Tastatur: **← / →** ein Zug, **Pos1 / Ende** Anfang/Ende, **F** Brett drehen. Ein Klick in den Bewertungsverlauf springt zum Zug.
 - **Zusammenfassung:** Rechts im Analyse-Screen der Reiter „Zusammenfassung“ → „Zusammenfassung öffnen“. Sie zeigt Genauigkeit je Phase, Zugkategorien, Wendepunkte (anklickbar), Eröffnung, Bewertungsverlauf und die drei wichtigsten Tipps der KI. „Als Markdown exportieren“ speichert alles samt Zugliste und Erklärungen als `.md`-Datei.
 - **Bibliothek:** Jede vollständig bewertete Partie landet automatisch hier, samt Erklärungen, Tipps und Chat. Es gibt Suche nach Eröffnung, Spieler oder Titel, die Filter „Als Weiß“, „Als Schwarz“ und „Niederlagen“ und eine Sortierung. „Öffnen“ lädt die Partie ohne neue Rechnung, Löschen fragt einmal nach. Wird dieselbe Partie erneut mit gleicher Tiefe importiert, übernimmt die App die gespeicherten Bewertungen. Erklärungen übernimmt sie nur, wenn du wieder dieselbe Farbe gewählt hast.
+- **Muster über viele Partien:** Bibliothek → Reiter „Muster“, sichtbar ab 3 analysierten Partien.
+  - **Typische Fehler:** Jeder eigene Fehler bekommt ein Motiv: Material eingestellt, Drohung übersehen, Schlag verpasst, Matt zugelassen, Matt verpasst oder Sonstiges. Dazu Häufigkeit und anklickbare Beispiele, die die Partie an genau diesem Zug öffnen.
+  - **Genauigkeit über die Zeit:** ein Verlauf über deine Partien, der Trend der letzten 5 gegen die davor und die Phasen mit Genauigkeit und Fehlern pro 10 eigene Züge.
+  - **Eröffnungen:** Bilanz, Genauigkeit und Theorie-Länge je Eröffnung, getrennt nach deiner Farbe.
+  - **Trainingsplan:** Die KI schreibt aus diesen Zahlen und konkreten Beispielen (in Worten) drei Empfehlungen mit je einer Übung. Der Plan wird gespeichert.
+  - Die Karte in der Zusammenfassung zeigt das häufigste Muster.
 - **Lichess / Chess.com:** Im Import Plattform wählen und Benutzernamen eingeben → „Partien laden“ holt die letzten 20 Partien (nur normales Schach, keine Varianten). „Du spielst“ wird automatisch auf deine Farbe gestellt. Gesendet wird nur der Benutzername, an die öffentliche Schnittstelle der Plattform.
 - **Chat zur Stellung:** Rechter Reiter „Chat“. Jede Frage bekommt automatisch die Engine-Daten der angezeigten Stellung mit (Linien und Figuren in Gefahr in Worten, dazu der letzte Zug). Die KI soll nur damit antworten.
 - **Farbschema:** Einstellungen → Darstellung → Dunkel oder Hell.
@@ -49,6 +55,17 @@ Alle Werte sind Gewinnchancen in Prozent aus Sicht des Ziehenden, berechnet aus 
 - **Großartig:** Verglichen wird der gespielte Zug mit der besten Alternative, nicht stur Linie 1 mit Linie 2.
 - **Opfer-Schwelle 2 statt 3:** Auf Wunsch gesenkt, damit auch Figur-gegen-Bauer-Opfer wie Lxh7+ zählen.
 - **Opfer an der Fenstergrenze:** Die direkte Antwort auf einen gegnerischen Schlagzug wird auch hinter dem 8-Halbzug-Fenster gelesen. Sonst sähe ein Damentausch an der Grenze wie ein Opfer aus.
+
+**Fehlermotive** (`src/classification/motifs.ts`, in dieser Reihenfolge):
+
+1. Matt zugelassen: Nach dem Zug setzt der Gegner laut Engine erzwungen matt.
+2. Matt verpasst: Der Bestzug hätte erzwungen matt gesetzt.
+3. Drohung übersehen: Eine schon vorher gefährdete Figur wird geschlagen.
+4. Material eingestellt: Der Zug bringt eine Figur oder einen Bauern in Gefahr, und die beste Antwort schlägt sie.
+5. Schlag verpasst: Eine ungedeckte gegnerische Figur hätte geschlagen werden können.
+6. Sonstiges.
+
+„In Gefahr“ heißt angegriffen und ungedeckt oder von einer billigeren Figur angegriffen.
 
 **Spielphasen** (für die Genauigkeit je Phase, angelehnt an Lichess): Endspiel ab höchstens 6 Figuren ohne Bauern und Könige, Eröffnung bis Zug 10, dazwischen Mittelspiel.
 
@@ -133,6 +150,7 @@ Design-Vorlagen: `docs/mockups/*.png` (verbindlich), `docs/mockups/html/` (nur M
 - Im Browser-Modus (`pnpm dev` ohne Tauri) gibt es keinen Schlüsselbund: Der Key gilt dort nur bis zum Neuladen. Außerdem können CORS-Regeln Anfragen blockieren.
 - **Bibliothek auf der Festplatte:** `~/.local/share/de.schachcoach.desktop/library/` (je Partie eine Metadaten- und eine Datendatei). Im Browser-Modus liegt sie im `localStorage` des Browsers.
 - **Online-Import:** Lichess und Chess.com blockieren Anfragen ohne passenden User-Agent. Die App schickt den User-Agent des Tauri-HTTP-Plugins mit, und beide Schnittstellen nehmen ihn an (getestet im Oktober 2026). Ändert eine Plattform ihre Regeln, meldet die App „nicht verwertbar“ oder „nicht erreichbar“.
+- **Muster:** Die Motive sind einfache, regelbasierte Näherungen. Kombinationen und positionelle Fehler landen unter „Sonstiges“. Kennzahlen älterer Bibliothekseinträge rechnet die App beim ersten Öffnen der Muster-Seite einmal aus den gespeicherten Bewertungen nach.
 - **Chat:** Er braucht eine Engine-Bewertung der angezeigten Stellung. Solange die Engine noch rechnet, ist Senden gesperrt.
 - **Kontrast:** Alle Texttöne erreichen in beiden Farbschemata WCAG AA (4,5:1). Dafür wurde das Token „schwach“ auf `#7f8999` aufgehellt (Design: `#6c7686`). Knapp darunter liegen weiterhin das Patzer-Icon (weiß auf `#e0453a`, 4,1:1) und die Brettkoordinaten (3,4:1), beide wie im Design.
 - Die Zusammenfassungs-Ansicht und der Reiter „Brett/Zusammenfassung“ werden nicht über einen Neustart gemerkt, die App startet immer auf dem Brett.
