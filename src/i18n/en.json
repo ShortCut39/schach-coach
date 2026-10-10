@@ -1,0 +1,712 @@
+{
+  "app": {
+    "name": "Schach-Coach"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "analyse": "Analysis",
+    "import": "Import",
+    "bibliothek": "Library",
+    "einstellungen": "Settings"
+  },
+  "status": {
+    "label": "Status",
+    "llmNotConfigured": "AI not set up",
+    "ready": "ready",
+    "notReady": "not ready",
+    "engineLoading": "Stockfish loading …",
+    "engineReady": "{{name}} · depth {{depth}}",
+    "engineError": "Engine not available",
+    "llmReady": "{{model}}"
+  },
+  "common": {
+    "comingInMilestone": "Coming in milestone {{milestone}}",
+    "version": "Version {{version}}",
+    "white": "White",
+    "black": "Black",
+    "resultOpen": "unfinished",
+    "moves_one": "{{count}} move",
+    "moves_other": "{{count}} moves",
+    "plies_one": "{{count}} half-move",
+    "plies_other": "{{count}} half-moves",
+    "cancel": "Cancel",
+    "resume": "Resume"
+  },
+  "analyse": {
+    "title": "Analysis",
+    "emptyTitle": "No game loaded yet",
+    "emptyText": "Paste a game as PGN or FEN. The board, the move list and the coach's explanations will then appear here.",
+    "emptyAction": "Import a game",
+    "moves": {
+      "title": "Moves",
+      "number": "#",
+      "white": "White",
+      "black": "Black",
+      "tableLabel": "Move list",
+      "start": "Starting position",
+      "evalHint": "Eval = White's view",
+      "filterLabel": "Filter",
+      "filters": {
+        "all": "All",
+        "mine": "Mine only",
+        "errors": "Errors",
+        "good": "Good moves"
+      },
+      "cellLabel": "{{move}}, {{category}}",
+      "filterEmpty": "No moves for this filter."
+    },
+    "players": {
+      "you": "You",
+      "opponent": "Opponent"
+    },
+    "board": {
+      "label": "Board",
+      "positionStart": "Starting position",
+      "positionAfter": "Position after {{move}}",
+      "arrowsLabel": "Arrows: {{arrows}}",
+      "arrows": {
+        "played": "move played",
+        "best": "best move",
+        "reply": "opponent's reply",
+        "continuation": "continuation"
+      },
+      "badge": "{{category}} on {{square}}"
+    },
+    "controls": {
+      "label": "Board controls",
+      "first": "To the start",
+      "prev": "One move back",
+      "next": "One move forward",
+      "last": "To the end",
+      "flip": "Flip board",
+      "keyboardHint": "Keyboard: ← → move · Home/End · F flip"
+    },
+    "position": {
+      "title": "Single position",
+      "turn": "{{side}} to move",
+      "text": "A FEN has no move list. The engine shows its best continuations here."
+    },
+    "side": {
+      "label": "Coach and summary",
+      "coach": "Coach",
+      "chat": "Chat",
+      "summary": "Summary"
+    },
+    "evalBar": {
+      "label": "Evaluation bar: {{eval}}",
+      "unknown": "no evaluation yet"
+    },
+    "graph": {
+      "title": "Evaluation graph",
+      "label": "Evaluation over {{count}} half-moves. Click to jump to a move.",
+      "plies_one": "{{count}} half-move",
+      "plies_other": "{{count}} half-moves",
+      "empty": "The graph fills up while the engine is calculating.",
+      "markers": "Markers: Great, Brilliant and Blunder"
+    },
+    "engine": {
+      "title": "Engine lines",
+      "before": "before {{move}}",
+      "start": "Starting position",
+      "position": "this position",
+      "depth": "Depth {{depth}}",
+      "pending": "Calculating …",
+      "notAnalysed": "Not evaluated yet.",
+      "checkmate": "Checkmate – the game is over.",
+      "stalemate": "Stalemate – the game is a draw.",
+      "lineLabel": "Line {{number}}: {{eval}}, {{moves}}"
+    },
+    "progress": {
+      "running": "Engine {{done}} / {{total}}",
+      "runningDepth": "Engine {{done}} / {{total}} · depth {{depth}}",
+      "aborted": "Stopped at {{done}} / {{total}}",
+      "error": "The engine could not be started.",
+      "retry": "Try again"
+    },
+    "stats": {
+      "title": "Statistics",
+      "caption": "Number of move categories per player",
+      "category": "Category",
+      "you": "You",
+      "opponent": "Opponent",
+      "accuracy": "Accuracy",
+      "phase": "Phase",
+      "pending": "Appears once the engine has evaluated the game."
+    }
+  },
+  "import": {
+    "title": "Analyse a new game",
+    "subtitle": "Paste a game as PGN or FEN, or load a file. The engine evaluates every position, then the AI explains the important moves.",
+    "inputLabel": "Enter a game",
+    "tabsLabel": "Input type",
+    "tabs": {
+      "pgn": "PGN",
+      "fen": "FEN",
+      "datei": "File"
+    },
+    "pgnLabel": "PGN of the game",
+    "fenLabel": "FEN of the position",
+    "pgnPlaceholder": "[Event \"…\"]\n[White \"…\"]\n[Black \"…\"]\n\n1. e4 e5 2. Nf3 …",
+    "fenPlaceholder": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+    "fileTabText": "Load a PGN file from your computer. If it contains several games, you pick one afterwards.",
+    "fileLoaded": "Loaded: {{name}}",
+    "status": {
+      "empty": "Nothing pasted yet.",
+      "pgnOk": "PGN recognised: {{moves}}, {{plies}}, result {{result}}",
+      "fenOk": "FEN recognised: {{side}} to move",
+      "multi": "{{count}} games recognised – pick one on the right.",
+      "looksLikeFen": "This looks like a FEN.",
+      "looksLikePgn": "This looks like a PGN.",
+      "switchToFen": "Switch to the FEN tab",
+      "switchToPgn": "Switch to the PGN tab"
+    },
+    "errors": {
+      "empty": "Nothing pasted yet.",
+      "noMoves": "The PGN contains no moves.",
+      "syntax": "The PGN cannot be read. Check that you copied the whole game.",
+      "illegalMove": "Move {{move}} ({{color}}): “{{san}}” is not possible in this position.",
+      "fen": {
+        "fields": "The FEN is incomplete.",
+        "board": "The piece placement is invalid. It needs 8 ranks of 8 squares each, separated by “/”.",
+        "kings": "Each side needs exactly one king.",
+        "pawns": "Pawns cannot stand on the first or eighth rank.",
+        "turn": "The side to move must be “w” (White) or “b” (Black).",
+        "castling": "The castling rights are invalid.",
+        "enPassant": "The en passant square is invalid.",
+        "counters": "The move counters at the end of the FEN are invalid.",
+        "other": "The FEN is invalid."
+      },
+      "file": {
+        "unreadable": "The file could not be read.",
+        "unsupported": "This file cannot be loaded. Allowed are .pgn, .txt and .fen.",
+        "tooLarge": "The file is too large (at most 20 MB)."
+      }
+    },
+    "userColor": "You play",
+    "analyse": "Analyse",
+    "reset": "Reset",
+    "drop": {
+      "label": "Load a file",
+      "title": "Drag a PGN file here",
+      "or": "or",
+      "choose": "Choose a file",
+      "release": "Release to load"
+    },
+    "games": {
+      "label": "Games in the text",
+      "title": "Several games recognised",
+      "count": "{{count}} games",
+      "select": "Select a game",
+      "untitled": "Game {{number}}",
+      "noSite": "No location",
+      "meta": "{{place}} · {{moves}} · {{result}}"
+    },
+    "sources": {
+      "label": "Load from Lichess or Chess.com",
+      "title": "Load from Lichess or Chess.com",
+      "text": "Loads your last 20 games by username.",
+      "platformLabel": "Platform",
+      "lichess": "Lichess",
+      "chesscom": "Chess.com",
+      "username": "Username",
+      "load": "Load games",
+      "loading": "Loading …",
+      "loaded": "{{platform}} · {{username}} ({{count}} games)",
+      "errors": {
+        "invalidUser": "Please enter a valid username (letters, digits, _ and -).",
+        "notFound": "This user does not exist there.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "unreachable": "The platform cannot be reached. Are you connected to the internet?",
+        "noGames": "No games were found for this user.",
+        "badResponse": "The platform's response could not be used."
+      }
+    },
+    "depth": {
+      "label": "Engine depth",
+      "fast": "{{depth}} (fast)",
+      "standard": "{{depth}} (standard)",
+      "thorough": "{{depth}} (thorough)",
+      "setting": "{{depth}} (setting)"
+    },
+    "progress": {
+      "label": "Analysis progress",
+      "title": "Progress",
+      "engine": "Engine evaluates positions",
+      "done": "Done",
+      "aborted": "Stopped",
+      "error": "The engine could not be started.",
+      "toBoard": "To the board",
+      "engineBar": "Engine progress",
+      "ai": "AI explains important moves",
+      "aiWaiting": "waiting",
+      "aiNotConfigured": "not set up",
+      "aiError": "error",
+      "aiDone": "done",
+      "aiBar": "AI progress"
+    },
+    "explainScope": "Explanations for"
+  },
+  "bibliothek": {
+    "title": "Library",
+    "subtitle": "Analysed games are stored locally on this computer. Nothing is calculated twice.",
+    "count_one": "{{count}} game",
+    "count_other": "{{count}} games",
+    "averageAccuracy": "Avg. accuracy",
+    "searchLabel": "Search games",
+    "searchPlaceholder": "Search opening, player or title …",
+    "filterLabel": "Filter",
+    "filters": {
+      "all": "All",
+      "white": "As White",
+      "black": "As Black",
+      "losses": "Losses"
+    },
+    "sortLabel": "Sort order",
+    "sort": {
+      "newest": "Newest first",
+      "accuracy": "Accuracy",
+      "blunders": "Most blunders"
+    },
+    "tableLabel": "Analysed games",
+    "columns": {
+      "date": "Date",
+      "game": "Game",
+      "color": "Colour",
+      "result": "Result",
+      "accuracy": "Accuracy",
+      "errors": "Mistakes · Blunders",
+      "actions": "Actions"
+    },
+    "outcome": {
+      "win": "Win",
+      "loss": "Loss",
+      "draw": "Draw",
+      "open": "unfinished"
+    },
+    "open": "Open",
+    "delete": "Delete game",
+    "confirmDelete": "Really delete?",
+    "confirmYes": "Delete",
+    "confirmNo": "Cancel",
+    "emptyTitle": "No games yet",
+    "emptyText": "Every game the engine has fully evaluated ends up here automatically.",
+    "noMatches": "No game matches the search and filter.",
+    "untitled": "Untitled game",
+    "openFailed": "The game could not be opened."
+  },
+  "einstellungen": {
+    "title": "Settings",
+    "sectionsLabel": "Settings sections",
+    "sections": {
+      "ki": "AI connection",
+      "engine": "Engine",
+      "analyse": "Analysis & explanations",
+      "training": "Training",
+      "darstellung": "Appearance & language"
+    },
+    "ki": {
+      "subtitle": "Any OpenAI-compatible endpoint works: cloud or local.",
+      "presetsLabel": "Preset",
+      "presets": {
+        "openai": "OpenAI",
+        "openrouter": "OpenRouter",
+        "ollama": "Ollama (local)",
+        "lmstudio": "LM Studio (local)",
+        "custom": "Custom"
+      },
+      "baseUrl": "Base URL",
+      "apiKey": "API key",
+      "apiKeyPlaceholder": "Leave empty if the server needs no key",
+      "show": "Show",
+      "hide": "Hide",
+      "keyringNote": "Stored in the system keyring, separately for each endpoint, and only sent to this base URL.",
+      "keyringMissing": "No keyring available: the key only lasts until the app is closed and is not saved.",
+      "model": "Model name",
+      "modelPlaceholder": "e.g. llama3.1 or openai/gpt-4o-mini",
+      "test": "Test connection",
+      "testing": "Testing …",
+      "testOk": "Connected · reply in {{seconds}} s",
+      "testNeedsModel": "Please enter the base URL and model name first."
+    },
+    "engine": {
+      "subtitle": "Stockfish runs in the background on this computer.",
+      "depth": "Analysis depth",
+      "fast": "fast",
+      "thorough": "thorough",
+      "multiPv": "Lines (Multi-PV)",
+      "multiPvOption": "{{count}}",
+      "multiPvStandard": "{{count}} (standard)",
+      "threads": "Threads (positions at once)",
+      "threadsAuto": "Automatic ({{count}})",
+      "threadsNote": "This many positions are analysed at the same time, each with its own engine process. The native engine needs about 300 MB of memory per process.",
+      "kind": "Engine",
+      "kindNative": "Native (Stockfish 19, faster and stronger)",
+      "kindWasm": "Built-in (WASM, Lite)",
+      "running": "Running: {{name}}",
+      "nativeMissing": "The native engine was not found, the built-in version is active. “pnpm fetch:engine” downloads it.",
+      "threadsOption": "{{count}}"
+    },
+    "analyse": {
+      "subtitle": "Controls what the AI explains and how simply it puts it.",
+      "level": "Explanation level",
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "club": "Club player"
+      },
+      "scope": "Explanations for",
+      "thresholds": "Thresholds (loss of winning chance)",
+      "reset": "Reset",
+      "inaccuracy": "Inaccuracy from",
+      "mistake": "Mistake from",
+      "blunder": "Blunder from",
+      "thresholdsInvalid": "The thresholds must increase: inaccuracy < mistake < blunder.",
+      "automatic": "Brilliant and Great are detected automatically (Multi-PV, piece sacrifices)."
+    },
+    "training": {
+      "subtitle": "Which of your own errors become training puzzles (Library → Training).",
+      "sources": "Error types for training puzzles",
+      "blunders": "Blunders and mistakes",
+      "blundersHint": "Moves that cost a lot – the most important puzzles.",
+      "missed": "Missed chances",
+      "missedHint": "Your opponent had just made an error, and you did not take advantage of it.",
+      "inaccuracies": "Inaccuracies",
+      "inaccuraciesHint": "Smaller errors. More puzzles, but often hard to spot.",
+      "noneSelected": "Select at least one error type."
+    },
+    "darstellung": {
+      "scheme": "Colour scheme",
+      "dark": "Dark",
+      "light": "Light",
+      "notation": "Notation",
+      "notationDe": "German (D, T, L, S)",
+      "notationEn": "English (Q, R, B, N)",
+      "board": "Board colours",
+      "boardThemes": {
+        "standard": "Blue-grey",
+        "wood": "Wood",
+        "sage": "Sage"
+      },
+      "arrows": "Arrows for the move played and the best move",
+      "arrowsHint": "Show on the board by default",
+      "language": "Language",
+      "languages": {
+        "de": "Deutsch",
+        "en": "English"
+      },
+      "languageHint": "Applies to the interface and the AI explanations. Switching also changes the notation; you can still set it separately."
+    },
+    "discard": "Discard",
+    "save": "Save",
+    "saved": "Saved.",
+    "saveFailed": "Saving failed.",
+    "unsaved": "Unsaved changes"
+  },
+  "categories": {
+    "brilliant": "Brilliant",
+    "great": "Great",
+    "best": "Best",
+    "excellent": "Excellent",
+    "good": "Good",
+    "book": "Book",
+    "inaccuracy": "Inaccuracy",
+    "mistake": "Mistake",
+    "blunder": "Blunder",
+    "miss": "Miss"
+  },
+  "phases": {
+    "opening": "Opening",
+    "middlegame": "Middlegame",
+    "endgame": "Endgame"
+  },
+  "coach": {
+    "labels": {
+      "was": "What",
+      "warum": "Why",
+      "aufbauen": "Next",
+      "merksatz": "Rule of thumb"
+    },
+    "opponentLabels": {
+      "was": "Plan",
+      "warum": "Why",
+      "aufbauen": "Watch out for"
+    },
+    "moreDetail": "Explain in more detail",
+    "shortVersion": "Short version",
+    "opponentView": "Opponent's view",
+    "opponentTitle": "From the opponent's view",
+    "detailedTitle": "In detail",
+    "request": "Request explanation",
+    "requestHint": "There is no explanation for this move yet.",
+    "requestAll": "Request explanations for the game",
+    "loading": "The AI is explaining this move …",
+    "failed": "Explanation failed.",
+    "retry": "Try again",
+    "notConfigured": "Set up the AI connection first, then the coach will explain your moves.",
+    "setup": "Set up AI",
+    "noMove": "Pick a move in the list and the coach will explain it here.",
+    "waitingForEngine": "As soon as the engine has evaluated this move, the coach can explain it.",
+    "positionTitle": "Position",
+    "explainPosition": "Explain position",
+    "unnoticed": "Played well, but not followed up: this was strong, but you did not build on it in the next moves.",
+    "unnoticedFact": "Played well, but not followed up: after this strong move the player did not build on it in their next two moves (loss of winning chance of 5 or more).",
+    "sacrifice": "Sacrifice",
+    "aiNote": "AI explanation based on the engine data",
+    "run": {
+      "running": "AI {{done}} / {{total}}",
+      "error": "AI error"
+    }
+  },
+  "llmErrors": {
+    "invalidUrl": "The base URL is invalid. It must start with http:// or https://.",
+    "unauthorized": "The API key was rejected. Check the key.",
+    "modelNotFound": "The model is unknown. Check the model name.",
+    "notFound": "There is no matching endpoint at this address. Check the base URL.",
+    "rateLimited": "Too many requests or no credit left. Try again later.",
+    "server": "The server reported an error. Try again later.",
+    "unreachable": "The endpoint cannot be reached. Is the server running, and is the address correct?",
+    "timeout": "No answer within the expected time.",
+    "aborted": "Cancelled.",
+    "jsonModeUnsupported": "The endpoint does not support JSON mode.",
+    "badResponse": "The AI's answer could not be used."
+  },
+  "explainScope": {
+    "errorsAndMyGood": "Errors + my good moves",
+    "errorsOnly": "Errors only",
+    "all": "All moves"
+  },
+  "summary": {
+    "title": "Game summary",
+    "subtitleYou": "You play {{color}}",
+    "export": "Export as Markdown",
+    "exported": "Exported: {{name}}",
+    "exportFailed": "Export failed.",
+    "backToBoard": "Back to the board",
+    "accuracyLabel": "Accuracy and categories",
+    "you": "You ({{color}})",
+    "opponent": "Opponent ({{color}})",
+    "byPhase": "Accuracy by phase",
+    "categories": "Move categories",
+    "turningPoints": "Turning points",
+    "noTurningPoints": "No special turning points – the game went without big errors or brilliant moves.",
+    "tips": "Your three most important tips",
+    "tipsSource": "AI · {{model}}",
+    "tipsLoading": "The AI is writing your tips …",
+    "tipsFailed": "The tips could not be created.",
+    "tipsRequest": "Request tips",
+    "tipsNotConfigured": "Set up the AI connection to get three tips about your game here.",
+    "opening": "Opening",
+    "noOpening": "The game left the opening book immediately.",
+    "theoryUntil": "Book until {{move}}",
+    "openingFallback": "The game stayed in book for {{count}} half-moves.",
+    "patterns": "Patterns across several games",
+    "emptyTitle": "No summary yet",
+    "emptyGame": "Load a game first, then its summary appears here.",
+    "emptyPosition": "There is no summary for a single position.",
+    "waitingEngine": "The summary appears once the engine has evaluated the game.",
+    "openFull": "Open summary",
+    "sideText": "Accuracy, turning points and your three most important tips at a glance."
+  },
+  "markdown": {
+    "title": "Schach-Coach: Analysis",
+    "players": "Game",
+    "date": "Date",
+    "result": "Result",
+    "youPlay": "You play",
+    "opening": "Opening",
+    "accuracy": "Accuracy",
+    "player": "Player",
+    "overall": "Overall",
+    "categories": "Move categories",
+    "category": "Category",
+    "turningPoints": "Turning points",
+    "tips": "The three most important tips",
+    "moves": "Moves and explanations",
+    "move": "Move",
+    "eval": "Evaluation",
+    "explanation": "Explanation",
+    "generated": "Created with Schach-Coach. Evaluations: {{engine}}, depth {{depth}}. Explanations: AI based on the engine data.",
+    "noAi": "Without AI explanations.",
+    "fileName": "schach-coach-{{name}}.md"
+  },
+  "errors": {
+    "boundaryTitle": "Something went wrong here",
+    "boundaryText": "This area could not be displayed. Your game has been saved.",
+    "boundaryRetry": "Try again",
+    "boundaryReload": "Reload app"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content"
+  },
+  "chat": {
+    "title": "Question about the position",
+    "hint": "gets engine data",
+    "intro": "Ask something about the position shown, e.g. “Why is this move bad?” or “What is the threat here?”. The AI receives the engine evaluation of this position.",
+    "inputLabel": "Question about the position",
+    "placeholder": "Ask about the position …",
+    "send": "Send question",
+    "pending": "The AI is thinking …",
+    "context": "about {{move}}",
+    "contextStart": "about the starting position",
+    "you": "You",
+    "coach": "Coach",
+    "errors": {
+      "noEval": "There is no engine evaluation for this position yet. Wait until the engine has calculated it."
+    }
+  },
+  "motifs": {
+    "hangingPiece": {
+      "name": "Hung material",
+      "text": "Your move put a piece or pawn in danger, and your opponent captured it.",
+      "hint": "Check before you move: which of your pieces would be undefended or could be captured afterwards?"
+    },
+    "threatIgnored": {
+      "name": "Missed threat",
+      "text": "A piece was already attacked, you did not save it, and your opponent captured it.",
+      "hint": "One of your pieces is attacked. Save it, defend it or make a stronger threat yourself."
+    },
+    "missedCapture": {
+      "name": "Missed capture",
+      "text": "An enemy piece was undefended, and the best move would have captured it.",
+      "hint": "Look closely: is an enemy piece undefended?"
+    },
+    "mateAllowed": {
+      "name": "Allowed mate",
+      "text": "After your move, your opponent could force checkmate.",
+      "hint": "Watch your king: which moves could give your opponent a check?"
+    },
+    "mateMissed": {
+      "name": "Missed mate",
+      "text": "You had a forced mate and did not play it.",
+      "hint": "Look for checks – there is a forced mate here."
+    },
+    "other": {
+      "name": "Other",
+      "text": "Errors without a simple tactical motif, for example positional errors or combinations.",
+      "hint": "Compare several candidate moves and check the opponent's best reply to each."
+    }
+  },
+  "patterns": {
+    "tabsLabel": "Library view",
+    "tabGames": "Games",
+    "tabPatterns": "Patterns",
+    "tabTraining": "Training",
+    "tooFewTitle": "Not enough games yet",
+    "tooFew": "Patterns appear from {{min}} analysed games. So far: {{count}}.",
+    "preliminary": "Based on {{count}} games. With more games the findings become more reliable.",
+    "computing": "Calculating statistics for older games …",
+    "motifsTitle": "Typical errors",
+    "motifsSubtitle": "{{count}} of your errors (inaccuracy, mistake, blunder, miss)",
+    "noErrors": "There were no errors in your games – impressive!",
+    "showExamples": "Show examples",
+    "hideExamples": "Hide examples",
+    "exampleLabel": "Open {{move}} in {{game}}",
+    "timesShare": "{{count}}× · {{share}}",
+    "accuracyTitle": "Accuracy over time",
+    "accuracyChart": "Accuracy of your last {{count}} games",
+    "trend": "Last {{window}} games: {{recent}} · before: {{earlier}}",
+    "trendRecentOnly": "Average: {{recent}}",
+    "phasesTitle": "By phase",
+    "errorsPer10": "{{value}} errors / 10 moves",
+    "noMoves": "no moves",
+    "openingsTitle": "Openings",
+    "openingsCaption": "Results and accuracy per opening",
+    "columns": {
+      "opening": "Opening",
+      "color": "Colour",
+      "games": "Games",
+      "record": "W · D · L",
+      "accuracy": "Accuracy",
+      "theory": "Book"
+    },
+    "theoryMoves": "{{value}} moves",
+    "planTitle": "Your training plan",
+    "planSource": "AI · {{model}} · {{count}} games",
+    "planCreate": "Create training plan",
+    "planRecreate": "Create again",
+    "planLoading": "The AI is creating your training plan …",
+    "planFailed": "The training plan could not be created.",
+    "planIntro": "The AI turns your patterns into three concrete training recommendations.",
+    "planOutdated": "New games have been added since then.",
+    "exercise": "Exercise",
+    "summaryTop": "Most common pattern: {{motif}} ({{count}}×)",
+    "summaryOpen": "View patterns",
+    "summaryTooFew": "Appears from {{min}} games in the library ({{count}} so far)",
+    "trainMotif": "Train this pattern",
+    "trainMotifLabel": "Train {{motif}}"
+  },
+  "training": {
+    "overviewTitle": "Training from your own errors",
+    "overviewText": "Every puzzle is a position from your games in which you made an error. Find a better move – Stockfish checks it.",
+    "dueReviews": "Reviews due",
+    "fresh": "New puzzles",
+    "learned": "Learned",
+    "total": "Puzzles in total",
+    "start_one": "Start training (1 puzzle)",
+    "start_other": "Start training ({{count}} puzzles)",
+    "sources": "Puzzles from: {{list}}",
+    "changeSources": "Change in settings",
+    "sourceNames": {
+      "blunders": "Blunders and mistakes",
+      "missed": "Missed chances",
+      "inaccuracies": "Inaccuracies"
+    },
+    "motifFilter": "Pattern only: {{motif}}",
+    "clearMotif": "All patterns",
+    "schedule": "Puzzles you solve come back after 1, 3, 7, 14 and 30 days; ones you miss come back right away.",
+    "emptyLibrary": "No analysed games yet. Analyse a game first – it is added to the library automatically.",
+    "noPuzzles": "There are no puzzles from the selected error types yet.",
+    "noPuzzlesMotif": "There are no puzzles for this pattern from the selected error types.",
+    "allDone": "You are done for today.",
+    "nextDue": "Next review: {{date}}",
+    "progress": "Puzzle {{current}} of {{total}}",
+    "task": "{{color}} to move. Find a better move than in the game.",
+    "from": "{{game}} · move {{move}}",
+    "playedWas": "Played in the game:",
+    "boardLabel": "Training board, {{color}} to move. Drag a piece with the mouse or enter the move below.",
+    "moveInput": "Enter move",
+    "moveInputPlaceholder": "e.g. Nf3, exd5 or O-O",
+    "moveInputSubmit": "Check",
+    "moveInputInvalid": "This move is not possible in this position.",
+    "loading": "Loading puzzle …",
+    "checking": "Stockfish is checking your move …",
+    "correct": "Correct!",
+    "correctBest": "{{move}} is exactly the engine's move.",
+    "correctGood": "{{move}} is good enough – you lose at most {{loss}} percentage points of winning chance. The engine plays {{best}}.",
+    "wrong": "Not quite.",
+    "wrongLoss": "After {{move}} your winning chance drops by {{loss}} percentage points.",
+    "sameAsGame": "That is the same move as in the game.",
+    "reply": "Opponent's best reply: {{line}}",
+    "solutionTitle": "Solution",
+    "solution": "The engine plays {{line}}.",
+    "gameLine": "After your game move {{move}} the best reply would have been: {{line}}",
+    "explanationTitle": "Explanation from your analysis",
+    "aiTitle": "Why this move is better",
+    "aiLoading": "The AI is explaining the better move …",
+    "aiSource": "AI · {{model}}",
+    "aiNotConfigured": "Set up the AI connection and it will explain after every puzzle why the better move is better.",
+    "hint": "Hint",
+    "hintPiece": "Show piece",
+    "hintPieceText": "The highlighted piece makes the best move.",
+    "showSolution": "Show solution",
+    "retry": "Try again",
+    "next": "Next puzzle",
+    "finish": "End training",
+    "openGame": "View in the game",
+    "error": "The engine could not check the move. Please try again.",
+    "nextIn_zero": "Comes back later in this session.",
+    "nextIn_one": "Comes back tomorrow.",
+    "nextIn_other": "Comes back in {{count}} days.",
+    "doneTitle": "Training finished",
+    "doneText": "{{correct}} of {{total}} puzzles solved on the first try.",
+    "back": "Back to overview",
+    "promotion": "Promote to",
+    "promotionPieces": {
+      "q": "Queen",
+      "r": "Rook",
+      "b": "Bishop",
+      "n": "Knight"
+    },
+    "cancel": "Cancel"
+  }
+}

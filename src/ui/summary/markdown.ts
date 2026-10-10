@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 import { formatMoveNumber, formatSan, type NotationStyle } from '../../chess/notation';
 import { formatPgnDate, headerValue } from '../../chess/pgn';
+import { currentLocale } from '../../i18n';
 import type { Color, Game } from '../../chess/types';
 import { PHASES, playerAccuracy } from '../../classification/accuracy';
 import type { GameAnalysis } from '../../classification/gameAnalysis';
@@ -51,7 +52,7 @@ export function buildMarkdown(input: MarkdownInput, t: TFunction): string {
 
   lines.push(`# ${t('markdown.title')}`, '');
   lines.push(`- **${t('markdown.players')}:** ${white} – ${black}`);
-  const date = formatPgnDate(game.headers.Date);
+  const date = formatPgnDate(game.headers.Date, currentLocale());
   if (date) lines.push(`- **${t('markdown.date')}:** ${date}`);
   lines.push(`- **${t('markdown.result')}:** ${resultText(t, game.result)}`);
   lines.push(`- **${t('markdown.youPlay')}:** ${colorName(t, userColor)}`);

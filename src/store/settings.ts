@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { create } from 'zustand';
 import { DEFAULT_CLASSIFICATION } from '../classification/types';
 import { DEFAULT_SEARCH } from '../engine/types';
+import { applyLanguage } from '../i18n';
 import { LLM_PRESETS } from '../llm/presets';
 import { getSettingsStorage } from './persistence';
 
@@ -40,6 +41,8 @@ export const settingsSchema = z.object({
     .refine((t) => t.inaccuracy < t.mistake && t.mistake < t.blunder)
     .catch(DEFAULT_THRESHOLDS),
   colorScheme: z.enum(['dark', 'light']).catch('dark'),
+  /** Sprache der Oberfläche und der KI-Erklärungen */
+  language: z.enum(['de', 'en']).catch('de'),
   notation: z.enum(['de', 'en']).catch('de'),
   boardTheme: z.enum(['standard', 'wood', 'sage']).catch('standard'),
   showArrows: z.boolean().catch(true),
@@ -86,6 +89,7 @@ export function pickSettings(state: Settings): Settings {
     explainScope: state.explainScope,
     thresholds: state.thresholds,
     colorScheme: state.colorScheme,
+    language: state.language,
     notation: state.notation,
     boardTheme: state.boardTheme,
     showArrows: state.showArrows,
@@ -107,6 +111,7 @@ export const useSettings = create<SettingsState>()((set) => ({
       const raw = await getSettingsStorage().get(STORAGE_KEY);
       const loaded = settingsSchema.parse(raw ?? {});
       applyColorScheme(loaded.colorScheme);
+      applyLanguage(loaded.language);
       set({ ...loaded, loaded: true });
     } catch {
       set({ loaded: true });
@@ -115,6 +120,7 @@ export const useSettings = create<SettingsState>()((set) => ({
   save: async (next) => {
     const valid = settingsSchema.parse(next);
     applyColorScheme(valid.colorScheme);
+    applyLanguage(valid.language);
     set(valid);
     await getSettingsStorage().set(STORAGE_KEY, valid);
   },

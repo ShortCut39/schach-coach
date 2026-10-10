@@ -1,5 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatPgnDate } from '../../chess/pgn';
+import { currentLocale } from '../../i18n';
 import { useLibrary, type LibraryMeta, type Outcome } from '../../store/library';
 import { useNavigation } from '../../store/navigation';
 import { colorName } from '../chessText';
@@ -208,7 +210,10 @@ export function BibliothekScreen() {
                   {shown.map((entry) => (
                     <tr key={entry.id} className="border-t border-divider">
                       <td className="px-4 py-3 font-mono text-[13px] font-medium whitespace-nowrap text-muted">
-                        {entry.date ?? new Date(entry.savedAt).toLocaleDateString('de-DE')}
+                        {(entry.playedAt
+                          ? formatPgnDate(entry.playedAt.replace(/-/g, '.'), currentLocale())
+                          : entry.date) ??
+                          new Date(entry.savedAt).toLocaleDateString(currentLocale())}
                       </td>
                       <td className="px-2 py-3">
                         <div className="font-semibold">{entry.opening?.name ?? title(entry)}</div>

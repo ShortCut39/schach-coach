@@ -1,13 +1,25 @@
-import i18n from '../i18n';
+import { currentLocale } from '../i18n';
 
-/** Prozentwert mit einer Nachkommastelle im Format der eingestellten Sprache, z. B. „96,1 %“. */
+/** Prozentwert mit einer Nachkommastelle im Format der eingestellten Sprache, z. B. „96,1 %“ / „96.1%“. */
 export function formatPercent(value: number | undefined): string {
   if (value === undefined) return '–';
-  const number = new Intl.NumberFormat(i18n.language, {
+  return new Intl.NumberFormat(currentLocale(), {
+    style: 'percent',
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
-  }).format(value);
-  return `${number} %`;
+  }).format(value / 100);
+}
+
+/** Zahl im Format der eingestellten Sprache (höchstens eine Nachkommastelle) */
+export function formatNumber(value: number, options: Intl.NumberFormatOptions = {}): string {
+  return new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1, ...options }).format(
+    value,
+  );
+}
+
+/** Datum im Format der eingestellten Sprache */
+export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions): string {
+  return new Date(value).toLocaleDateString(currentLocale(), options);
 }
 
 /** Farbe nach Genauigkeit (Zahl steht immer dabei, die Farbe ist nur zusätzlich). */

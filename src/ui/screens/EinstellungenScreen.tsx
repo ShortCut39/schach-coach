@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { currentLocale, supportedLanguages } from '../../i18n';
 import { testConnection } from '../../llm/client';
 import { getFetch } from '../../llm/http';
 import { LLM_PRESETS, type LlmPresetId } from '../../llm/presets';
@@ -324,9 +325,9 @@ export function EinstellungenScreen() {
                 <span className="inline-flex items-center gap-2 text-success">
                   <IconCheck />
                   {t('einstellungen.ki.testOk', {
-                    seconds: new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(
-                      test.ms / 1000,
-                    ),
+                    seconds: new Intl.NumberFormat(currentLocale(), {
+                      maximumFractionDigits: 1,
+                    }).format(test.ms / 1000),
                   })}
                 </span>
               )}
@@ -612,10 +613,19 @@ export function EinstellungenScreen() {
             id={ids.language}
             label={t('einstellungen.darstellung.language')}
             className="max-w-[360px]"
-            disabled
-            hint={t('einstellungen.darstellung.languageNote')}
+            value={draft.language}
+            // Die Notation wechselt mit (D/T/L/S ↔ Q/R/B/N), bleibt danach aber frei einstellbar
+            onChange={(e) => {
+              const language = e.target.value as Settings['language'];
+              update({ language, notation: language });
+            }}
+            hint={t('einstellungen.darstellung.languageHint')}
           >
-            <option>{t('einstellungen.darstellung.languageDe')}</option>
+            {supportedLanguages.map((language) => (
+              <option key={language} value={language} lang={language}>
+                {t(`einstellungen.darstellung.languages.${language}`)}
+              </option>
+            ))}
           </SelectField>
         </SettingsCard>
 

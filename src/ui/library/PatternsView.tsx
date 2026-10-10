@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../../i18n';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import { PHASES } from '../../classification/accuracy';
 import {
@@ -53,7 +54,7 @@ function MotifRow({ summary }: { summary: MotifSummary }) {
   const openAt = useOpenAt();
   const setBibliothekView = useNavigation((s) => s.setBibliothekView);
   const [expanded, setExpanded] = useState(false);
-  const share = new Intl.NumberFormat('de-DE', { style: 'percent' }).format(summary.share);
+  const share = new Intl.NumberFormat(currentLocale(), { style: 'percent' }).format(summary.share);
   return (
     <li className="flex flex-col gap-1.5 border-t border-divider pt-2.5 first:border-t-0 first:pt-0">
       <div className="flex items-baseline justify-between gap-2">
@@ -197,7 +198,7 @@ function AccuracyTimeline({ report }: { report: PatternReport }) {
 
 function PhaseRows({ report }: { report: PatternReport }) {
   const { t } = useTranslation();
-  const number = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+  const number = new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 });
   return (
     <div className="flex flex-col gap-2.5">
       <div className="font-mono text-[11px] font-semibold tracking-[0.06em] text-faint uppercase">
@@ -234,7 +235,7 @@ function PhaseRows({ report }: { report: PatternReport }) {
 function OpeningsTable({ report }: { report: PatternReport }) {
   const { t } = useTranslation();
   const head = 'pb-1.5 font-mono text-[11px] font-semibold tracking-[0.06em] text-faint uppercase';
-  const number = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+  const number = new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 });
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[620px] border-collapse text-[13px]">

@@ -48,7 +48,7 @@ describe('Markdown-Export', () => {
     expect(markdown).toContain('**Partie:** Morphy, Paul – Herzog von Braunschweig & Graf Isouard');
     expect(markdown).toContain('Philidor Defense (C41)');
     expect(markdown).toContain('**Datum:** 1858');
-    expect(markdown).toMatch(/\| Du \(Weiß\) \| \d+,\d %/);
+    expect(markdown).toMatch(/\| Du \(Weiß\) \| \d+,\d\s%/);
     expect(markdown).toContain('| !! Brillant | 1 | 0 |');
     expect(markdown).toContain('- **16. Db8+** – !! Brillant: Das Damenopfer entscheidet.');
     expect(markdown).toContain('1. **Linien öffnen** – Nutze offene Linien.');

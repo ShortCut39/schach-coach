@@ -84,7 +84,7 @@
     "position": {
       "title": "Einzelstellung",
       "turn": "{{side}} am Zug",
-      "text": "Für eine FEN gibt es keine Zugliste. Ab Meilenstein 2 zeigt die Engine hier ihre besten Fortsetzungen."
+      "text": "Für eine FEN gibt es keine Zugliste. Die Engine zeigt hier ihre besten Fortsetzungen."
     },
     "side": {
       "label": "Coach und Zusammenfassung",
@@ -390,8 +390,11 @@
       "arrows": "Pfeile für gespielten und besten Zug",
       "arrowsHint": "Standardmäßig auf dem Brett anzeigen",
       "language": "Sprache",
-      "languageDe": "Deutsch",
-      "languageNote": "Weitere Sprachen kommen am Ende der Entwicklung. Sie gelten für Oberfläche und KI-Erklärungen."
+      "languages": {
+        "de": "Deutsch",
+        "en": "English"
+      },
+      "languageHint": "Gilt für Oberfläche und KI-Erklärungen. Beim Umschalten wechselt auch die Notation; du kannst sie danach weiter frei einstellen."
     },
     "discard": "Verwerfen",
     "save": "Speichern",

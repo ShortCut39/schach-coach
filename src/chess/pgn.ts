@@ -198,14 +198,18 @@ export function fullMoveCount(game: Game): number {
 }
 
 /**
- * PGN-Datum (`YYYY.MM.DD`, unbekannte Teile als `??`) für die Anzeige:
- * vollständig → `09.10.2026`, nur Jahr bekannt → `1858`, sonst `undefined`.
+ * PGN-Datum (`YYYY.MM.DD`, unbekannte Teile als `??`) für die Anzeige im Format von `locale`:
+ * vollständig → `09.10.2026` (de-DE) bzw. `09/10/2026` (en-GB), nur Jahr bekannt → `1858`,
+ * sonst `undefined`.
  */
-export function formatPgnDate(value: string | undefined): string | undefined {
+export function formatPgnDate(value: string | undefined, locale = 'de-DE'): string | undefined {
   const match = /^(\d{4}|\?{4})\.(\d{2}|\?{2})\.(\d{2}|\?{2})$/.exec(value?.trim() ?? '');
   if (!match) return undefined;
   const [, year, month, day] = match;
   if (!year || year.includes('?')) return undefined;
   if (!month || month.includes('?') || !day || day.includes('?')) return year;
-  return `${day}.${month}.${year}`;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).toLocaleDateString(
+    locale,
+    { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' },
+  );
 }

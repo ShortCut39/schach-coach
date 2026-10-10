@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../../i18n';
 import { formatMoveNumber, formatSan } from '../../chess/notation';
 import { useApiKey } from '../../store/apiKey';
 import { isLlmConfigured } from '../../store/explanations';
@@ -110,7 +111,7 @@ function TrainingOverview() {
             <>
               {' '}
               {t('training.nextDue', {
-                date: new Date(nextDue).toLocaleDateString('de-DE', {
+                date: new Date(nextDue).toLocaleDateString(currentLocale(), {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
@@ -269,7 +270,7 @@ function Feedback({ data }: { data: PuzzleData }) {
   const attempt = useTraining((s) => s.attempt);
   const card = useTraining((s) => s.cards[data.puzzle.id]);
   const loss = (value: number) =>
-    new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(value);
+    new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(value);
   const best = data.before.lines[0]?.pv ?? [];
   const userMove = attempt.move ? formatLine(data.fen, [attempt.move], notation, 1) : '';
   const check = attempt.check;
