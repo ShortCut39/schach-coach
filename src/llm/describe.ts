@@ -1,4 +1,5 @@
 import { Chess, type Move, type Square } from 'chess.js';
+import { endangeredPieces } from '../chess/danger';
 import type { Color } from '../chess/types';
 
 /**
@@ -15,7 +16,6 @@ const PIECE_NAMES: Record<string, string> = {
   q: 'Dame',
   k: 'König',
 };
-const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 };
 const COLOR_NAMES: Record<Color, string> = { w: 'Weiß', b: 'Schwarz' };
 
 function playUci(chess: Chess, uci: string): Move | null {
@@ -76,31 +76,14 @@ function pieceList(chess: Chess, squares: Square[]): string {
 }
 
 /**
- * Figuren (ohne Bauern und König) von `color`, die in Gefahr sind: angegriffen und entweder
- * gar nicht gedeckt oder von einer billigeren Figur angegriffen.
+ * Figuren (ohne Bauern und König) von `color`, die in Gefahr sind, als Sätze für das LLM.
  * Beispiel: „Dame h4 (angegriffen von Springer f3, nicht gedeckt)“
  */
 export function piecesInDanger(fen: string, color: Color): string[] {
   const chess = new Chess(fen);
-  const enemy: Color = color === 'w' ? 'b' : 'w';
-  const result: string[] = [];
-  for (const row of chess.board()) {
-    for (const square of row) {
-      if (!square || square.color !== color || square.type === 'p' || square.type === 'k') continue;
-      const attackers = chess.attackers(square.square, enemy);
-      if (attackers.length === 0) continue;
-      const defenders = chess.attackers(square.square, color);
-      const value = PIECE_VALUES[square.type] ?? 0;
-      const cheapest = Math.min(
-        ...attackers.map((sq) => PIECE_VALUES[chess.get(sq)?.type ?? 'k'] ?? 100),
-      );
-      if (defenders.length > 0 && cheapest >= value) continue;
-      const defended =
-        defenders.length === 0 ? 'nicht gedeckt' : `gedeckt von ${pieceList(chess, defenders)}`;
-      result.push(
-        `${PIECE_NAMES[square.type]} ${square.square} (angegriffen von ${pieceList(chess, attackers)}, ${defended})`,
-      );
-    }
-  }
-  return result;
+  return endangeredPieces(fen, color).map(({ square, type, attackers, defenders }) => {
+    const defended =
+      defenders.length === 0 ? 'nicht gedeckt' : `gedeckt von ${pieceList(chess, defenders)}`;
+    return `${PIECE_NAMES[type]} ${square} (angegriffen von ${pieceList(chess, attackers)}, ${defended})`;
+  });
 }
