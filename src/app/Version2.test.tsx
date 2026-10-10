@@ -55,6 +55,9 @@ describe('Version 2', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Partie löschen' }));
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }));
     expect(await screen.findByText('Noch keine Partien')).toBeInTheDocument();
+    // Die gelöschte Partie ist noch geöffnet: Automatisches Speichern legt sie nicht wieder an
+    await useLibrary.getState().saveCurrent();
+    expect(useLibrary.getState().entries).toEqual([]);
   });
 
   it('lädt Partien von Lichess und erkennt die eigene Farbe', async () => {

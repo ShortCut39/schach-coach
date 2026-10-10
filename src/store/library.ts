@@ -10,7 +10,7 @@ import { gameStatsSchema } from './libraryStats';
 import { loadOpeningBook } from '../classification/openingBook';
 import { countCategories } from '../classification/stats';
 import { useAnalysis } from './analysis';
-import { useGame } from './game';
+import { useGame, type LoadedSource } from './game';
 import { getLibraryStorage } from './persistence';
 import { applySnapshot, sessionSchema, snapshot, type Session } from './session';
 import { useSettings } from './settings';
@@ -114,6 +114,13 @@ interface LibraryState {
   remove: (id: string) => Promise<void>;
 }
 
+/**
+ * Gelöschte, aber noch geöffnete Partie: Das automatische Speichern darf sie nicht wieder anlegen
+ * (z. B. beim nächsten Zugwechsel). Ein neuer Import oder ein erneutes Öffnen ist ein anderes
+ * Objekt und wird wieder gespeichert.
+ */
+let removedSource: LoadedSource | null = null;
+
 export const useLibrary = create<LibraryState>()((set, get) => ({
   entries: [],
   loaded: false,
@@ -133,6 +140,7 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
     const { source } = useGame.getState();
     const analysis = useAnalysis.getState();
     if (source?.kind !== 'game' || analysis.source !== source || analysis.status !== 'done') return;
+    if (source === removedSource) return;
     const record = snapshot();
     if (!record) return;
     const meta = await metaFor(source, record, analysis.evals);
@@ -173,6 +181,8 @@ export const useLibrary = create<LibraryState>()((set, get) => ({
   },
 
   remove: async (id) => {
+    const { source } = useGame.getState();
+    if (source?.kind === 'game' && gameId(source.pgn) === id) removedSource = source;
     await getLibraryStorage().remove(id);
     set({ entries: get().entries.filter((e) => e.id !== id) });
   },
