@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export const screens = ['analyse', 'import', 'bibliothek', 'einstellungen'] as const;
+export const screens = ['spielen', 'analyse', 'import', 'bibliothek', 'einstellungen'] as const;
 export type Screen = (typeof screens)[number];
 
 /** Ansicht innerhalb von „Analyse“: Brett oder Zusammenfassung */

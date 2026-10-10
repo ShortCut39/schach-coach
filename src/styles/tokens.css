@@ -54,6 +54,12 @@
   --sc-loss-text: #ff9b92;
   /* Aus dem Mockup abgeleitet (Bibliothek, „Niederlage“): gut lesbares Rot für Fehlermeldungen */
   --sc-danger: #ff9b92;
+  /* Spielen: Uhr unter 10 s (Rot der Niederlage-Badges) und Live-Hinweis (Bernstein) */
+  --sc-clock-low: #ff9b92;
+  --sc-clock-low-bg: #331a1a;
+  --sc-live-bg: #2a2110;
+  --sc-live-border: #6b5520;
+  --sc-live-text: #ffd166;
 
   /* Brett (Standard-Thema; weitere Themen werden in Meilenstein 4 wählbar) */
   --sc-board-light: #cfd8dc;
@@ -162,6 +168,11 @@
   --sc-win-text: #166534;
   --sc-loss-bg: #fee4e2;
   --sc-loss-text: #b42318;
+  --sc-clock-low: #b42318;
+  --sc-clock-low-bg: #fee4e2;
+  --sc-live-bg: #fff6dd;
+  --sc-live-border: #e3c56b;
+  --sc-live-text: #7a5300;
 
   --sc-board-shadow: 0 0 0 1px #dfe3ea, 0 10px 24px rgba(20, 30, 50, 0.15);
   --sc-eval-white: #ffffff;
@@ -219,6 +230,11 @@
   --color-on-accent: var(--sc-on-accent);
   --color-success: var(--sc-success);
   --color-danger: var(--sc-danger);
+  --color-clock-low: var(--sc-clock-low);
+  --color-clock-low-bg: var(--sc-clock-low-bg);
+  --color-live-bg: var(--sc-live-bg);
+  --color-live-border: var(--sc-live-border);
+  --color-live-text: var(--sc-live-text);
   --color-win-bg: var(--sc-win-bg);
   --color-win-text: var(--sc-win-text);
   --color-loss-bg: var(--sc-loss-bg);

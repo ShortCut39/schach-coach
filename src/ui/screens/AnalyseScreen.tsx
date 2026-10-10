@@ -5,6 +5,7 @@ import { headerValue } from '../../chess/pgn';
 import type { Color } from '../../chess/types';
 import { positionsOf } from '../../store/analysis';
 import { selectCurrentFen, selectCurrentPly, useGame } from '../../store/game';
+import { useLiveGuard } from '../../store/liveGuard';
 import { useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
 import { arrowsFor } from '../analyse/arrows';
@@ -25,6 +26,7 @@ import { useGameAnalysis } from '../analyse/useGameAnalysis';
 import { useBoardKeyboard } from '../analyse/useBoardKeyboard';
 import { useCurrentEvals } from '../analyse/useAnalysisFor';
 import { KnightIcon } from '../shared/KnightIcon';
+import { LiveLockNotice } from '../shared/LiveLockNotice';
 import { SummaryView } from '../summary/SummaryView';
 import { Panel } from '../shared/Panel';
 
@@ -32,8 +34,19 @@ import { Panel } from '../shared/Panel';
 const BOARD_SIZE = boardSizeFor(400);
 
 export function AnalyseScreen() {
+  const { t } = useTranslation();
   const source = useGame((s) => s.source);
   const view = useNavigation((s) => s.analyseView);
+  // Fair Play: Während einer Live-Partie gibt es keine Analyse (auch nicht für andere Partien)
+  const live = useLiveGuard((s) => s.active);
+  if (live) {
+    return (
+      <main id="main" className="flex flex-1 p-5">
+        <h1 className="sr-only">{t('analyse.title')}</h1>
+        <LiveLockNotice />
+      </main>
+    );
+  }
   if (view === 'summary') return <SummaryView />;
   return source ? <AnalyseLayout /> : <EmptyState />;
 }

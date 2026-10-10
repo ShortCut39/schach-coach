@@ -15,11 +15,12 @@ describe('App-Shell', () => {
   });
   afterEach(() => i18n.off('missingKey', onMissing));
 
-  it('zeigt die vier Navigationspunkte, Analyse ist aktiv', () => {
+  it('zeigt die fünf Navigationspunkte, Analyse ist aktiv', () => {
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Hauptnavigation' });
     const buttons = within(nav).getAllByRole('button');
     expect(buttons.map((b) => b.textContent)).toEqual([
+      'Spielen',
       'Analyse',
       'Import',
       'Bibliothek',

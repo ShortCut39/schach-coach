@@ -3,6 +3,7 @@ import { LLM_PRESETS } from '../../llm/presets';
 import { useAnalysis } from '../../store/analysis';
 import { useApiKey } from '../../store/apiKey';
 import { useEngine } from '../../store/engine';
+import { useLiveGuard } from '../../store/liveGuard';
 import { screens, useNavigation } from '../../store/navigation';
 import { useSettings } from '../../store/settings';
 import { KnightIcon } from './KnightIcon';
@@ -22,8 +23,10 @@ export function AppHeader() {
   const llmReady =
     llm.baseUrl.trim() !== '' && llm.model.trim() !== '' && (apiKey !== '' || !preset?.needsKey);
 
-  const engineLabel =
-    engineStatus === 'ready'
+  const live = useLiveGuard((s) => s.active);
+  const engineLabel = live
+    ? t('status.engineLocked')
+    : engineStatus === 'ready'
       ? t('status.engineReady', { name: engineName ?? '', depth: analysisDepth ?? defaultDepth })
       : engineStatus === 'error'
         ? t('status.engineError')
@@ -65,7 +68,7 @@ export function AppHeader() {
           role="group"
           className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-xs font-medium text-muted"
         >
-          <StatusIndicator label={engineLabel} ready={engineStatus === 'ready'} />
+          <StatusIndicator label={engineLabel} ready={!live && engineStatus === 'ready'} />
           <StatusIndicator
             label={
               llmReady ? t('status.llmReady', { model: llm.model }) : t('status.llmNotConfigured')

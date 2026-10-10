@@ -1,4 +1,4 @@
-import { Chess, DEFAULT_POSITION } from 'chess.js';
+import { Chess, DEFAULT_POSITION, type Move } from 'chess.js';
 import type { ChessError, Color, Game, GameResult, ParseResult, PlyBase } from './types';
 
 const HEADER_LINE = /^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]\s*$/;
@@ -129,22 +129,14 @@ function resultOf(headers: Record<string, string>): GameResult {
   return value !== undefined && RESULTS.has(value) ? (value as GameResult) : '*';
 }
 
-/** Liest genau eine Partie vollständig ein (alle Züge werden auf Legalität geprüft). */
-export function parsePgnGame(chunk: string): ParseResult<Game> {
-  if (chunk.trim() === '') return { ok: false, error: { code: 'empty' } };
+/** Halbzüge aus der Zugfolge von chess.js (`history({ verbose: true })`). */
+export function pliesFromHistory(history: readonly Move[]): PlyBase[] {
+  return history.map((move, index) => plyFromMove(move, index));
+}
 
-  const headers = readHeaders(chunk);
-  const chess = new Chess();
-  try {
-    chess.loadPgn(normalizeText(chunk));
-  } catch {
-    return { ok: false, error: locateError(chunk, startFenOf(headers)) };
-  }
-
-  const history = chess.history({ verbose: true });
-  if (history.length === 0) return { ok: false, error: { code: 'noMoves' } };
-
-  const plies: PlyBase[] = history.map((move, index) => ({
+/** Ein Halbzug aus einem Zug von chess.js; `index` = Position in der Partie (0-basiert). */
+export function plyFromMove(move: Move, index: number): PlyBase {
+  return {
     index,
     moveNumber: Number(move.before.split(' ')[5] ?? '1'),
     color: move.color,
@@ -162,7 +154,25 @@ export function parsePgnGame(chunk: string): ParseResult<Game> {
       promotion: move.isPromotion(),
       enPassant: move.isEnPassant(),
     },
-  }));
+  };
+}
+
+/** Liest genau eine Partie vollständig ein (alle Züge werden auf Legalität geprüft). */
+export function parsePgnGame(chunk: string): ParseResult<Game> {
+  if (chunk.trim() === '') return { ok: false, error: { code: 'empty' } };
+
+  const headers = readHeaders(chunk);
+  const chess = new Chess();
+  try {
+    chess.loadPgn(normalizeText(chunk));
+  } catch {
+    return { ok: false, error: locateError(chunk, startFenOf(headers)) };
+  }
+
+  const history = chess.history({ verbose: true });
+  if (history.length === 0) return { ok: false, error: { code: 'noMoves' } };
+
+  const plies = pliesFromHistory(history);
 
   const startFen = history[0]?.before ?? startFenOf(headers);
   return {

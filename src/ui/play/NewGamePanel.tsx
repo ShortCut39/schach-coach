@@ -1,0 +1,198 @@
+import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LEVELS, type Level } from '../../play/opponent/levels';
+import { speedOf, TIME_PRESETS, timeControl } from '../../play/rules/timeControl';
+import { usePlay } from '../../store/play';
+import { pickSettings, useSettings, type Settings } from '../../store/settings';
+import { Button } from '../shared/Button';
+import { FieldLabel } from '../shared/FieldLabel';
+import { Segmented } from '../shared/Segmented';
+import { inputClass } from '../shared/form';
+
+type PlaySettings = Settings['play'];
+
+/** Zeit-Chip: Voreinstellung, eigene Zeit oder ohne Uhr */
+function TimeChip({
+  active,
+  label,
+  sub,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  sub?: string | undefined;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`flex min-h-[54px] min-w-[84px] flex-col items-center justify-center rounded-control border px-3 transition-colors ${
+        active
+          ? 'border-accent bg-accent-bg text-accent-text'
+          : 'border-border-input text-text hover:border-border-accent'
+      }`}
+    >
+      <span className="font-mono text-[15px] font-semibold">{label}</span>
+      {sub && <span className="text-[11.5px] text-muted">{sub}</span>}
+    </button>
+  );
+}
+
+/** Rechte Spalte vor der Partie: Bedenkzeit, Farbe, Stärke, „Partie starten“. */
+export function NewGamePanel() {
+  const { t } = useTranslation();
+  const play = useSettings((s) => s.play);
+  const startLocal = usePlay((s) => s.startLocal);
+  const minutesId = useId();
+  const incrementId = useId();
+  const levelId = useId();
+
+  function update(patch: Partial<PlaySettings>) {
+    const settings = pickSettings(useSettings.getState());
+    void useSettings.getState().save({ ...settings, play: { ...settings.play, ...patch } });
+  }
+
+  const isPreset = (minutes: number, increment: number) =>
+    !play.noClock && play.minutes === minutes && play.increment === increment;
+  const custom = !play.noClock && !TIME_PRESETS.some((p) => isPreset(p.minutes, p.increment));
+  const speed = speedOf(timeControl(play.minutes, play.increment));
+
+  function start() {
+    startLocal({
+      color: play.color,
+      level: play.level,
+      minutes: play.noClock ? null : play.minutes,
+      increment: play.increment,
+      playerName: t('play.players.you'),
+      opponentName: t('play.players.stockfish', { level: t(`play.levels.${play.level}`) }),
+    });
+  }
+
+  const colorOptions = [
+    { value: 'w', label: t('common.white') },
+    { value: 'random', label: t('play.newGame.randomColor') },
+    { value: 'b', label: t('common.black') },
+  ] as const;
+
+  return (
+    <section
+      aria-labelledby="new-game-title"
+      className="flex flex-col gap-5 rounded-panel border border-border bg-panel px-5 pt-[18px] pb-5"
+    >
+      <div>
+        <h2 id="new-game-title" className="text-[17px] font-semibold">
+          {t('play.newGame.title')}
+        </h2>
+        <p className="mt-1 text-[13px] text-muted">{t('play.newGame.subtitle')}</p>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        <FieldLabel>{t('play.newGame.time')}</FieldLabel>
+        <div className="flex flex-wrap gap-2">
+          {TIME_PRESETS.map((preset) => (
+            <TimeChip
+              key={`${preset.minutes}+${preset.increment}`}
+              active={isPreset(preset.minutes, preset.increment)}
+              label={`${preset.minutes}+${preset.increment}`}
+              sub={t(`play.speed.${speedOf(timeControl(preset.minutes, preset.increment))}`)}
+              onClick={() =>
+                update({ minutes: preset.minutes, increment: preset.increment, noClock: false })
+              }
+            />
+          ))}
+          <TimeChip
+            active={custom}
+            label={t('play.newGame.custom')}
+            sub={custom ? `${play.minutes}+${play.increment}` : undefined}
+            onClick={() => update({ noClock: false, increment: custom ? play.increment : 3 })}
+          />
+          <TimeChip
+            active={play.noClock}
+            label={t('play.newGame.noClock')}
+            onClick={() => update({ noClock: true })}
+          />
+        </div>
+        {custom && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <FieldLabel htmlFor={minutesId}>{t('play.newGame.minutes')}</FieldLabel>
+              <input
+                id={minutesId}
+                type="number"
+                min={1}
+                max={180}
+                value={play.minutes}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 1 && value <= 180) update({ minutes: value });
+                }}
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+            <div>
+              <FieldLabel htmlFor={incrementId}>{t('play.newGame.increment')}</FieldLabel>
+              <input
+                id={incrementId}
+                type="number"
+                min={0}
+                max={180}
+                value={play.increment}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (Number.isInteger(value) && value >= 0 && value <= 180)
+                    update({ increment: value });
+                }}
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+          </div>
+        )}
+        {!play.noClock && (
+          <p className="text-[12.5px] text-muted">
+            {t('play.newGame.speedInfo', {
+              time: `${play.minutes}+${play.increment}`,
+              speed: t(`play.speed.${speed}`),
+            })}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col">
+        <FieldLabel>{t('play.newGame.color')}</FieldLabel>
+        <Segmented
+          label={t('play.newGame.color')}
+          options={colorOptions}
+          value={play.color}
+          onChange={(color) => update({ color })}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <FieldLabel htmlFor={levelId}>{t('play.newGame.level')}</FieldLabel>
+        <select
+          id={levelId}
+          value={play.level}
+          onChange={(e) => update({ level: e.target.value as Level })}
+          className={`${inputClass} px-3 font-medium`}
+        >
+          {LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {t(`play.levels.${level}`)} – {t(`play.levelHints.${level}`)}
+            </option>
+          ))}
+        </select>
+        <p className="text-[12.5px] text-muted">{t('play.newGame.levelNote')}</p>
+      </div>
+
+      <p className="rounded-control border border-info-border bg-info-bg px-3.5 py-2.5 text-[13px] text-info-text">
+        {t('play.newGame.helpersInfo')}
+      </p>
+
+      <Button variant="primary" onClick={start}>
+        {t('play.newGame.start')}
+      </Button>
+    </section>
+  );
+}

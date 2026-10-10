@@ -4,6 +4,7 @@ import { DEFAULT_CLASSIFICATION } from '../classification/types';
 import { DEFAULT_SEARCH } from '../engine/types';
 import { applyLanguage } from '../i18n';
 import { LLM_PRESETS } from '../llm/presets';
+import { LEVELS } from '../play/opponent/levels';
 import { getSettingsStorage } from './persistence';
 
 const presetIds = LLM_PRESETS.map((p) => p.id) as [string, ...string[]];
@@ -15,6 +16,18 @@ const DEFAULT_THRESHOLDS = {
 };
 
 const threshold = z.number().min(1).max(60);
+
+const DEFAULT_PLAY = {
+  autoAnalyse: false,
+  sounds: true,
+  minutes: 10,
+  increment: 0,
+  noClock: false,
+  level: 'medium' as const,
+  color: 'random' as const,
+  evalBar: false,
+  rated: false,
+};
 
 /**
  * Alle Einstellungen außer dem API-Key (der liegt im Schlüsselbund).
@@ -54,6 +67,26 @@ export const settingsSchema = z.object({
       inaccuracies: z.boolean().catch(false),
     })
     .catch({ blunders: true, missed: true, inaccuracies: false }),
+  /** Spielen: Einstellungen und zuletzt gewählte Partie-Optionen */
+  play: z
+    .object({
+      /** Nach der Partie automatisch analysieren */
+      autoAnalyse: z.boolean().catch(DEFAULT_PLAY.autoAnalyse),
+      sounds: z.boolean().catch(DEFAULT_PLAY.sounds),
+      /** Grundzeit in Minuten (wie bei Lichess höchstens 180) */
+      minutes: z.number().min(1).max(180).catch(DEFAULT_PLAY.minutes),
+      /** Inkrement in Sekunden */
+      increment: z.number().int().min(0).max(180).catch(DEFAULT_PLAY.increment),
+      /** Lokal ohne Uhr spielen */
+      noClock: z.boolean().catch(DEFAULT_PLAY.noClock),
+      level: z.enum(LEVELS).catch(DEFAULT_PLAY.level),
+      color: z.enum(['w', 'b', 'random']).catch(DEFAULT_PLAY.color),
+      /** Bewertungsbalken in lokalen Partien */
+      evalBar: z.boolean().catch(DEFAULT_PLAY.evalBar),
+      /** Lichess: gewertet suchen */
+      rated: z.boolean().catch(DEFAULT_PLAY.rated),
+    })
+    .catch(DEFAULT_PLAY),
   /** Zuletzt genutztes Konto für den Online-Import */
   online: z
     .object({
@@ -95,6 +128,7 @@ export function pickSettings(state: Settings): Settings {
     showArrows: state.showArrows,
     online: state.online,
     training: state.training,
+    play: state.play,
   });
 }
 

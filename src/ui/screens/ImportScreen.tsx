@@ -4,6 +4,7 @@ import { decodeText } from '../../chess/decode';
 import { detectInput } from '../../chess/detect';
 import { useGame } from '../../store/game';
 import { useImportDraft } from '../../store/importDraft';
+import { useLiveGuard } from '../../store/liveGuard';
 import { useNavigation } from '../../store/navigation';
 import type { ExplainScope } from '../../llm/selection';
 import { analyseAndExplain } from '../../store/pipeline';
@@ -27,6 +28,7 @@ export function ImportScreen() {
   const { t } = useTranslation();
   const loadGame = useGame((s) => s.load);
   const setScreen = useNavigation((s) => s.setScreen);
+  const live = useLiveGuard((s) => s.active);
 
   const { tab, pgnText, fenText, selected, userColor, fileName, update } = useImportDraft();
   const settingsDepth = useSettings((s) => s.engineDepth);
@@ -252,9 +254,10 @@ export function ImportScreen() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="primary" onClick={analyse} disabled={!source}>
+            <Button variant="primary" onClick={analyse} disabled={!source || live}>
               {t('import.analyse')}
             </Button>
+            {live && <span className="text-[13px] text-live-text">{t('liveLock.short')}</span>}
             <Button variant="secondary" onClick={reset}>
               {t('import.reset')}
             </Button>

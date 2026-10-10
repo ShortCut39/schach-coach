@@ -1,3 +1,5 @@
+import { useLiveGuard } from '../../store/liveGuard';
+import { LiveLockNotice } from '../shared/LiveLockNotice';
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { currentLocale } from '../../i18n';
@@ -515,6 +517,7 @@ export function TrainingView() {
   const ensureStats = useLibrary((s) => s.ensureStats);
   const loadCards = useTraining((s) => s.loadCards);
   const running = useTraining((s) => s.run !== null);
+  const live = useLiveGuard((s) => s.active);
 
   useEffect(() => {
     void loadCards();
@@ -523,5 +526,7 @@ export function TrainingView() {
     void ensureStats();
   }, [ensureStats, entries.length]);
 
+  // Fair Play: Training prüft Züge mit der Engine, also während einer Live-Partie gesperrt
+  if (live) return <LiveLockNotice />;
   return running ? <TrainingSession /> : <TrainingOverview />;
 }

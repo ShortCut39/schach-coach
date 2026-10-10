@@ -11,8 +11,10 @@ import { AnalyseScreen } from '../ui/screens/AnalyseScreen';
 import { ImportScreen } from '../ui/screens/ImportScreen';
 import { BibliothekScreen } from '../ui/screens/BibliothekScreen';
 import { EinstellungenScreen } from '../ui/screens/EinstellungenScreen';
+import { PlayScreen } from '../ui/screens/PlayScreen';
 
 const screenComponents: Record<Screen, () => React.JSX.Element> = {
+  spielen: PlayScreen,
   analyse: AnalyseScreen,
   import: ImportScreen,
   bibliothek: BibliothekScreen,

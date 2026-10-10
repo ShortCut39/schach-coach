@@ -24,7 +24,7 @@ import { SelectField, TextField, Toggle, inputClass } from '../shared/form';
 import { IconAlert, IconCheck } from '../shared/icons';
 import { Segmented } from '../shared/Segmented';
 
-const sections = ['ki', 'engine', 'analyse', 'training', 'darstellung'] as const;
+const sections = ['ki', 'engine', 'analyse', 'training', 'spielen', 'darstellung'] as const;
 type Section = (typeof sections)[number];
 
 type TestState =
@@ -542,6 +542,24 @@ export function EinstellungenScreen() {
               {t('einstellungen.training.noneSelected')}
             </p>
           )}
+        </SettingsCard>
+
+        <SettingsCard
+          id="spielen"
+          title={t('einstellungen.sections.spielen')}
+          subtitle={t('einstellungen.spielen.subtitle')}
+        >
+          <div className="flex min-h-hit items-center gap-3">
+            <div className="flex-1">
+              <div className="font-semibold">{t('einstellungen.spielen.sounds')}</div>
+              <div className="text-[13px] text-muted">{t('einstellungen.spielen.soundsHint')}</div>
+            </div>
+            <Toggle
+              checked={draft.play.sounds}
+              onChange={(sounds) => update({ play: { ...draft.play, sounds } })}
+              label={t('einstellungen.spielen.sounds')}
+            />
+          </div>
         </SettingsCard>
 
         <SettingsCard id="darstellung" title={t('einstellungen.sections.darstellung')}>

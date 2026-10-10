@@ -25,12 +25,14 @@ interface TrainingBoardProps {
   hintSquare?: string | undefined;
   lastMove?: { from: string; to: string } | undefined;
   label: string;
+  /** Kennung für react-chessboard (mehrere Bretter auf einer Seite brauchen verschiedene) */
+  id?: string;
 }
 
 const PROMOTION_PIECES = ['q', 'r', 'b', 'n'] as const;
 
 /**
- * Brett zum Lösen von Aufgaben: Figuren ziehen oder anklicken (Figur, dann Zielfeld).
+ * Brett zum Lösen von Aufgaben und zum Spielen: Figuren ziehen oder anklicken (Figur, dann Zielfeld).
  * Erlaubt sind nur legale Züge (chess.js); bei einer Bauernumwandlung wird nach der Figur gefragt.
  */
 export function TrainingBoard({
@@ -42,6 +44,7 @@ export function TrainingBoard({
   hintSquare,
   lastMove,
   label,
+  id = 'training-board',
 }: TrainingBoardProps) {
   const { t } = useTranslation();
   const colors = boardColors(useSettings((s) => s.boardTheme));
@@ -122,7 +125,7 @@ export function TrainingBoard({
     >
       <Chessboard
         options={{
-          id: 'training-board',
+          id,
           position: fen,
           boardOrientation: orientation,
           allowDragging: interactive && !pendingPromotion,
