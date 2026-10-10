@@ -22,6 +22,7 @@ const labels = {
   category: new Proxy({}, { get: (_t, c) => String(c) }) as Record<Category, string>,
   color: { w: 'Weiß', b: 'Schwarz' } as const,
   unnoticed: '',
+  language: 'de' as const,
 };
 
 describe('Fakten mit echten Engine-Daten', () => {

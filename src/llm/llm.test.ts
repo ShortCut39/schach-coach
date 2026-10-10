@@ -28,6 +28,7 @@ const labels: FactLabels = {
   ) as Record<Category, string>,
   color: { w: 'Weiß', b: 'Schwarz' },
   unnoticed: 'UNBEMERKT',
+  language: 'de',
 };
 
 function opera() {

@@ -7,6 +7,7 @@ import type { Category, PlyAnalysis } from '../classification/types';
 import { formatLineEval, formatPositionEval } from '../engine/evalFormat';
 import type { PositionEval } from '../engine/types';
 import { describeLine, describeUci, piecesInDanger } from './describe';
+import type { ExplanationLanguage } from './types';
 
 /** Höchstens so viele Halbzüge einer Variante gehen an das LLM (Projektdokument: 6). */
 export const MAX_VARIATION_PLIES = 6;
@@ -16,6 +17,8 @@ export interface FactLabels {
   category: Record<Category, string>;
   color: Record<Color, string>;
   unnoticed: string;
+  /** Sprache der Beschreibungen in Worten (wie die Erklärungen) */
+  language: ExplanationLanguage;
 }
 
 /**
@@ -100,7 +103,7 @@ export function buildMoveFacts(
     farbe: labels.color[ply.color],
     wer: ply.color === userColor ? 'du' : 'gegner',
     zug: formatSan(ply.san, notation),
-    zug_in_worten: describeUci(ply.fenBefore, ply.uci),
+    zug_in_worten: describeUci(ply.fenBefore, ply.uci, labels.language),
     kategorie: labels.category[analysis.category],
     fen_davor: ply.fenBefore,
     fen_danach: ply.fenAfter,
@@ -108,25 +111,27 @@ export function buildMoveFacts(
       ? (fmt(uciLineToSan(ply.fenBefore, [analysis.bestMove]))[0] ?? null)
       : null,
     bester_zug_in_worten:
-      !playedBest && analysis.bestMove ? describeUci(ply.fenBefore, analysis.bestMove) : null,
+      !playedBest && analysis.bestMove
+        ? describeUci(ply.fenBefore, analysis.bestMove, labels.language)
+        : null,
     gewinnchance_davor: Math.round(analysis.winBefore),
     gewinnchance_danach: Math.round(analysis.winAfter),
     bewertung_danach: formatPositionEval(after) ?? null,
     hauptvariante_nach_zug: fmt(uciLineToSan(ply.fenAfter, continuation)),
-    hauptvariante_in_worten: describeLine(ply.fenAfter, continuation),
+    hauptvariante_in_worten: describeLine(ply.fenAfter, continuation, labels.language),
     variante_mit_bestzug: playedBest
       ? null
       : fmt(uciLineToSan(ply.fenBefore, bestLine.slice(0, MAX_VARIATION_PLIES))),
     variante_mit_bestzug_in_worten: playedBest
       ? null
-      : describeLine(ply.fenBefore, bestLine.slice(0, MAX_VARIATION_PLIES)),
+      : describeLine(ply.fenBefore, bestLine.slice(0, MAX_VARIATION_PLIES), labels.language),
     vor_dem_zug: {
-      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenBefore, ply.color),
-      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenBefore, opponent),
+      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenBefore, ply.color, labels.language),
+      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenBefore, opponent, labels.language),
     },
     nach_dem_zug: {
-      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenAfter, ply.color),
-      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenAfter, opponent),
+      figuren_des_ziehenden_in_gefahr: piecesInDanger(ply.fenAfter, ply.color, labels.language),
+      figuren_des_gegners_in_gefahr: piecesInDanger(ply.fenAfter, opponent, labels.language),
     },
     material: {
       durch_zug: materialChange(ply.fenBefore, [ply.uci], ply.color),
@@ -168,8 +173,11 @@ export function buildPositionFacts(
     engine_linien: evaluation.lines.map((line) => ({
       bewertung: formatLineEval(line),
       zuege: uciLineToSan(fen, line.pv, MAX_VARIATION_PLIES).map((m) => formatSan(m, notation)),
-      in_worten: describeLine(fen, line.pv.slice(0, MAX_VARIATION_PLIES)),
+      in_worten: describeLine(fen, line.pv.slice(0, MAX_VARIATION_PLIES), labels.language),
     })),
-    figuren_in_gefahr: { weiss: piecesInDanger(fen, 'w'), schwarz: piecesInDanger(fen, 'b') },
+    figuren_in_gefahr: {
+      weiss: piecesInDanger(fen, 'w', labels.language),
+      schwarz: piecesInDanger(fen, 'b', labels.language),
+    },
   };
 }

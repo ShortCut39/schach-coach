@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { NotationStyle } from '../chess/notation';
-import { systemPrompt, type Level } from './prompts';
-import { LlmError, type ChatMessage } from './types';
+import { formatAndData, systemPrompt, type Level } from './prompts';
+import { LlmError, type ChatMessage, type ExplanationLanguage } from './types';
 
 /** Ein Beispiel für ein Fehlermotiv, in Worten (chess.js) */
 export interface MotifExampleFacts {
@@ -74,23 +74,35 @@ export function parseTrainingPlan(content: string): TrainingPlan {
 const FORMAT =
   '{"einschaetzung":"…","empfehlungen":[{"titel":"…","text":"…","uebung":"…"},{"titel":"…","text":"…","uebung":"…"},{"titel":"…","text":"…","uebung":"…"}]}';
 
+function planTask(games: number, language: ExplanationLanguage): string[] {
+  return language === 'en'
+    ? [
+        `Create a short training plan from the patterns of ${games} games of the player ("you").`,
+        '"einschaetzung" (assessment): 1–2 sentences: what is the most important pattern, and in which phase do most errors happen?',
+        '"empfehlungen" (recommendations): exactly 3 recommendations, the most important first. Each has a short title ("titel", at most 5 words), a "text" (1–2 sentences referring to a concrete example from fehler_motive, e.g. "as with 8… Qh4") and an "uebung" (exercise): a concrete habit or exercise for the next games.',
+        'Rely only on the numbers and examples in the data. If there are only a few games, say that the findings are preliminary.',
+      ]
+    : [
+        `Erstelle aus den Mustern von ${games} Partien des Spielers („du“) einen kurzen Trainingsplan.`,
+        '„einschaetzung“: 1–2 Sätze: Was ist das wichtigste Muster, und in welcher Phase passieren die meisten Fehler?',
+        '„empfehlungen“: genau 3 Empfehlungen, die wichtigste zuerst. Jede hat einen kurzen Titel (höchstens 5 Wörter), einen „text“ (1–2 Sätze, mit Bezug auf ein konkretes Beispiel aus fehler_motive, z. B. „wie bei 8… Dh4“) und eine „uebung“: eine konkrete Gewohnheit oder Übung für die nächsten Partien.',
+        'Stütze dich nur auf die Zahlen und Beispiele in den Daten. Wenn es nur wenige Partien sind, sag, dass die Aussagen vorläufig sind.',
+      ];
+}
+
 export function trainingPlanMessages(
   facts: TrainingFacts,
   level: Level,
   notation: NotationStyle,
+  language: ExplanationLanguage = 'de',
 ): ChatMessage[] {
   return [
-    { role: 'system', content: systemPrompt(level, notation) },
+    { role: 'system', content: systemPrompt(level, notation, language) },
     {
       role: 'user',
       content: [
-        `Erstelle aus den Mustern von ${facts.partien} Partien des Spielers („du“) einen kurzen Trainingsplan.`,
-        '„einschaetzung“: 1–2 Sätze: Was ist das wichtigste Muster, und in welcher Phase passieren die meisten Fehler?',
-        '„empfehlungen“: genau 3 Empfehlungen, die wichtigste zuerst. Jede hat einen kurzen Titel (höchstens 5 Wörter), einen „text“ (1–2 Sätze, mit Bezug auf ein konkretes Beispiel aus fehler_motive, z. B. „wie bei 8… Dh4“) und eine „uebung“: eine konkrete Gewohnheit oder Übung für die nächsten Partien.',
-        'Stütze dich nur auf die Zahlen und Beispiele in den Daten. Wenn es nur wenige Partien sind, sag, dass die Aussagen vorläufig sind.',
-        `Antwortformat: ${FORMAT}`,
-        'Daten:',
-        JSON.stringify(facts, null, 1),
+        ...planTask(facts.partien, language),
+        ...formatAndData(FORMAT, facts, language),
       ].join('\n'),
     },
   ];

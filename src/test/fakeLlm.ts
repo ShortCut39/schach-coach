@@ -35,16 +35,21 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
     }
 
     const user = body.messages.at(-1)?.content ?? '';
-    if (user.includes('Daten zur aktuellen Stellung')) {
-      const facts = JSON.parse(user.slice(user.indexOf('Daten zur aktuellen Stellung:') + 29)) as {
-        stellung: { am_zug: string };
-      };
+    /** JSON nach dem ersten passenden Marker (deutsche oder englische Anfrage) */
+    const after = (labels: string[]) => {
+      const label = labels.find((l) => user.includes(l));
+      return label ? (JSON.parse(user.slice(user.indexOf(label) + label.length)) as unknown) : null;
+    };
+    const chatFacts = after(['Daten zur aktuellen Stellung:', 'Current position data:']);
+    if (chatFacts) {
+      const facts = chatFacts as { stellung: { am_zug: string } };
       return json(200, {
         choices: [{ message: { content: `Test-Antwort: ${facts.stellung.am_zug} ist am Zug.` } }],
       });
     }
-    if (user.includes('Trainingsdaten:')) {
-      const facts = JSON.parse(user.slice(user.indexOf('Trainingsdaten:') + 15)) as {
+    const trainingFacts = after(['Trainingsdaten:', 'Training data:']);
+    if (trainingFacts) {
+      const facts = trainingFacts as {
         bester_zug: { zug: string };
         partiezug: { zug: string };
         dein_zug?: { zug: string };
@@ -56,7 +61,10 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
       });
       return json(200, { choices: [{ message: { content } }] });
     }
-    if (user.startsWith('Erstelle aus den Mustern')) {
+    if (
+      user.startsWith('Erstelle aus den Mustern') ||
+      user.startsWith('Create a short training plan')
+    ) {
       const content = JSON.stringify({
         einschaetzung: 'Test-Einschätzung.',
         empfehlungen: [1, 2, 3].map((n) => ({
@@ -67,8 +75,8 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
       });
       return json(200, { choices: [{ message: { content } }] });
     }
-    if (user.startsWith('Schreibe eine Zusammenfassung')) {
-      const facts = JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as {
+    if (user.startsWith('Schreibe eine Zusammenfassung') || user.startsWith('Write a summary')) {
+      const facts = after(['Daten:', 'Data:']) as {
         wendepunkte: { ply: number; zug: string }[];
       };
       const content = JSON.stringify({
@@ -81,9 +89,7 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
       });
       return json(200, { choices: [{ message: { content } }] });
     }
-    const data = user.includes('Daten:')
-      ? (JSON.parse(user.slice(user.indexOf('Daten:') + 6)) as unknown)
-      : null;
+    const data = after(['Daten:', 'Data:']);
     const facts = Array.isArray(data) ? data : data ? [data] : [];
     const explanations = facts.map((f: { ply: number; zug?: string }) => ({
       ply: f.ply,

@@ -35,3 +35,6 @@ export class LlmError extends Error {
 }
 
 export type FetchFn = (url: string, init: RequestInit) => Promise<Response>;
+
+/** Sprache der Erklärungen (folgt der Oberfläche) */
+export type ExplanationLanguage = 'de' | 'en';

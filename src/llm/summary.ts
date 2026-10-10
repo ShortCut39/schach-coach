@@ -10,8 +10,8 @@ import { buildMoveFacts, type FactLabels } from './facts';
 import { z } from 'zod';
 import type { NotationStyle } from '../chess/notation';
 import type { MoveFacts } from './facts';
-import { systemPrompt, type Level } from './prompts';
-import { LlmError, type ChatMessage } from './types';
+import { formatAndData, systemPrompt, type Level } from './prompts';
+import { LlmError, type ChatMessage, type ExplanationLanguage } from './types';
 
 /** Fakten für die Zusammenfassung – wieder nur Engine- und chess.js-Daten. */
 export interface SummaryFacts {
@@ -68,26 +68,39 @@ export function parseSummary(content: string): GameSummary {
   return { ...result.data, tipps: result.data.tipps.slice(0, 3) };
 }
 
-const SUMMARY_FORMAT =
-  '{"eroeffnung":"…","wendepunkte":[{"ply":<ply aus den Daten>,"text":"…"}],"tipps":[{"titel":"…","text":"…"},{"titel":"…","text":"…"},{"titel":"…","text":"…"}]}';
+const SUMMARY_FORMAT: Record<ExplanationLanguage, string> = {
+  de: '{"eroeffnung":"…","wendepunkte":[{"ply":<ply aus den Daten>,"text":"…"}],"tipps":[{"titel":"…","text":"…"},{"titel":"…","text":"…"},{"titel":"…","text":"…"}]}',
+  en: '{"eroeffnung":"…","wendepunkte":[{"ply":<ply from the data>,"text":"…"}],"tipps":[{"titel":"…","text":"…"},{"titel":"…","text":"…"},{"titel":"…","text":"…"}]}',
+};
+
+const SUMMARY_TASK: Record<ExplanationLanguage, string[]> = {
+  de: [
+    'Schreibe eine Zusammenfassung dieser Partie für den Spieler („du“).',
+    '„eroeffnung“: 1–2 Sätze: welche Eröffnung, bis wohin die Partie in der Theorie blieb und wer zuerst abwich.',
+    '„wendepunkte“: für jeden gelieferten Wendepunkt genau ein Eintrag mit 1 konkretem Satz, was passiert ist (Figuren und Felder, siehe hauptvariante_in_worten und Figuren in Gefahr).',
+    '„tipps“: genau 3 Tipps für den Spieler. Jeder Tipp hat einen kurzen Titel (höchstens 5 Wörter) und 1–2 Sätze, die sich auf konkrete Züge aus deine_fehler oder den Wendepunkten beziehen. Keine allgemeinen Tipps ohne Bezug zu dieser Partie. Wenn sich Fehler ähneln (z. B. mehrmals eine ungedeckte Figur), nenne das Muster.',
+  ],
+  en: [
+    'Write a summary of this game for the player ("you").',
+    '"eroeffnung" (opening): 1–2 sentences: which opening, how long the game stayed in book and who deviated first.',
+    '"wendepunkte" (turning points): exactly one entry for each turning point provided, with 1 concrete sentence about what happened (pieces and squares, see hauptvariante_in_worten and the pieces in danger).',
+    '"tipps" (tips): exactly 3 tips for the player. Each tip has a short title ("titel", at most 5 words) and 1–2 sentences ("text") that refer to concrete moves from deine_fehler (your errors) or the turning points. No general tips without reference to this game. If errors are similar (e.g. an undefended piece several times), name the pattern.',
+  ],
+};
 
 export function summaryMessages(
   facts: SummaryFacts,
   level: Level,
   notation: NotationStyle,
+  language: ExplanationLanguage = 'de',
 ): ChatMessage[] {
   return [
-    { role: 'system', content: systemPrompt(level, notation) },
+    { role: 'system', content: systemPrompt(level, notation, language) },
     {
       role: 'user',
       content: [
-        'Schreibe eine Zusammenfassung dieser Partie für den Spieler („du“).',
-        '„eroeffnung“: 1–2 Sätze: welche Eröffnung, bis wohin die Partie in der Theorie blieb und wer zuerst abwich.',
-        '„wendepunkte“: für jeden gelieferten Wendepunkt genau ein Eintrag mit 1 konkretem Satz, was passiert ist (Figuren und Felder, siehe hauptvariante_in_worten und Figuren in Gefahr).',
-        '„tipps“: genau 3 Tipps für den Spieler. Jeder Tipp hat einen kurzen Titel (höchstens 5 Wörter) und 1–2 Sätze, die sich auf konkrete Züge aus deine_fehler oder den Wendepunkten beziehen. Keine allgemeinen Tipps ohne Bezug zu dieser Partie. Wenn sich Fehler ähneln (z. B. mehrmals eine ungedeckte Figur), nenne das Muster.',
-        `Antwortformat: ${SUMMARY_FORMAT}`,
-        'Daten:',
-        JSON.stringify(facts, null, 1),
+        ...SUMMARY_TASK[language],
+        ...formatAndData(SUMMARY_FORMAT[language], facts, language),
       ].join('\n'),
     },
   ];
