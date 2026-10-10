@@ -43,6 +43,19 @@ export function fakeLlmFetch(options: FakeLlmOptions = {}) {
         choices: [{ message: { content: `Test-Antwort: ${facts.stellung.am_zug} ist am Zug.` } }],
       });
     }
+    if (user.includes('Trainingsdaten:')) {
+      const facts = JSON.parse(user.slice(user.indexOf('Trainingsdaten:') + 15)) as {
+        bester_zug: { zug: string };
+        partiezug: { zug: string };
+        dein_zug?: { zug: string };
+      };
+      const content = JSON.stringify({
+        was: `Test: ${facts.bester_zug.zug} ist der bessere Zug.`,
+        warum: `Test: ${facts.partiezug.zug} war schwächer${facts.dein_zug ? `, ${facts.dein_zug.zug} geht auch` : ''}.`,
+        merksatz: 'Test-Merksatz.',
+      });
+      return json(200, { choices: [{ message: { content } }] });
+    }
     if (user.startsWith('Erstelle aus den Mustern')) {
       const content = JSON.stringify({
         einschaetzung: 'Test-Einschätzung.',
