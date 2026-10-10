@@ -38,6 +38,7 @@ pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binar
 - **Keine knappen `max_tokens`:** Modelle mit „Nachdenken“ (z. B. Claude Haiku 5.5 über OpenRouter) verbrauchen das Limit sonst, bevor Text kommt. Fehlercodes `truncated` und `rejected` in `src/llm/client.ts`.
 - **Autosave und Bibliothek:** Das automatische Speichern legt die offene Partie bei jeder Änderung in der Bibliothek ab; gelöschte, noch offene Partien sperrt `removedSource` in `src/store/library.ts`.
 - **WebKitGTK:** Auswahllisten und Zahlenfelder sind in `src/styles/index.css` selbst gezeichnet (sonst unlesbar). Unter Linux setzt `main.rs` `WEBKIT_DISABLE_DMABUF_RENDERER=1` (NVIDIA + Wayland).
+- **Töne unter WebKitGTK:** WebAudio liefert in der WebView nur Stille (am PipeWire-Monitor gemessen). Töne deshalb als selbst berechnete WAV-Blobs über `Audio` abspielen (`src/play/sound.ts`, `soundSynth.ts`).
 - **react-chessboard:** `squareStyles` landen auf dem inneren Element des Felds. Die englischen dnd-kit-Screenreader-Texte sind per CSS ausgeblendet; die App sagt Züge selbst an.
 - **Tests:** jsdom braucht den `getBoundingClientRect`-Stub aus `src/test/setup.ts`; Test-Engine `src/test/fakeEngine.ts`, Test-KI `src/test/fakeLlm.ts` (erkennt deutsche und englische Prompts an ihren Markern); Bibliotheks-Fixture `src/test/libraryFixtures.ts`. Tests mit der nativen Engine werden übersprungen, wenn die Binary fehlt.
 - **pnpm:** `pnpm-workspace.yaml` schaltet das `postinstall` von `stockfish` bewusst ab (`allowBuilds`).
