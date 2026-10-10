@@ -468,6 +468,8 @@
     "timeout": "No answer within the expected time.",
     "aborted": "Cancelled.",
     "jsonModeUnsupported": "The endpoint does not support JSON mode.",
+    "rejected": "The server rejected the request. Check the model name and whether the model is available from this provider.",
+    "truncated": "The AI used up its length limit before giving an answer. This mainly happens with models that “think” before answering. Try again or use a different model.",
     "badResponse": "The AI's answer could not be used."
   },
   "explainScope": {

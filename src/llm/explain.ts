@@ -20,7 +20,15 @@ export function withJsonFallback(
       try {
         return await chat(messages, true);
       } catch (error) {
-        if (!(error instanceof LlmError) || error.code !== 'jsonModeUnsupported') throw error;
+        if (!(error instanceof LlmError)) throw error;
+        if (error.code === 'rejected') {
+          // Abgelehnt ohne erkennbaren Grund: einmal ohne JSON-Modus versuchen. Klappt das,
+          // liegt es am JSON-Modus; sonst kommt der neue Fehler beim Nutzer an.
+          const content = await chat(messages, false);
+          jsonModeSupport.set(endpointKey, false);
+          return content;
+        }
+        if (error.code !== 'jsonModeUnsupported') throw error;
         jsonModeSupport.set(endpointKey, false);
       }
     }

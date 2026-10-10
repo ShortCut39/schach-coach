@@ -468,6 +468,8 @@
     "timeout": "Keine Antwort in der vorgesehenen Zeit.",
     "aborted": "Abgebrochen.",
     "jsonModeUnsupported": "Der Endpunkt unterstützt den JSON-Modus nicht.",
+    "rejected": "Der Server hat die Anfrage abgelehnt. Prüfe den Modellnamen und ob das Modell bei diesem Anbieter verfügbar ist.",
+    "truncated": "Die KI hat ihr Längenlimit aufgebraucht, bevor eine Antwort kam. Das passiert vor allem bei Modellen, die vor der Antwort „nachdenken“. Versuche es erneut oder nimm ein anderes Modell.",
     "badResponse": "Die Antwort der KI war nicht verwertbar."
   },
   "explainScope": {

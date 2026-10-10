@@ -61,6 +61,7 @@ describe('chatCompletion', () => {
     [429, {}, 'rateLimited'],
     [503, {}, 'server'],
     [400, { error: { message: "'response_format' is not supported" } }, 'jsonModeUnsupported'],
+    [400, { error: { message: 'Invalid request' } }, 'rejected'],
   ])('ordnet HTTP %i einem Fehlercode zu', async (status, body, code) => {
     await expect(
       chatCompletion(config, [], { jsonMode: true }, respond(status, body)),
@@ -105,8 +106,54 @@ describe('chatCompletion', () => {
   });
 });
 
+describe('Antworten von Modellen, die erst „nachdenken“', () => {
+  it('meldet ein aufgebrauchtes Längenlimit ohne Text als „truncated“', async () => {
+    const thinkingOnly = respond(200, {
+      choices: [{ message: { content: null, reasoning: '…' }, finish_reason: 'length' }],
+    });
+    await expect(
+      chatCompletion(config, [], { jsonMode: false }, thinkingOnly),
+    ).rejects.toMatchObject({ code: 'truncated' });
+    const empty = respond(200, {
+      choices: [{ message: { content: '' }, finish_reason: 'length' }],
+    });
+    await expect(chatCompletion(config, [], { jsonMode: false }, empty)).rejects.toMatchObject({
+      code: 'truncated',
+    });
+  });
+
+  it('setzt Text aus mehreren Teilen zusammen', async () => {
+    const parts = respond(200, {
+      choices: [
+        {
+          message: {
+            content: [
+              { type: 'thinking', thinking: 'intern' },
+              { type: 'text', text: 'Hallo ' },
+              { type: 'text', text: 'Welt' },
+            ],
+          },
+        },
+      ],
+    });
+    expect((await chatCompletion(config, [], { jsonMode: false }, parts)).content).toBe(
+      'Hallo Welt',
+    );
+  });
+
+  it('schickt ohne Angabe keine Tokengrenze mit', async () => {
+    const fetchFn = ok('OK');
+    await chatCompletion(config, [], { jsonMode: false }, fetchFn);
+    const body = JSON.parse(String(vi.mocked(fetchFn).mock.calls[0]?.[1].body)) as object;
+    expect(body).not.toHaveProperty('max_tokens');
+  });
+});
+
 describe('testConnection', () => {
-  it('liefert die Antwortzeit', async () => {
-    expect(await testConnection(config, ok('OK'))).toBeGreaterThanOrEqual(0);
+  it('liefert die Antwortzeit, ohne Tokengrenze', async () => {
+    const fetchFn = ok('OK');
+    expect(await testConnection(config, fetchFn)).toBeGreaterThanOrEqual(0);
+    const body = JSON.parse(String(vi.mocked(fetchFn).mock.calls[0]?.[1].body)) as object;
+    expect(body).not.toHaveProperty('max_tokens');
   });
 });

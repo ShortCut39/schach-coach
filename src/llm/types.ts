@@ -23,6 +23,10 @@ export type LlmErrorCode =
   | 'timeout'
   | 'aborted'
   | 'jsonModeUnsupported'
+  /** Der Server hat die Anfrage abgelehnt (HTTP 400/422 ohne bekannten Grund) */
+  | 'rejected'
+  /** Längenlimit erreicht, bevor Text kam (z. B. weil das Modell erst „nachdenkt“) */
+  | 'truncated'
   | 'badResponse';
 
 export class LlmError extends Error {

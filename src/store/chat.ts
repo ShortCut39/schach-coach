@@ -90,7 +90,10 @@ export const useChat = create<ChatState>()((set, get) => ({
       const { content } = await chatCompletion(
         currentLlmConfig(),
         chatMessages(history, text, facts, settings.level, settings.notation, currentLanguage()),
-        { jsonMode: false, maxTokens: 600 },
+        // Keine Tokengrenze: Bei Modellen, die erst „nachdenken“ (z. B. Claude Haiku 5.5), zählt
+        // das Nachdenken mit, und eine knappe Grenze ließe keine Antwort übrig. Die Länge steuert
+        // der Prompt, zu lange Antworten kürzt cleanChatAnswer.
+        { jsonMode: false },
         getFetch(),
       );
       if (get().source !== source) return;

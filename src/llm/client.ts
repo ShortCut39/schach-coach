@@ -58,6 +58,7 @@ function classifyStatus(status: number, message: string, jsonMode: boolean): Llm
   }
   if (status === 404) return new LlmError('notFound', status);
   if (status >= 500) return new LlmError('server', status);
+  if (status === 400 || status === 422) return new LlmError('rejected', status);
   return new LlmError('badResponse', status);
 }
 
@@ -118,15 +119,39 @@ export async function chatCompletion(
     );
   }
 
-  let data: { choices?: { message?: { content?: unknown } }[] };
+  let data: { choices?: { message?: { content?: unknown }; finish_reason?: unknown }[] };
   try {
     data = (await response.json()) as typeof data;
   } catch {
     throw new LlmError('badResponse', response.status);
   }
-  const content = data.choices?.[0]?.message?.content;
-  if (typeof content !== 'string') throw new LlmError('badResponse', response.status);
+  const choice = data.choices?.[0];
+  const content = contentText(choice?.message?.content);
+  if (content === null) {
+    // Kein Text, aber Längenlimit erreicht: Das Modell hat das Limit z. B. fürs „Nachdenken“ verbraucht
+    if (choice?.finish_reason === 'length') throw new LlmError('truncated', response.status);
+    throw new LlmError('badResponse', response.status);
+  }
   return { content, elapsedMs: Math.round(performance.now() - started) };
+}
+
+/**
+ * Text der Antwort: als String oder als Liste von Teilen (`[{ type: 'text', text }]`, so liefern
+ * es manche Anbieter). `null`, wenn kein Text da ist.
+ */
+function contentText(content: unknown): string | null {
+  let text: string | null = null;
+  if (typeof content === 'string') text = content;
+  else if (Array.isArray(content)) {
+    text = content
+      .map((part: unknown) =>
+        part && typeof part === 'object' && 'text' in part && typeof part.text === 'string'
+          ? part.text
+          : '',
+      )
+      .join('');
+  }
+  return text && text.trim() ? text : null;
 }
 
 /** Minimale Anfrage für „Verbindung testen“. */
@@ -134,7 +159,8 @@ export async function testConnection(config: LlmConfig, fetchFn: FetchFn): Promi
   const result = await chatCompletion(
     config,
     [{ role: 'user', content: 'Antworte nur mit: OK' }],
-    { jsonMode: false, maxTokens: 5, temperature: 0, timeoutMs: 30_000 },
+    // Keine Tokengrenze: Modelle, die vor der Antwort „nachdenken“, brauchen sonst schon dafür alles
+    { jsonMode: false, temperature: 0, timeoutMs: 60_000 },
     fetchFn,
   );
   return result.elapsedMs;

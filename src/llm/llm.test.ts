@@ -197,4 +197,24 @@ describe('requestExplanations', () => {
     expect(await ask([])).toBe('ok');
     expect(calls).toEqual([true, false, false]);
   });
+
+  it('versucht es bei unklarer Ablehnung einmal ohne JSON-Modus', async () => {
+    const calls: boolean[] = [];
+    const chat = async (_m: unknown, jsonMode: boolean) => {
+      calls.push(jsonMode);
+      if (jsonMode) throw new LlmError('rejected', 400);
+      return 'ok';
+    };
+    const ask = withJsonFallback(chat, 'abgelehnt-endpunkt');
+    expect(await ask([])).toBe('ok');
+    expect(await ask([])).toBe('ok');
+    expect(calls).toEqual([true, false, false]);
+
+    // Scheitert es auch ohne JSON-Modus, kommt dieser Fehler an, und der JSON-Modus bleibt aktiv
+    const always = async () => {
+      throw new LlmError('rejected', 400);
+    };
+    const askAlways = withJsonFallback(always, 'immer-abgelehnt');
+    await expect(askAlways([])).rejects.toMatchObject({ code: 'rejected' });
+  });
 });

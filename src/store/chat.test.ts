@@ -35,6 +35,8 @@ describe('Chat zur Stellung', () => {
       { role: 'assistant', content: 'Test-Antwort: Schwarz ist am Zug.' },
     ]);
     const request = calls[0]!.body;
+    // Keine Tokengrenze (Modelle mit „Nachdenken“ hätten sonst keine Antwort übrig)
+    expect(request).not.toHaveProperty('max_tokens');
     expect(request.response_format).toBeUndefined();
     expect(request.messages.at(-1)?.content).toContain('"letzter_zug"');
     expect(request.messages[0]?.content).toContain('Erfinde keine Züge');
