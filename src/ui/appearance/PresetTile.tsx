@@ -45,6 +45,7 @@ export function PresetTile({
       </button>
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
         <span
+          title={label}
           className={`truncate text-[13px] ${active ? 'font-semibold text-text' : 'font-medium text-body'}`}
         >
           {label}

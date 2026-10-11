@@ -8,7 +8,6 @@ import { LlmError } from '../../llm/types';
 import { useAnalysis } from '../../store/analysis';
 import { useApiKey } from '../../store/apiKey';
 import { autoPoolSize, restartEngines, useEngine } from '../../store/engine';
-import { playSound } from '../../play/sound';
 import { formatNumber } from '../format';
 import { getSecretStorage } from '../../store/persistence';
 import {
@@ -33,6 +32,8 @@ import {
   type Appearance,
 } from '../../appearance/store';
 import { AppearanceSection } from '../appearance/AppearanceSection';
+import { playTestSequence } from '../appearance/soundTest';
+import { useAppearancePreview } from '../appearance/useAppearancePreview';
 
 const sections = [
   'ki',
@@ -87,6 +88,8 @@ export function EinstellungenScreen() {
     if (!appearanceTouched) setAppearanceDraft(pickAppearance(useAppearance.getState()));
   }
   const appearanceEffective = effectiveDraft(appearanceDraft, customSets);
+  const appearancePreview = useAppearancePreview(appearanceEffective);
+  const testVolume = draft.play.sounds ? draft.play.volume / 100 : 0;
   const engineState = useEngine();
   const autoThreads = autoPoolSize();
   const keyOrigin = useRef(originOf(draft.llm.baseUrl));
@@ -623,7 +626,7 @@ export function EinstellungenScreen() {
             <Button
               variant="ghost"
               disabled={!draft.play.sounds}
-              onClick={() => playSound('move', draft.play.volume / 100)}
+              onClick={() => playTestSequence(appearancePreview.sounds, testVolume)}
             >
               {t('einstellungen.spielen.testSound')}
             </Button>
@@ -696,7 +699,12 @@ export function EinstellungenScreen() {
           </SelectField>
         </SettingsCard>
 
-        <AppearanceSection draft={appearanceEffective} onChange={updateAppearance} />
+        <AppearanceSection
+          draft={appearanceEffective}
+          onChange={updateAppearance}
+          preview={appearancePreview}
+          volume={testVolume}
+        />
 
         <div className="flex flex-wrap items-center justify-end gap-2.5">
           <span role="status" className="mr-auto text-[13.5px] font-medium">

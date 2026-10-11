@@ -994,7 +994,32 @@
       "coordinatesHint": "Buchstaben a–h und Zahlen 1–8 auf allen Brettern."
     },
     "sounds": {
-      "synth": "Einfach (synthetisch)"
+      "synth": "Einfach (synthetisch)",
+      "title": "Töne",
+      "subtitle": "Ton-Set für Züge, Schach und Partieende. Lautstärke und „Töne an/aus“ stehen unter „Spielen“.",
+      "test": "Ton testen",
+      "testHint": "Spielt Zug, Schlagzug, Schach und Partieende mit den gewählten Tönen.",
+      "mutedHint": "Töne sind unter „Spielen“ ausgeschaltet oder stehen auf 0 %.",
+      "listen": "Anhören",
+      "listenSet": "„{{name}}“ anhören",
+      "listenTo": "{{event}} anhören",
+      "edit": "Bearbeiten",
+      "editNamed": "„{{name}}“ bearbeiten",
+      "defaultName": "Eigene Töne {{n}}",
+      "uploadTitle": "Eigene Töne hinzufügen",
+      "editTitle": "Eigene Töne bearbeiten",
+      "formats": "MP3, OGG, WAV oder FLAC, höchstens 2 MB und 5 Sekunden je Datei, auch als ZIP-Archiv. Namen wie move.ogg, Capture.mp3 (wie bei Lichess) oder schach.wav werden automatisch zugeordnet. Ein Set darf auch nur aus einzelnen Tönen bestehen.",
+      "checking": "Prüfe die Dateien …",
+      "slots": "Plätze",
+      "slotsHint": "Freie Plätze nutzen den Ton aus dem Standard-Set „{{set}}“. Mit „Datei wählen“ belegst du einen Platz von Hand.",
+      "ownCount": "{{count}} von {{total}} eigene",
+      "own": "Eigener Ton",
+      "fromDefault": "Standard („{{set}}“)",
+      "seconds": "{{value}} s",
+      "choose": "Datei wählen",
+      "chooseFor": "Datei für {{event}} wählen",
+      "clear": "Entfernen",
+      "clearSlot": "Eigenen Ton für {{event}} entfernen"
     },
     "fallback": {
       "title": "Darstellung zurückgesetzt",
@@ -1048,7 +1073,8 @@
       "broken": "ZIP-Archiv ist beschädigt",
       "tooManyFiles": "ZIP-Archiv enthält zu viele Dateien",
       "unsupported": "dein System kann dieses Format nicht abspielen (Tipp: WAV oder OGG)",
-      "tooLong": "länger als 5 Sekunden"
+      "tooLong": "länger als 5 Sekunden",
+      "unassigned": "Ereignis am Dateinamen nicht erkannt – wähle den Platz unten mit „Datei wählen“"
     },
     "warnings": {
       "notSquare": "nicht quadratisch",
@@ -1086,6 +1112,19 @@
       "bB": "Schwarzer Läufer",
       "bN": "Schwarzer Springer",
       "bP": "Schwarzer Bauer"
+    },
+    "soundEvents": {
+      "move": "Zug",
+      "capture": "Schlagzug",
+      "castle": "Rochade",
+      "check": "Schach",
+      "promotion": "Umwandlung",
+      "gameStart": "Partiebeginn",
+      "gameEnd": "Partieende (allgemein)",
+      "victory": "Sieg",
+      "defeat": "Niederlage",
+      "draw": "Remis",
+      "lowTime": "Wenig Zeit"
     }
   }
 }

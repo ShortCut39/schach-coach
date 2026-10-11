@@ -11,7 +11,8 @@ export type FileReason =
   | 'broken'
   | 'tooManyFiles'
   | 'unsupported'
-  | 'tooLong';
+  | 'tooLong'
+  | 'unassigned';
 
 export interface FileProblem {
   name: string;

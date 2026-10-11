@@ -12,6 +12,8 @@ export interface PresetEntry {
   id: string;
   label: string;
   preview: ReactNode;
+  /** Knöpfe unter der Kachel, z. B. „Anhören“ */
+  actions?: ReactNode;
 }
 
 interface AssetCardProps {
@@ -28,6 +30,8 @@ interface AssetCardProps {
   /** Gewählter Satz im Entwurf (gespeichert wird erst mit „Speichern“) */
   activeId: string;
   onSelect: (id: string) => void;
+  /** Zusätzliche Knöpfe unter eigenen Sätzen (z. B. „Bearbeiten“, „Anhören“) */
+  customActions?: (set: CustomSet) => ReactNode;
   /** Zusätzliche Einstellungen der Karte (z. B. Koordinaten) */
   children?: ReactNode;
 }
@@ -49,6 +53,7 @@ export function AssetCard({
   dialog,
   activeId,
   onSelect,
+  customActions,
   children,
 }: AssetCardProps) {
   const { t } = useTranslation();
@@ -69,7 +74,9 @@ export function AssetCard({
             badge={
               preset.id === defaultId ? <TileBadge>{t('appearance.default')}</TileBadge> : undefined
             }
-          />
+          >
+            {preset.actions}
+          </PresetTile>
         ))}
       </TileGrid>
 
@@ -97,6 +104,7 @@ export function AssetCard({
                     )
                   }
                 >
+                  {!set.broken && customActions?.(set)}
                   <CustomSetActions set={set} displayName={name} />
                 </PresetTile>
               );

@@ -994,7 +994,32 @@
       "coordinatesHint": "Letters a–h and numbers 1–8 on every board."
     },
     "sounds": {
-      "synth": "Simple (synthesised)"
+      "synth": "Simple (synthesised)",
+      "title": "Sounds",
+      "subtitle": "Sound set for moves, check and game end. Volume and “Sounds on/off” are under “Play”.",
+      "test": "Test sound",
+      "testHint": "Plays move, capture, check and game end with the chosen sounds.",
+      "mutedHint": "Sounds are switched off under “Play” or set to 0%.",
+      "listen": "Listen",
+      "listenSet": "Listen to “{{name}}”",
+      "listenTo": "Listen to {{event}}",
+      "edit": "Edit",
+      "editNamed": "Edit “{{name}}”",
+      "defaultName": "My sounds {{n}}",
+      "uploadTitle": "Add your own sounds",
+      "editTitle": "Edit your own sounds",
+      "formats": "MP3, OGG, WAV or FLAC, at most 2 MB and 5 seconds per file, also as a ZIP archive. Names like move.ogg, Capture.mp3 (as on Lichess) or schach.wav are assigned automatically. A set may consist of just a few sounds.",
+      "checking": "Checking the files …",
+      "slots": "Slots",
+      "slotsHint": "Empty slots use the sound from the default set “{{set}}”. Use “Choose file” to fill a slot by hand.",
+      "ownCount": "{{count}} of {{total}} own",
+      "own": "Own sound",
+      "fromDefault": "Default (“{{set}}”)",
+      "seconds": "{{value}} s",
+      "choose": "Choose file",
+      "chooseFor": "Choose file for {{event}}",
+      "clear": "Remove",
+      "clearSlot": "Remove own sound for {{event}}"
     },
     "fallback": {
       "title": "Appearance reset",
@@ -1048,7 +1073,8 @@
       "broken": "ZIP archive is damaged",
       "tooManyFiles": "ZIP archive contains too many files",
       "unsupported": "your system cannot play this format (tip: WAV or OGG)",
-      "tooLong": "longer than 5 seconds"
+      "tooLong": "longer than 5 seconds",
+      "unassigned": "event not recognised from the file name – choose the slot below with “Choose file”"
     },
     "warnings": {
       "notSquare": "not square",
@@ -1086,6 +1112,19 @@
       "bB": "Black bishop",
       "bN": "Black knight",
       "bP": "Black pawn"
+    },
+    "soundEvents": {
+      "move": "Move",
+      "capture": "Capture",
+      "castle": "Castling",
+      "check": "Check",
+      "promotion": "Promotion",
+      "gameStart": "Game start",
+      "gameEnd": "Game end (general)",
+      "victory": "Win",
+      "defeat": "Loss",
+      "draw": "Draw",
+      "lowTime": "Low time"
     }
   }
 }
