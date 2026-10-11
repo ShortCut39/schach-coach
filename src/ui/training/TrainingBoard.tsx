@@ -12,7 +12,8 @@ import type { Orientation } from '../../store/game';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
 import { prefersReducedMotion } from '../analyse/boardStyle';
 import { useBoardAppearance } from '../boardAppearance';
-import { withCheckHighlight } from '../boardSquares';
+import { layerSquareStyle, withCheckHighlight } from '../boardSquares';
+import { useDrawnShapes } from '../drawnShapes';
 
 interface TrainingBoardProps {
   fen: string;
@@ -48,6 +49,7 @@ export function TrainingBoard({
 }: TrainingBoardProps) {
   const { t } = useTranslation();
   const appearance = useBoardAppearance();
+  const drawing = useDrawnShapes(fen);
   const [selected, setSelected] = useState<{ fen: string; square: string } | null>(null);
   const [promotion, setPromotion] = useState<{ fen: string; from: string; to: string } | null>(
     null,
@@ -141,6 +143,10 @@ export function TrainingBoard({
     };
   }
 
+  // Eigene Kreise (Rechtsklick) unter den übrigen Markierungen
+  for (const [square, circle] of Object.entries(drawing.circles)) {
+    squareStyles[square] = layerSquareStyle(squareStyles[square] ?? {}, circle);
+  }
   const styles = withCheckHighlight(fen, squareStyles);
 
   return (
@@ -155,7 +161,7 @@ export function TrainingBoard({
           position: fen,
           boardOrientation: orientation,
           allowDragging: interactive && !pendingPromotion,
-          allowDrawingArrows: false,
+          ...drawing.options,
           canDragPiece: ({ piece }) => interactive && piece.pieceType.startsWith(turn),
           onPieceDrag,
           onPieceDrop,

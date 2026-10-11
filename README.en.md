@@ -36,6 +36,7 @@ The app starts in German. Switch to English under **Einstellungen → Oberfläch
   - **Practise a pattern:** on the patterns page, “Train this pattern” starts training with puzzles of that motif only.
 - **Lichess / Chess.com:** in the import, pick the platform and enter a username → “Load games” fetches the last 20 games (standard chess only, no variants). “You play” is set to your colour automatically. Only the username is sent, to the platform's public API.
 - **Chat about the position:** right-hand “Chat” tab. Every question automatically includes the engine data of the position shown (lines and pieces in danger in words, plus the last move). The AI is told to answer only from that.
+- **Arrows and circles for planning:** as on Lichess, on every board (play, analysis, training). Dragging with the right mouse button from square to square draws an arrow, a right-click on a square draws a circle; doing the same again removes it. Colours: green, with Shift red, with Ctrl blue, with Alt yellow (on KDE, Alt+drag often moves the window). A left-click on the board or a new move clears everything. It is just a drawing without an engine, so it is also allowed in live games on Lichess.
 - **Colour scheme:** Settings → Interface & language → Dark or Light.
 - **Language:** Settings → Interface & language → Deutsch or English. The language applies to the interface, number and date formats and the AI explanations. Switching also changes the notation (D/T/L/S ↔ Q/R/B/N); afterwards you can still set it separately.
 - **Large windows:** the board in analysis and training grows with the window height (about twice as large at 1440p), the columns next to it get wider, and everything is centred. Library, patterns and summary use up to 1800 px of width; the pattern cards then sit three side by side.
@@ -61,7 +62,7 @@ In the **Play** area you play locally against Stockfish or live against people o
   - The analysis engines are shut down, not just hidden.
   - No engine starts, not even for other games.
   - The AI is locked, and running requests are cancelled.
-  - There is no evaluation, no categories, no arrows and no coach; analysis and training only show a notice.
+  - There is no evaluation, no categories, no engine arrows and no coach; analysis and training only show a notice. Your own right-click arrows still work.
   - Tests prove this. Everything is back after the game. The app only uses officially documented Lichess API endpoints, with no scraping and no automation of the website.
 - **After the game:** the result card shows the result with its reason, the number of moves and the time control. Every game (except aborted ones) goes straight into the library as “not analysed”. “Analyse game” hands it to the analysis from your point of view, and the setting “Analyse automatically after the game” (off by default) does this by itself. The PGN contains Event, Site (the game link for Lichess), date, players, result, ratings, time control and how the game ended. Locally the opponent is called “Stockfish (level …)”.
 - **Material:** next to each name you see the pieces that side has captured (in the chosen piece set) and, with a material advantage, “+N” in pawn units, as on Lichess. It is counted from the moves only, without an engine, so it is also shown in live games.

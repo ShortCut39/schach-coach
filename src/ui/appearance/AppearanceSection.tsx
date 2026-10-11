@@ -39,6 +39,7 @@ export function AppearanceSection({ draft, onChange, preview, volume }: Appearan
               orientation="white"
               lastMove={PREVIEW_LAST_MOVE}
               id="appearance-preview"
+              allowDrawing={false}
               label={t('appearance.preview.label')}
               appearance={boardAppearanceOptions(
                 preview.pieces,
