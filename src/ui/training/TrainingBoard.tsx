@@ -1,5 +1,5 @@
 import { Chess, type Square } from 'chess.js';
-import { useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Chessboard,
@@ -60,36 +60,60 @@ export function TrainingBoard({
   const chess = new Chess(fen);
   const turn = chess.turn();
   const targets = selectedSquare ? targetSquares(fen, selectedSquare) : [];
-  const isOwn = (pieceType: string | undefined) => !!pieceType?.startsWith(turn);
+
+  /**
+   * Aktueller Stand für die Ereignis-Routinen. react-chessboard merkt sich die Routine für den
+   * Ziehbeginn nur neu, wenn sich die Stellung ändert (`useCallback(…, [currentPosition])`). Ohne
+   * diese Referenz sähe sie z. B. beim ersten Zug als Weiß noch „Ziehen nicht erlaubt“ aus der
+   * Zeit vor dem Partiestart, und es erschienen keine Zielfelder.
+   */
+  const latest = useRef({ fen, interactive, pendingPromotion, selectedSquare, onMove });
+  useLayoutEffect(() => {
+    latest.current = { fen, interactive, pendingPromotion, selectedSquare, onMove };
+  });
 
   /** Versucht den Zug; `false`, wenn er nicht legal ist. */
   function attempt(from: string, to: string): boolean {
-    const move = resolveBoardMove(fen, from, to);
-    if (!move) return false;
+    const { fen: current, onMove: move } = latest.current;
+    const resolved = resolveBoardMove(current, from, to);
+    if (!resolved) return false;
     setSelected(null);
-    if (move.needsPromotion) {
-      setPromotion({ fen, from: move.from, to: move.to });
+    if (resolved.needsPromotion) {
+      setPromotion({ fen: current, from: resolved.from, to: resolved.to });
       return false;
     }
-    onMove(move.from + move.to);
+    move(resolved.from + resolved.to);
     return true;
   }
 
+  /** Gehört die Figur der Seite am Zug (in der aktuellen Stellung)? */
+  function isOwn(pieceType: string | undefined): boolean {
+    return !!pieceType?.startsWith(new Chess(latest.current.fen).turn());
+  }
+
   function onSquareClick({ piece, square }: SquareHandlerArgs) {
-    if (!interactive || pendingPromotion) return;
+    const {
+      interactive: canMove,
+      pendingPromotion: pending,
+      selectedSquare: from,
+      fen: current,
+    } = latest.current;
+    if (!canMove || pending) return;
     // Zielfeld oder (bei der Rochade) der eigene Turm
-    if (selectedSquare && selectedSquare !== square && attempt(selectedSquare, square)) return;
+    if (from && from !== square && attempt(from, square)) return;
     // Eigene Figur anklicken wählt sie aus; alles andere hebt die Auswahl auf
-    setSelected(isOwn(piece?.pieceType) ? { fen, square } : null);
+    setSelected(isOwn(piece?.pieceType) ? { fen: current, square } : null);
   }
 
   /** Schon beim Anfassen die möglichen Felder zeigen (auch, wenn ein Klick als Ziehen beginnt). */
   function onPieceDrag({ piece, square }: PieceHandlerArgs) {
-    if (interactive && square && isOwn(piece.pieceType)) setSelected({ fen, square });
+    const { interactive: canMove, fen: current } = latest.current;
+    if (canMove && square && isOwn(piece.pieceType)) setSelected({ fen: current, square });
   }
 
   function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
-    if (!interactive || !targetSquare || pendingPromotion) return false;
+    const { interactive: canMove, pendingPromotion: pending } = latest.current;
+    if (!canMove || !targetSquare || pending) return false;
     // Auf dasselbe Feld zurückgelegt = angeklickt: Auswahl bleibt für den Klick aufs Zielfeld
     if (targetSquare === sourceSquare) return false;
     const moved = attempt(sourceSquare, targetSquare);
