@@ -5,7 +5,7 @@ import { setLichessTestDoubles, useLichessAuth } from '../store/lichessAuth';
 import { useLiveGuard } from '../store/liveGuard';
 import { useNavigation } from '../store/navigation';
 import { memoryTokenStorage, setTokenStorage } from '../store/persistence';
-import { usePlay } from '../store/play';
+import { setPairingTimingsForTests, usePlay } from '../store/play';
 import { DEFAULT_SETTINGS, useSettings } from '../store/settings';
 import { FakeLichess } from '../test/fakeLichess';
 import { AnalyseScreen } from '../ui/screens/AnalyseScreen';
@@ -146,5 +146,41 @@ describe('Lichess-Partie von der Suche bis zur Analyse (simulierter Server)', ()
     await seeking;
     expect(usePlay.getState().lichess.seeking).toBeNull();
     expect(usePlay.getState().session).toBeNull();
+  });
+
+  it('übernimmt die Partie, auch wenn Lichess die Suche vor dem Partiestart schließt', async () => {
+    const server = new FakeLichess();
+    await loginWith(server);
+    const seeking = usePlay
+      .getState()
+      .startSeek({ minutes: 10, increment: 0, rated: false, color: 'random' });
+    await vi.waitFor(() => expect(server.seekStreams).toHaveLength(1));
+    // Echte Reihenfolge: Suche zu, gameStart erst 200 ms später
+    act(() => server.pairSeek('late0001', 'white', { gameStartDelayMs: 200 }));
+    await seeking;
+    expect(usePlay.getState().lichess.pairing).toBe(true);
+    await vi.waitFor(() => expect(usePlay.getState().view?.live?.gameId).toBe('late0001'));
+    expect(usePlay.getState().lichess.pairing).toBe(false);
+    expect(usePlay.getState().lichess.ongoing).toEqual([]);
+    expect(isLiveGuardActive()).toBe(true);
+  });
+
+  it('findet die neue Partie selbst, wenn das Startsignal verloren geht', async () => {
+    setPairingTimingsForTests({ fallbackMs: 50 });
+    try {
+      const server = new FakeLichess();
+      await loginWith(server);
+      const seeking = usePlay
+        .getState()
+        .startSeek({ minutes: 10, increment: 0, rated: false, color: 'random' });
+      await vi.waitFor(() => expect(server.seekStreams).toHaveLength(1));
+      act(() => server.pairSeek('lost0001', 'black', { loseGameStart: true }));
+      await seeking;
+      await vi.waitFor(() => expect(usePlay.getState().view?.live?.gameId).toBe('lost0001'));
+      expect(server.requests).toContain('GET /api/account/playing');
+      await vi.waitFor(() => expect(usePlay.getState().view?.myColor).toBe('b'));
+    } finally {
+      setPairingTimingsForTests({ fallbackMs: 3_000 });
+    }
   });
 });

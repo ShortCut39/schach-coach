@@ -69,6 +69,8 @@ interface PlayState {
     } | null;
     /** Eingehende Herausforderungen (nur spielbare) */
     incoming: LichessChallenge[];
+    /** Suche beendet, Partiestart steht noch aus („Gegner gefunden – Partie startet …“) */
+    pairing: boolean;
   };
 
   startLocal: (setup: LocalSetup) => void;
@@ -164,6 +166,27 @@ function playableHere(game: Pick<LichessEventGame, 'variant' | 'speed' | 'compat
 }
 
 let lobby: LichessLobby | null = null;
+
+/**
+ * Nach der Paarung schließt Lichess zuerst die Such-Verbindung; `gameStart` kommt erst danach über
+ * den Ereignisstrom. So lange gilt eine startende Partie noch als erwartet. Kommt kein `gameStart`,
+ * fragt die App nach `FALLBACK_MS` selbst nach laufenden Partien.
+ */
+const pairingTimings = { windowMs: 30_000, fallbackMs: 3_000 };
+let pairingUntil = 0;
+let pairingTimer: ReturnType<typeof setTimeout> | null = null;
+let seekCancelled = false;
+
+/** Nur für Tests: kürzere Wartezeiten */
+export function setPairingTimingsForTests(timings: Partial<typeof pairingTimings>): void {
+  Object.assign(pairingTimings, timings);
+}
+
+function stopPairing(): void {
+  pairingUntil = 0;
+  if (pairingTimer) clearTimeout(pairingTimer);
+  pairingTimer = null;
+}
 /** Partien, die gleich starten sollen (eigene oder angenommene Herausforderung) */
 const expectedGames = new Set<string>();
 
@@ -235,6 +258,7 @@ export const usePlay = create<PlayState>()((set, get) => {
 
   /** Lichess-Partie übernehmen: Sperre sofort an, dann Partiestrom öffnen */
   function attachLichess(gameId: string): void {
+    stopPairing();
     const current = get().session;
     if (current instanceof LichessSession && current.gameId === gameId) return;
     const account = useLichessAuth.getState().account;
@@ -246,6 +270,7 @@ export const usePlay = create<PlayState>()((set, get) => {
       lichess: {
         ...s.lichess,
         seeking: null,
+        pairing: false,
         error: null,
         challenge: null,
         ongoing: s.lichess.ongoing.filter((g) => g.gameId !== gameId),
@@ -262,7 +287,10 @@ export const usePlay = create<PlayState>()((set, get) => {
         // Nur erwartete Partien automatisch übernehmen (Suche, Herausforderung); sonst „Fortsetzen“
         const { seeking, challenge } = get().lichess;
         const expected =
-          !!seeking || expectedGames.has(game.gameId) || challenge?.status === 'waiting';
+          !!seeking ||
+          Date.now() < pairingUntil ||
+          expectedGames.has(game.gameId) ||
+          challenge?.status === 'waiting';
         expectedGames.delete(game.gameId);
         if (expected && playableHere(game)) attachLichess(game.gameId);
         else void get().refreshOngoing();
@@ -307,7 +335,14 @@ export const usePlay = create<PlayState>()((set, get) => {
     evaluation: null,
     pgnInfo: null,
     finishedGame: null,
-    lichess: { seeking: null, error: null, ongoing: [], challenge: null, incoming: [] },
+    lichess: {
+      seeking: null,
+      error: null,
+      ongoing: [],
+      challenge: null,
+      incoming: [],
+      pairing: false,
+    },
 
     connectLobby: () => {
       if (useLichessAuth.getState().status !== 'loggedIn') return;
@@ -382,22 +417,51 @@ export const usePlay = create<PlayState>()((set, get) => {
 
     startSeek: async (params) => {
       if (get().lichess.seeking) return;
-      set((s) => ({ lichess: { ...s.lichess, seeking: params, error: null } }));
+      seekCancelled = false;
+      stopPairing();
+      // Partien, die schon vor der Suche liefen, sind nicht „die neue“
+      const before = new Set(get().lichess.ongoing.map((g) => g.gameId));
+      set((s) => ({ lichess: { ...s.lichess, seeking: params, error: null, pairing: false } }));
+      let paired = false;
       try {
         await getLobby().seek(params);
+        // Server hat die Suche geschlossen: gepaart (oder abgelaufen). gameStart folgt gleich.
+        paired = !seekCancelled;
       } catch (error) {
         const code = error instanceof LichessError ? error.code : 'unreachable';
         const detail = error instanceof LichessError ? error.detail : undefined;
         set((s) => ({ lichess: { ...s.lichess, error: { code, detail } } }));
-      } finally {
-        // Gepaart (gameStart kam) oder abgebrochen bzw. abgelehnt
+      }
+      const attached = () =>
+        get().session instanceof LichessSession && get().view?.status !== 'ended';
+      if (paired && !attached()) {
+        pairingUntil = Date.now() + pairingTimings.windowMs;
+        set((s) => ({ lichess: { ...s.lichess, seeking: null, pairing: true } }));
+        // Sicherheitsnetz: Kommt gameStart nicht an, die neue Partie über /api/account/playing finden
+        pairingTimer = setTimeout(() => {
+          pairingTimer = null;
+          if (attached()) return;
+          void get()
+            .refreshOngoing()
+            .then(() => {
+              const fresh = get().lichess.ongoing.find((g) => !before.has(g.gameId));
+              if (fresh && !attached()) attachLichess(fresh.gameId);
+              else {
+                stopPairing();
+                set((s) => ({ lichess: { ...s.lichess, pairing: false } }));
+              }
+            });
+        }, pairingTimings.fallbackMs);
+      } else {
         set((s) => ({ lichess: { ...s.lichess, seeking: null } }));
       }
     },
 
     cancelSeek: () => {
+      seekCancelled = true;
+      stopPairing();
       lobby?.cancelSeek();
-      set((s) => ({ lichess: { ...s.lichess, seeking: null } }));
+      set((s) => ({ lichess: { ...s.lichess, seeking: null, pairing: false } }));
     },
 
     refreshOngoing: async () => {
@@ -577,10 +641,18 @@ useLichessAuth.subscribe((state, previous) => {
       });
   }
   if (state.status === 'loggedOut') {
+    stopPairing();
     lobby?.close();
     lobby = null;
     usePlay.setState((s) => ({
-      lichess: { ...s.lichess, seeking: null, ongoing: [], challenge: null, incoming: [] },
+      lichess: {
+        ...s.lichess,
+        seeking: null,
+        ongoing: [],
+        challenge: null,
+        incoming: [],
+        pairing: false,
+      },
     }));
   }
 });

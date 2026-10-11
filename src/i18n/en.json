@@ -882,7 +882,8 @@
       "ratedShort": "rated",
       "casualShort": "casual",
       "cancelSeek": "Cancel seek",
-      "seek": "Find opponent"
+      "seek": "Find opponent",
+      "pairing": "Opponent found – game is starting …"
     },
     "live": {
       "band": "Live game on Lichess: assistance is off",

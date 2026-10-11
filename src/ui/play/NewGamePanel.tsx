@@ -276,7 +276,7 @@ function LichessSeek() {
   const play = useSettings((s) => s.play);
   const auth = useLichessAuth((s) => s.status);
   const account = useLichessAuth((s) => s.account);
-  const { seeking, error } = usePlay((s) => s.lichess);
+  const { seeking, error, pairing } = usePlay((s) => s.lichess);
   const { startSeek, cancelSeek } = usePlay.getState();
   const setScreen = useNavigation((s) => s.setScreen);
   const control = timeControl(play.minutes, play.increment);
@@ -344,7 +344,11 @@ function LichessSeek() {
         </p>
       )}
 
-      {seeking ? (
+      {pairing ? (
+        <p role="status" className="text-[13.5px] font-semibold text-live-text">
+          {t('play.lichess.pairing')}
+        </p>
+      ) : seeking ? (
         <div className="flex flex-col gap-2" role="status">
           <p className="text-[13.5px]">
             {t('play.lichess.seeking', {

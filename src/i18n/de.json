@@ -882,7 +882,8 @@
       "ratedShort": "gewertet",
       "casualShort": "ungewertet",
       "cancelSeek": "Suche abbrechen",
-      "seek": "Gegner suchen"
+      "seek": "Gegner suchen",
+      "pairing": "Gegner gefunden – Partie startet …"
     },
     "live": {
       "band": "Live-Partie auf Lichess: Hilfen sind aus",

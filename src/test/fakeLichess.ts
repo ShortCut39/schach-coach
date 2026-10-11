@@ -223,25 +223,36 @@ export class FakeLichess {
   }
 
   /** Suche paaren: Partie anlegen, `gameStart` senden, Suche schließen */
-  pairSeek(id: string, myColor: 'white' | 'black' = 'white'): void {
+  /**
+   * Suche paaren wie Lichess: Zuerst schließt der Server die Such-Verbindung, das `gameStart`
+   * kommt erst kurz danach über den Ereignisstrom (oder geht im Test absichtlich verloren).
+   */
+  pairSeek(
+    id: string,
+    myColor: 'white' | 'black' = 'white',
+    options: { gameStartDelayMs?: number; loseGameStart?: boolean } = {},
+  ): void {
     this.addGame(id, myColor);
-    for (const events of this.eventStreams) {
-      events.push({
-        type: 'gameStart',
-        game: {
-          gameId: id,
-          fullId: `${id}xxxx`,
-          color: myColor,
-          variant: { key: 'standard', name: 'Standard' },
-          speed: 'rapid',
-          rated: false,
-          compat: { board: true, bot: false },
-          opponent: { id: 'gegner', username: 'Gegner', rating: 1520 },
-        },
-      });
-    }
     for (const seek of this.seekStreams) seek.close();
     this.seekStreams = [];
+    if (options.loseGameStart) return;
+    setTimeout(() => {
+      for (const events of this.eventStreams) {
+        events.push({
+          type: 'gameStart',
+          game: {
+            gameId: id,
+            fullId: `${id}xxxx`,
+            color: myColor,
+            variant: { key: 'standard', name: 'Standard' },
+            speed: 'rapid',
+            rated: false,
+            compat: { board: true, bot: false },
+            opponent: { id: 'gegner', username: 'Gegner', rating: 1520 },
+          },
+        });
+      }
+    }, options.gameStartDelayMs ?? 30);
   }
 
   readonly fetch: FetchFn = async (url, init) => {
