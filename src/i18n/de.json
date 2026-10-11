@@ -1006,7 +1006,7 @@
       },
       "dismiss": "Verstanden"
     },
-    "subtitle": "Figuren, Brett und Töne für alle Bretter der App. Änderungen gelten sofort, ohne Speichern.",
+    "subtitle": "Figuren, Brett und Töne für alle Bretter der App. Die Vorschau zeigt deine Auswahl sofort; übernommen wird sie mit „Speichern“ ganz unten. Hochladen, Umbenennen und Löschen eigener Sätze wirken sofort.",
     "preview": {
       "label": "Vorschau: Beispielstellung aus der Opera-Partie, Schwarz steht im Schach",
       "text": "Die Vorschau zeigt eine Stellung aus der Opera-Partie (Morphy, 1858): Weiß hat mit dem Läufer auf b5 Schach gegeben. So siehst du sofort, wie Figuren, Brett, letzter Zug und Schach aussehen."

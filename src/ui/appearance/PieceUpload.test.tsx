@@ -3,7 +3,8 @@ import { memoryAppearanceStorage, setAppearanceStorage } from '../../appearance/
 import { resetAppearanceForTests, useAppearance } from '../../appearance/store';
 import { PIECE_CODES } from '../../appearance/types';
 import { getSettingsStorage } from '../../store/persistence';
-import { PiecesCard } from './PiecesCard';
+import { clickPageSave, settingsCard } from '../../test/settingsScreen';
+import { EinstellungenScreen } from '../screens/EinstellungenScreen';
 
 const svg = (label: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><text>${label}</text></svg>`;
@@ -38,8 +39,10 @@ beforeEach(async () => {
 
 describe('Eigene Figuren hochladen', () => {
   it('ordnet 12 Dateien nach dem Namen zu, speichert und wählt den Satz', async () => {
-    render(<PiecesCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Eigenen Satz hinzufügen' }));
+    render(<EinstellungenScreen />);
+    fireEvent.click(
+      within(settingsCard('Figuren')).getByRole('button', { name: 'Eigenen Satz hinzufügen' }),
+    );
     const dialog = await screen.findByRole('dialog', { name: 'Eigene Figuren hinzufügen' });
     expect(within(dialog).getByText(/Nichts verlässt deinen Computer/)).toBeInTheDocument();
     const save = within(dialog).getByRole('button', { name: 'Speichern' });
@@ -75,6 +78,16 @@ describe('Eigene Figuren hochladen', () => {
     fireEvent.click(save);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
+    // Gewählt ist der neue Satz erst im Entwurf; übernommen wird mit „Speichern“ unten
+    const tile = await within(settingsCard('Figuren')).findByRole('button', {
+      name: 'Meine Figuren',
+      pressed: true,
+    });
+    expect(tile).toBeInTheDocument();
+    expect(useAppearance.getState().pieceSetId).toBe('builtin:cburnett');
+    clickPageSave();
+    await waitFor(() => expect(useAppearance.getState().pieceSetId).toMatch(/^custom:/));
+
     const state = useAppearance.getState();
     expect(state.pieceSetId).toMatch(/^custom:/);
     expect(state.custom.pieces).toEqual([
@@ -87,8 +100,10 @@ describe('Eigene Figuren hochladen', () => {
   });
 
   it('ordnet unbekannte Namen per Auswahl zu', async () => {
-    render(<PiecesCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Eigenen Satz hinzufügen' }));
+    render(<EinstellungenScreen />);
+    fireEvent.click(
+      within(settingsCard('Figuren')).getByRole('button', { name: 'Eigenen Satz hinzufügen' }),
+    );
     const dialog = await screen.findByRole('dialog');
     upload(within(dialog).getByTestId('upload-input'), [file('figur1.svg', svg('?'))]);
     const select = await within(dialog).findByRole('combobox', {
@@ -114,15 +129,17 @@ describe('Eigene Figuren hochladen', () => {
       await storage.write('pieces', uuid, `${code}.svg`, encode(svg(code)));
     await useAppearance.getState().refreshCustom('pieces');
 
-    render(<PiecesCard />);
+    render(<EinstellungenScreen />);
     fireEvent.click(screen.getByRole('button', { name: '„Alt“ umbenennen' }));
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Neu' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+    fireEvent.click(within(settingsCard('Figuren')).getByRole('button', { name: 'Speichern' }));
     expect(await screen.findByRole('button', { name: 'Neu' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '„Neu“ löschen' }));
     expect(screen.getByText('„Neu“ wirklich löschen?')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Ja, löschen' }));
-    expect(await screen.findByText('Noch keine eigenen Sätze.')).toBeInTheDocument();
+    expect(
+      await within(settingsCard('Figuren')).findByText('Noch keine eigenen Sätze.'),
+    ).toBeInTheDocument();
   });
 });

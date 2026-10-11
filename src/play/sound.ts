@@ -107,12 +107,15 @@ function playInBrowser(source: SoundSource, volume: number): void {
   void played?.catch(() => undefined);
 }
 
-/** Spielt einen Ton aus dem aktiven Set; `volume` von 0 bis 1. Wirft nie. */
-export function playSound(event: SoundEvent, volume = 0.7): void {
+/**
+ * Spielt einen Ton aus dem aktiven Set (oder aus `active`, z. B. dem Entwurf in den Einstellungen);
+ * `volume` von 0 bis 1. Wirft nie.
+ */
+export function playSound(event: SoundEvent, volume = 0.7, active?: ActiveSounds): void {
   if (volume <= 0) return;
   const level = Math.min(1, volume);
   try {
-    const source = soundSourceFor(event);
+    const source = soundSourceFor(event, active);
     if (!source) return;
     if (isTauri()) {
       void registerNative(source)

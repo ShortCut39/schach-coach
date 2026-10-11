@@ -2,7 +2,7 @@ import { Chessboard } from 'react-chessboard';
 import type { CSSProperties, ReactNode } from 'react';
 import { prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
-import { useBoardAppearance } from '../boardAppearance';
+import { useBoardAppearance, type BoardAppearanceOptions } from '../boardAppearance';
 import { withCheckHighlight } from '../boardSquares';
 
 interface BoardViewProps {
@@ -14,6 +14,8 @@ interface BoardViewProps {
   overlay?: ReactNode;
   /** Kennung für react-chessboard (mehrere Bretter brauchen verschiedene) */
   id?: string;
+  /** Andere Darstellung als die gespeicherte (Vorschau in den Einstellungen) */
+  appearance?: BoardAppearanceOptions;
 }
 
 /** Nur-Anzeige-Brett (kein Ziehen). Figuren, Felder und Koordinaten aus der Darstellung. */
@@ -24,8 +26,10 @@ export function BoardView({
   label,
   overlay,
   id = 'analyse-board',
+  appearance: override,
 }: BoardViewProps) {
-  const appearance = useBoardAppearance();
+  const saved = useBoardAppearance();
+  const appearance = override ?? saved;
   const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   const squareStyles = withCheckHighlight(
     fen,

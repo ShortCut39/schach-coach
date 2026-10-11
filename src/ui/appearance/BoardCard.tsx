@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_BOARD_THEMES, DEFAULT_BOARD_THEME } from '../../appearance/boards';
-import { useAppearance, type CustomSet } from '../../appearance/store';
+import type { CustomSet } from '../../appearance/store';
 import { Toggle } from '../shared/form';
 import { AssetCard } from './AssetCard';
 import { BoardSwatch } from './BoardSwatch';
@@ -16,10 +16,18 @@ function CustomBoardPreview({ set }: { set: CustomSet }) {
 }
 
 /** Karte „Brett“: Farbpaare, eigene Farben oder Brettbild, Koordinaten */
-export function BoardCard() {
+export function BoardCard({
+  value,
+  onChange,
+  showCoordinates,
+  onShowCoordinates,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  showCoordinates: boolean;
+  onShowCoordinates: (show: boolean) => void;
+}) {
   const { t } = useTranslation();
-  const showCoordinates = useAppearance((s) => s.showCoordinates);
-  const setShowCoordinates = useAppearance((s) => s.setShowCoordinates);
   return (
     <AssetCard
       kind="boards"
@@ -33,7 +41,9 @@ export function BoardCard() {
         preview: <BoardSwatch look={theme.look} />,
       }))}
       customPreview={(set) => <CustomBoardPreview set={set} />}
-      dialog={(onClose) => <BoardUploadDialog onClose={onClose} />}
+      activeId={value}
+      onSelect={onChange}
+      dialog={(onClose, onCreated) => <BoardUploadDialog onClose={onClose} onCreated={onCreated} />}
     >
       <div className="flex min-h-hit items-center gap-3">
         <div className="flex-1">
@@ -42,7 +52,7 @@ export function BoardCard() {
         </div>
         <Toggle
           checked={showCoordinates}
-          onChange={(show) => void setShowCoordinates(show)}
+          onChange={onShowCoordinates}
           label={t('appearance.boards.coordinates')}
         />
       </div>

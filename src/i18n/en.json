@@ -1006,7 +1006,7 @@
       },
       "dismiss": "Got it"
     },
-    "subtitle": "Pieces, board and sounds for every board in the app. Changes apply immediately, no saving needed.",
+    "subtitle": "Pieces, board and sounds for every board in the app. The preview shows your choice right away; it is applied with “Save” at the very bottom. Uploading, renaming and deleting your own sets take effect immediately.",
     "preview": {
       "label": "Preview: example position from the Opera Game, Black is in check",
       "text": "The preview shows a position from the Opera Game (Morphy, 1858): White has given check with the bishop on b5. You can see right away how pieces, board, last move and check look."

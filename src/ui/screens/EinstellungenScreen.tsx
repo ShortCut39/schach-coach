@@ -26,6 +26,12 @@ import { IconAlert, IconCheck } from '../shared/icons';
 import { Segmented } from '../shared/Segmented';
 import { SettingsCard } from '../shared/SettingsCard';
 import { LichessCard } from '../play/LichessCard';
+import {
+  effectiveDraft,
+  pickAppearance,
+  useAppearance,
+  type Appearance,
+} from '../../appearance/store';
 import { AppearanceSection } from '../appearance/AppearanceSection';
 
 const sections = [
@@ -67,6 +73,20 @@ export function EinstellungenScreen() {
   const [test, setTest] = useState<TestState>({ kind: 'idle' });
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
   const [active, setActive] = useState<Section>('ki');
+  // Darstellung: Entwurf wie die übrigen Einstellungen, übernommen erst mit „Speichern“
+  const appearanceLoaded = useAppearance((s) => s.loaded);
+  const customSets = useAppearance((s) => s.custom);
+  const [appearanceDraft, setAppearanceDraft] = useState<Appearance>(() =>
+    pickAppearance(useAppearance.getState()),
+  );
+  const [appearanceTouched, setAppearanceTouched] = useState(false);
+  const [appearanceSynced, setAppearanceSynced] = useState(appearanceLoaded);
+  // Darstellung erst nach dem Öffnen geladen: Entwurf nachziehen, solange nichts geändert wurde
+  if (appearanceLoaded && !appearanceSynced) {
+    setAppearanceSynced(true);
+    if (!appearanceTouched) setAppearanceDraft(pickAppearance(useAppearance.getState()));
+  }
+  const appearanceEffective = effectiveDraft(appearanceDraft, customSets);
   const engineState = useEngine();
   const autoThreads = autoPoolSize();
   const keyOrigin = useRef(originOf(draft.llm.baseUrl));
@@ -89,6 +109,11 @@ export function EinstellungenScreen() {
 
   const update = (patch: Partial<Settings>) => {
     setDraft((d) => ({ ...d, ...patch }));
+    setSaveState('idle');
+  };
+  const updateAppearance = (patch: Partial<Appearance>) => {
+    setAppearanceDraft((d) => ({ ...d, ...patch }));
+    setAppearanceTouched(true);
     setSaveState('idle');
   };
   const keyRequest = useRef(0);
@@ -156,6 +181,8 @@ export function EinstellungenScreen() {
         void restartEngines();
       }
       if (urlValid) await saveKey(valid.llm.baseUrl, keyDraft);
+      setAppearanceDraft(await useAppearance.getState().saveAll(appearanceEffective));
+      setAppearanceTouched(false);
       setSaveState('saved');
     } catch {
       setSaveState('failed');
@@ -166,6 +193,8 @@ export function EinstellungenScreen() {
     const current = pickSettings(useSettings.getState());
     keyOrigin.current = originOf(current.llm.baseUrl);
     setDraft(current);
+    setAppearanceDraft(pickAppearance(useAppearance.getState()));
+    setAppearanceTouched(false);
     setKeyDraft(await loadKey(current.llm.baseUrl));
     setTest({ kind: 'idle' });
     setSaveState('idle');
@@ -667,6 +696,8 @@ export function EinstellungenScreen() {
           </SelectField>
         </SettingsCard>
 
+        <AppearanceSection draft={appearanceEffective} onChange={updateAppearance} />
+
         <div className="flex flex-wrap items-center justify-end gap-2.5">
           <span role="status" className="mr-auto text-[13.5px] font-medium">
             {saveState === 'saved' && (
@@ -692,8 +723,6 @@ export function EinstellungenScreen() {
             {t('einstellungen.save')}
           </Button>
         </div>
-
-        <AppearanceSection />
       </div>
     </main>
   );

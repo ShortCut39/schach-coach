@@ -93,6 +93,8 @@ interface AppearanceState extends Appearance {
   /** Wählt einen Satz; `false`, wenn er nicht nutzbar ist (dann gilt der Standard). */
   select: (kind: AssetKind, id: string) => Promise<boolean>;
   setShowCoordinates: (show: boolean) => Promise<void>;
+  /** Übernimmt eine ganze Auswahl (Einstellungen → „Speichern“); liefert, was danach gilt. */
+  saveAll: (next: Appearance) => Promise<Appearance>;
   reset: (kind: AssetKind) => Promise<void>;
   /** Liest die Liste eigener Sätze neu (nach Hochladen, Umbenennen, Löschen). */
   refreshCustom: (kind: AssetKind) => Promise<void>;
@@ -259,7 +261,7 @@ function defaultResolved(kind: AssetKind): Resolved<AssetKind> {
   return defaultSounds();
 }
 
-function pick(state: Appearance): Appearance {
+export function pickAppearance(state: Appearance): Appearance {
   return {
     pieceSetId: state.pieceSetId,
     boardThemeId: state.boardThemeId,
@@ -270,7 +272,7 @@ function pick(state: Appearance): Appearance {
 
 async function persist(state: Appearance): Promise<void> {
   try {
-    await getSettingsStorage().set(STORAGE_KEY, pick(state));
+    await getSettingsStorage().set(STORAGE_KEY, pickAppearance(state));
   } catch {
     // Speichern fehlgeschlagen: die Auswahl gilt trotzdem bis zum Neustart
   }
@@ -351,6 +353,16 @@ export const useAppearance = create<AppearanceState>()((set, get) => {
       await persist(get());
     },
 
+    saveAll: async (next) => {
+      for (const kind of ASSET_KINDS) {
+        const id = next[idField[kind]];
+        if (id !== get()[idField[kind]]) await apply(kind, id, false);
+      }
+      set({ showCoordinates: next.showCoordinates });
+      await persist(get());
+      return pickAppearance(get());
+    },
+
     reset: async (kind) => {
       await get().select(kind, defaults[kind]);
     },
@@ -368,6 +380,50 @@ export const useAppearance = create<AppearanceState>()((set, get) => {
     dismissFallbacks: () => set({ fallbacks: [] }),
   };
 });
+
+/** Aufgelöste Auswahl eines Bereichs, z. B. für die Vorschau eines noch nicht gespeicherten Entwurfs */
+export type ResolvedSelection =
+  | { kind: 'pieces'; value: PieceUrls }
+  | { kind: 'boards'; value: BoardLook }
+  | { kind: 'sounds'; value: ActiveSounds };
+
+/**
+ * Löst eine Kennung auf, ohne sie zu übernehmen. `release` gibt erzeugte Objekt-URLs wieder frei.
+ * `null`, wenn es den Satz nicht gibt oder er defekt ist.
+ */
+export async function resolveSelection(
+  kind: AssetKind,
+  id: string,
+): Promise<{ selection: ResolvedSelection; release: () => void } | null> {
+  const urls: string[] = [];
+  const value = await resolve(kind, id, useAppearance.getState().custom[kind], urls);
+  if (!value) {
+    releaseUrls(urls);
+    return null;
+  }
+  return {
+    selection: { kind, value } as ResolvedSelection,
+    release: () => releaseUrls(urls),
+  };
+}
+
+/** Entwurf ohne gelöschte eigene Sätze (die fallen auf den Standard zurück) */
+export function effectiveDraft(
+  draft: Appearance,
+  custom: Record<AssetKind, CustomSet[]>,
+): Appearance {
+  const next = { ...draft };
+  for (const kind of ASSET_KINDS) {
+    const id = draft[idField[kind]];
+    if (isCustomId(id) && !custom[kind].some((set) => set.id === id && !set.broken)) {
+      next[idField[kind]] = defaults[kind];
+    }
+  }
+  return next;
+}
+
+export const APPEARANCE_ID_FIELD = idField;
+export const APPEARANCE_DEFAULTS = defaults;
 
 /** Nur für Tests: zurück auf den Anfangszustand */
 export function resetAppearanceForTests(): void {

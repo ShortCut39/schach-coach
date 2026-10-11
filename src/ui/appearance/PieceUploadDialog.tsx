@@ -32,10 +32,15 @@ const ACCEPT = '.svg,.png,.webp,.zip,image/svg+xml,image/png,image/webp,applicat
 const acceptEntry = (name: string) => /\.(svg|png|webp)$/i.test(name);
 
 /** Dialog „Eigene Figuren“: Dateien prüfen, den 12 Plätzen zuordnen, speichern. */
-export function PieceUploadDialog({ onClose }: { onClose: () => void }) {
+export function PieceUploadDialog({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const customCount = useAppearance((s) => s.custom.pieces.length);
-  const select = useAppearance((s) => s.select);
   const [name, setName] = useState(() =>
     t('appearance.pieces.defaultName', { n: customCount + 1 }),
   );
@@ -143,8 +148,7 @@ export function PieceUploadDialog({ onClose }: { onClose: () => void }) {
         }),
       ) as Record<PieceCode, { bytes: Uint8Array; type: ImageType }>;
       const id = await createPieceSet(name.trim(), pieces);
-      await select('pieces', id);
-      onClose();
+      onCreated(id);
     } catch (error) {
       setSaveError(error instanceof CustomSetError ? error.code : 'failed');
       setSaving(false);

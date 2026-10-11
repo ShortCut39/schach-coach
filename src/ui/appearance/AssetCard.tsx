@@ -23,18 +23,20 @@ interface AssetCardProps {
   defaultId: string;
   /** Vorschau eines eigenen Satzes (darf Dateien nachladen) */
   customPreview: (set: CustomSet) => ReactNode;
-  /** Upload-Dialog; `onClose` schließt ihn */
-  dialog: (onClose: () => void) => ReactNode;
+  /** Upload-Dialog; `onClose` schließt ihn, `onCreated` wählt den neuen Satz im Entwurf */
+  dialog: (onClose: () => void, onCreated: (id: string) => void) => ReactNode;
+  /** Gewählter Satz im Entwurf (gespeichert wird erst mit „Speichern“) */
+  activeId: string;
+  onSelect: (id: string) => void;
   /** Zusätzliche Einstellungen der Karte (z. B. Koordinaten) */
   children?: ReactNode;
 }
 
-const idField = { pieces: 'pieceSetId', boards: 'boardThemeId', sounds: 'soundSetId' } as const;
-
 /**
  * Gemeinsames Gerüst der Karten „Figuren“, „Brett“ und „Töne“: Raster der Voreinstellungen,
  * eigene Sätze (umbenennen, löschen), „Eigenen Satz hinzufügen“ und „Zurücksetzen“.
- * Ein Klick wählt sofort (kein Speichern-Knopf).
+ * Ein Klick wählt im Entwurf (die Vorschau zeigt ihn); übernommen wird mit „Speichern“.
+ * Hochladen, Umbenennen und Löschen ändern die Dateien dagegen sofort.
  */
 export function AssetCard({
   kind,
@@ -45,13 +47,12 @@ export function AssetCard({
   defaultId,
   customPreview,
   dialog,
+  activeId,
+  onSelect,
   children,
 }: AssetCardProps) {
   const { t } = useTranslation();
-  const activeId = useAppearance((s) => s[idField[kind]]);
   const custom = useAppearance((s) => s.custom[kind]);
-  const select = useAppearance((s) => s.select);
-  const reset = useAppearance((s) => s.reset);
   const [adding, setAdding] = useState(false);
   const full = custom.length >= MAX_CUSTOM_SETS;
 
@@ -63,7 +64,7 @@ export function AssetCard({
             key={preset.id}
             label={preset.label}
             active={activeId === preset.id}
-            onSelect={() => void select(kind, preset.id)}
+            onSelect={() => onSelect(preset.id)}
             preview={preset.preview}
             badge={
               preset.id === defaultId ? <TileBadge>{t('appearance.default')}</TileBadge> : undefined
@@ -86,7 +87,7 @@ export function AssetCard({
                   label={name}
                   active={activeId === set.id}
                   disabled={set.broken}
-                  onSelect={() => void select(kind, set.id)}
+                  onSelect={() => onSelect(set.id)}
                   preview={customPreview(set)}
                   badge={
                     set.broken ? (
@@ -114,7 +115,7 @@ export function AssetCard({
           variant="secondary"
           className="min-h-hit"
           disabled={activeId === defaultId}
-          onClick={() => void reset(kind)}
+          onClick={() => onSelect(defaultId)}
         >
           {t('appearance.reset')}
         </Button>
@@ -124,7 +125,14 @@ export function AssetCard({
           </span>
         )}
       </div>
-      {adding && dialog(() => setAdding(false))}
+      {adding &&
+        dialog(
+          () => setAdding(false),
+          (created) => {
+            setAdding(false);
+            onSelect(created);
+          },
+        )}
     </SettingsCard>
   );
 }

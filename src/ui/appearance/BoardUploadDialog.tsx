@@ -80,10 +80,15 @@ function ColorField({
 }
 
 /** Dialog „Eigenes Brett“: zwei Farben oder ein Brettbild (8 × 8, über die Felder gelegt). */
-export function BoardUploadDialog({ onClose }: { onClose: () => void }) {
+export function BoardUploadDialog({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const customCount = useAppearance((s) => s.custom.boards.length);
-  const select = useAppearance((s) => s.select);
   const [mode, setMode] = useState<'colors' | 'image'>('colors');
   const [name, setName] = useState(() =>
     t('appearance.boards.defaultName', { n: customCount + 1 }),
@@ -152,8 +157,7 @@ export function BoardUploadDialog({ onClose }: { onClose: () => void }) {
               bytes: (image as BoardImage).bytes,
               type: (image as BoardImage).type,
             });
-      await select('boards', id);
-      onClose();
+      onCreated(id);
     } catch (error) {
       setSaveError(error instanceof CustomSetError ? error.code : 'failed');
       setSaving(false);

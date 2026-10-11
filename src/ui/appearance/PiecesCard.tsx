@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_PIECE_SETS, DEFAULT_PIECE_SET } from '../../appearance/pieces';
-import { useAppearance, type CustomSet } from '../../appearance/store';
+import type { BoardLook } from '../../appearance/boards';
+import type { CustomSet } from '../../appearance/store';
 import { AssetCard } from './AssetCard';
 import { PieceUploadDialog } from './PieceUploadDialog';
 import { useCustomPreview } from './useCustomPreview';
@@ -8,8 +9,13 @@ import { useCustomPreview } from './useCustomPreview';
 const PREVIEW = ['wK', 'bQ', 'wN'] as const;
 
 /** Drei Figuren auf den Feldfarben des aktiven Bretts (bei einem Brettbild: App-Standard) */
-function PiecePreview({ urls }: { urls: Partial<Record<string, string>> }) {
-  const board = useAppearance((s) => s.board);
+function PiecePreview({
+  urls,
+  board,
+}: {
+  urls: Partial<Record<string, string>>;
+  board: BoardLook;
+}) {
   const colors =
     board.kind === 'colors'
       ? board
@@ -36,12 +42,21 @@ function PiecePreview({ urls }: { urls: Partial<Record<string, string>> }) {
   );
 }
 
-function CustomPiecePreview({ set }: { set: CustomSet }) {
-  return <PiecePreview urls={useCustomPreview(set, PREVIEW)} />;
+function CustomPiecePreview({ set, board }: { set: CustomSet; board: BoardLook }) {
+  return <PiecePreview urls={useCustomPreview(set, PREVIEW)} board={board} />;
 }
 
 /** Karte „Figuren“ */
-export function PiecesCard() {
+export function PiecesCard({
+  value,
+  onChange,
+  board,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  /** Brett der Vorschau (Entwurf), damit die Kacheln dazu passen */
+  board: BoardLook;
+}) {
   const { t } = useTranslation();
   return (
     <AssetCard
@@ -53,10 +68,12 @@ export function PiecesCard() {
       presets={BUILTIN_PIECE_SETS.map((set) => ({
         id: set.id,
         label: set.name,
-        preview: <PiecePreview urls={set.urls} />,
+        preview: <PiecePreview urls={set.urls} board={board} />,
       }))}
-      customPreview={(set) => <CustomPiecePreview set={set} />}
-      dialog={(onClose) => <PieceUploadDialog onClose={onClose} />}
+      customPreview={(set) => <CustomPiecePreview set={set} board={board} />}
+      activeId={value}
+      onSelect={onChange}
+      dialog={(onClose, onCreated) => <PieceUploadDialog onClose={onClose} onCreated={onCreated} />}
     />
   );
 }

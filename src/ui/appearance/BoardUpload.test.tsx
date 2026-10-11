@@ -2,7 +2,8 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { memoryAppearanceStorage, setAppearanceStorage } from '../../appearance/storage';
 import { resetAppearanceForTests, useAppearance } from '../../appearance/store';
 import { getSettingsStorage } from '../../store/persistence';
-import { BoardCard } from './BoardCard';
+import { clickInCard, clickPageSave, settingsCard } from '../../test/settingsScreen';
+import { EinstellungenScreen } from '../screens/EinstellungenScreen';
 
 // jsdom lädt keine Bilder: Abmessungen vorgeben (quadratisch bzw. breit)
 const size = vi.hoisted(() => ({ width: 800, height: 800 }));
@@ -24,8 +25,16 @@ beforeEach(async () => {
 
 describe('Brett', () => {
   it('wählt Farbpaare sofort und schaltet Koordinaten', async () => {
-    render(<BoardCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Braun' }));
+    render(<EinstellungenScreen />);
+    clickInCard('Brett', 'Braun');
+    expect(
+      within(settingsCard('Brett')).getByRole('button', { name: 'Braun', pressed: true }),
+    ).toBeInTheDocument();
+    // Erst „Speichern“ übernimmt die Auswahl
+    expect(useAppearance.getState().boardThemeId).toBe('builtin:app');
+    fireEvent.click(screen.getByRole('switch', { name: 'Koordinaten am Brettrand' }));
+    expect(useAppearance.getState().showCoordinates).toBe(true);
+    clickPageSave();
     await waitFor(() =>
       expect(useAppearance.getState().board).toEqual({
         kind: 'colors',
@@ -33,16 +42,22 @@ describe('Brett', () => {
         dark: '#b58863',
       }),
     );
-    expect(screen.getByRole('button', { name: 'Braun', pressed: true })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('switch', { name: 'Koordinaten am Brettrand' }));
-    await waitFor(() => expect(useAppearance.getState().showCoordinates).toBe(false));
-    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen auf Standard' }));
-    await waitFor(() => expect(useAppearance.getState().boardThemeId).toBe('builtin:app'));
+    expect(useAppearance.getState().showCoordinates).toBe(false);
+    // Zurücksetzen und Verwerfen: der Entwurf geht zurück auf den gespeicherten Stand
+    clickInCard('Brett', 'Zurücksetzen auf Standard');
+    expect(
+      within(settingsCard('Brett')).getByRole('button', { name: /App-Standard/, pressed: true }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Verwerfen' }));
+    expect(
+      await within(settingsCard('Brett')).findByRole('button', { name: 'Braun', pressed: true }),
+    ).toBeInTheDocument();
+    expect(useAppearance.getState().boardThemeId).toBe('builtin:brown');
   });
 
   it('legt ein Brett aus zwei Farben an und warnt bei wenig Kontrast', async () => {
-    render(<BoardCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Eigenen Satz hinzufügen' }));
+    render(<EinstellungenScreen />);
+    clickInCard('Brett', 'Eigenen Satz hinzufügen');
     const dialog = await screen.findByRole('dialog', { name: 'Eigenes Brett hinzufügen' });
     fireEvent.change(
       within(dialog).getByLabelText('Helle Felder', { selector: 'input:not([type=color])' }),
@@ -66,16 +81,19 @@ describe('Brett', () => {
     expect(within(dialog).queryByText(/kaum zu unterscheiden/)).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(useAppearance.getState().board).toEqual({
-      kind: 'colors',
-      light: '#ffeedd',
-      dark: '#7a7a7a',
-    });
+    clickPageSave();
+    await waitFor(() =>
+      expect(useAppearance.getState().board).toEqual({
+        kind: 'colors',
+        light: '#ffeedd',
+        dark: '#7a7a7a',
+      }),
+    );
   });
 
   it('nimmt ein quadratisches Brettbild an und lehnt falsche Dateien ab', async () => {
-    render(<BoardCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Eigenen Satz hinzufügen' }));
+    render(<EinstellungenScreen />);
+    clickInCard('Brett', 'Eigenen Satz hinzufügen');
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Brettbild' }));
     const input = within(dialog).getByTestId('upload-input');
@@ -84,13 +102,15 @@ describe('Brett', () => {
     fireEvent.change(input, { target: { files: [new File([PNG], 'brett.png')] } });
     expect(await within(dialog).findByText('Quadratisch, passt.')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    clickPageSave();
     await waitFor(() => expect(useAppearance.getState().board.kind).toBe('image'));
   });
 
   it('verlangt bei nicht quadratischen Bildern das Zuschneiden', async () => {
     size.width = 1200;
-    render(<BoardCard />);
-    fireEvent.click(screen.getByRole('button', { name: 'Eigenen Satz hinzufügen' }));
+    render(<EinstellungenScreen />);
+    clickInCard('Brett', 'Eigenen Satz hinzufügen');
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Brettbild' }));
     fireEvent.change(within(dialog).getByTestId('upload-input'), {
