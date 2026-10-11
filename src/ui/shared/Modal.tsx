@@ -35,7 +35,7 @@ export function Modal({ title, onClose, children, footer, wide = false }: ModalP
         event.preventDefault();
         onClose();
       }}
-      className={`m-auto max-h-[calc(100dvh-48px)] w-[calc(100vw-32px)] ${wide ? 'max-w-[860px]' : 'max-w-[560px]'} overflow-hidden rounded-panel border border-border bg-panel p-0 text-text shadow-board backdrop:bg-black/55`}
+      className={`m-auto max-h-[calc(100dvh-48px)] w-[calc(100vw-32px)] ${wide ? 'max-w-[860px]' : 'max-w-[560px]'} overflow-hidden rounded-panel border border-border bg-panel p-0 text-text shadow-2xl backdrop:bg-black/55`}
     >
       <div className="flex max-h-[calc(100dvh-48px)] flex-col">
         <h2

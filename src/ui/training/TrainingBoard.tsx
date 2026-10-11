@@ -1,5 +1,13 @@
 import { Chess, type Square } from 'chess.js';
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Chessboard,
@@ -36,7 +44,30 @@ const PROMOTION_PIECES = ['q', 'r', 'b', 'n'] as const;
  * Brett zum Lösen von Aufgaben und zum Spielen: Figuren ziehen oder anklicken (Figur, dann Zielfeld).
  * Erlaubt sind nur legale Züge (chess.js); bei einer Bauernumwandlung wird nach der Figur gefragt.
  */
-export function TrainingBoard({
+/**
+ * Das Brett baut sich nur neu auf, wenn sich Stellung, Pfeile, Markierungen oder Zustand wirklich
+ * ändern (WebKitGTK braucht dafür spürbar Zeit). Neue Routinen oder gleich aussehende Pfeil- und
+ * Zug-Objekte der Seite lösen keinen Neuaufbau aus; die Routine für Züge kommt aus einer Ref.
+ */
+export function TrainingBoard(props: TrainingBoardProps) {
+  const { onMove, arrows, lastMove } = props;
+  const onMoveRef = useRef(onMove);
+  useLayoutEffect(() => {
+    onMoveRef.current = onMove;
+  });
+  const stableOnMove = useCallback((uci: string) => onMoveRef.current(uci), []);
+  const arrowsKey = JSON.stringify(arrows);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Inhalt statt Identität
+  const stableArrows = useMemo(() => arrows, [arrowsKey]);
+  const from = lastMove?.from;
+  const to = lastMove?.to;
+  const stableLastMove = useMemo(() => (from && to ? { from, to } : undefined), [from, to]);
+  return (
+    <MemoBoard {...props} onMove={stableOnMove} arrows={stableArrows} lastMove={stableLastMove} />
+  );
+}
+
+const MemoBoard = memo(function MemoBoard({
   fen,
   orientation,
   interactive,
@@ -209,4 +240,4 @@ export function TrainingBoard({
       )}
     </div>
   );
-}
+});

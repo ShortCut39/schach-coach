@@ -71,7 +71,9 @@
   --sc-board-sage-dark: #7fa38f;
   --sc-board-coord-on-light: #47596a;
   --sc-board-coord-on-dark: #cfd8dc;
-  --sc-board-shadow: 0 0 0 1px #1e2530, 0 14px 34px rgba(0, 0, 0, 0.5);
+  /* Nur ein Rand, kein weicher Schatten: WebKitGTK zeichnet einen großen weichgezeichneten Schatten
+     bei jeder Änderung auf dem Brett neu, das halbierte in Messungen die Ruckler beim Ziehen */
+  --sc-board-shadow: 0 0 0 1px #1e2530;
   --sc-last-move: rgba(255, 214, 90, 0.62);
   /* König im Schach (Rot der Patzer-Kategorie), bei Matt kräftiger */
   --sc-check: rgba(240, 60, 48, 0.8);
@@ -178,7 +180,7 @@
   --sc-live-border: #e3c56b;
   --sc-live-text: #7a5300;
 
-  --sc-board-shadow: 0 0 0 1px #dfe3ea, 0 10px 24px rgba(20, 30, 50, 0.15);
+  --sc-board-shadow: 0 0 0 1px #dfe3ea;
   --sc-eval-white: #ffffff;
   --sc-eval-black: #3a4352;
   --sc-eval-on-black: #ffffff;
