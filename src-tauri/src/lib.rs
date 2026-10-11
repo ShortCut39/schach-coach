@@ -2,8 +2,16 @@ mod appearance;
 mod import_file;
 mod library;
 mod lichess;
+#[cfg(target_os = "linux")]
+mod render;
 mod secrets;
 mod sound;
+
+/// Linux: WebKitGTK-Darstellung festlegen, bevor Tauri startet (siehe `render.rs`).
+#[cfg(target_os = "linux")]
+pub fn configure_rendering() {
+    render::configure();
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,6 +21,12 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
+            // Start gilt nach einer Weile als gelungen: Marke für den Absturz-Rückfall entfernen
+            #[cfg(target_os = "linux")]
+            std::thread::spawn(|| {
+                std::thread::sleep(render::STARTUP_GRACE);
+                render::mark_started();
+            });
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
@@ -49,6 +63,15 @@ pub fn run() {
             appearance::appearance_read_dropped,
             appearance::appearance_open_source
         ])
-        .run(tauri::generate_context!())
-        .expect("error while building tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, event| {
+            // Normal beendet (auch kurz nach dem Start): kein Absturz
+            #[cfg(target_os = "linux")]
+            if let tauri::RunEvent::Exit = event {
+                render::mark_started();
+            }
+            #[cfg(not(target_os = "linux"))]
+            let _ = event;
+        });
 }

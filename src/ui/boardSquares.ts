@@ -22,6 +22,13 @@ export function layerSquareStyle(
 }
 
 /**
+ * Letzter Zug bzw. ausgewähltes Feld: Farbfläche über dem ganzen Feld. Als Hintergrundfarbe statt als
+ * riesiger Innenschatten: billiger zu zeichnen (wichtig ohne GPU) und verträgt sich mit den
+ * Hintergrundbildern anderer Markierungen (Zielpunkte, Kreise, Schach).
+ */
+export const LAST_MOVE_STYLE: CSSProperties = { backgroundColor: 'var(--sc-last-move)' };
+
+/**
  * König im Schach: weicher roter Verlauf im Feld und ein Leuchten am Rand (liegt über der
  * Markierung des letzten Zugs). Bei Matt kräftiger und mit festem Ring. Zeigt Lichess auch,
  * ist also keine Hilfe im Sinne der Fair-Play-Sperre.

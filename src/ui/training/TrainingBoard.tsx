@@ -11,8 +11,8 @@ import { resolveBoardMove, targetSquares } from '../../training/boardMoves';
 import type { Orientation } from '../../store/game';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
 import { prefersReducedMotion } from '../analyse/boardStyle';
-import { useBoardAppearance } from '../boardAppearance';
-import { layerSquareStyle, withCheckHighlight } from '../boardSquares';
+import { squareRenderer, useBoardAppearance } from '../boardAppearance';
+import { LAST_MOVE_STYLE, layerSquareStyle, withCheckHighlight } from '../boardSquares';
 import { useDrawnShapes } from '../drawnShapes';
 
 interface TrainingBoardProps {
@@ -123,16 +123,15 @@ export function TrainingBoard({
   }
 
   const squareStyles: Record<string, CSSProperties> = {};
-  const lastMoveStyle: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   if (lastMove) {
-    squareStyles[lastMove.from] = lastMoveStyle;
-    squareStyles[lastMove.to] = lastMoveStyle;
+    squareStyles[lastMove.from] = LAST_MOVE_STYLE;
+    squareStyles[lastMove.to] = LAST_MOVE_STYLE;
   }
   if (hintSquare) {
     squareStyles[hintSquare] = { boxShadow: 'inset 0 0 0 4px var(--sc-accent)' };
   }
   if (selectedSquare) {
-    squareStyles[selectedSquare] = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
+    squareStyles[selectedSquare] = LAST_MOVE_STYLE;
   }
   for (const square of targets) {
     squareStyles[square] = {
@@ -170,6 +169,7 @@ export function TrainingBoard({
           animationDurationInMs: 150,
           ...appearance,
           squareStyles: styles,
+          squareRenderer: squareRenderer(styles),
         }}
       />
       <BoardOverlay orientation={orientation} arrows={arrows} />

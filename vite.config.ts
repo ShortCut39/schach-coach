@@ -27,7 +27,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
-    // Oberflächentests mit simulierter Analyse brauchen in jsdom mehr als 5 s
-    testTimeout: 15_000,
+    // Oberflächentests mit simulierter Analyse brauchen in jsdom mehr als 5 s, ganze Abläufe
+    // einzeln ~10 s; parallel auf einem stark ausgelasteten Rechner deutlich mehr
+    testTimeout: 30_000,
   },
 });

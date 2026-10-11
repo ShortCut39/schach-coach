@@ -2,14 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    // WebKitGTK stürzt unter Wayland mit NVIDIA-Treibern ab
-    // ("Error 71 (Protokollfehler) dispatching to Wayland display").
-    // Der DMABUF-Renderer wird deshalb abgeschaltet, sofern der Nutzer nichts anderes gesetzt hat.
+    // Linux: Grafikbeschleunigung der WebView mit automatischem Rückfall (siehe render.rs)
     #[cfg(target_os = "linux")]
-    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
-        // SAFETY: Läuft vor dem Start weiterer Threads.
-        unsafe { std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1") };
-    }
+    schach_coach_lib::configure_rendering();
 
     schach_coach_lib::run();
 }

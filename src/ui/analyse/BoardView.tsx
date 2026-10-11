@@ -2,8 +2,12 @@ import { Chessboard } from 'react-chessboard';
 import type { CSSProperties, ReactNode } from 'react';
 import { prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
-import { useBoardAppearance, type BoardAppearanceOptions } from '../boardAppearance';
-import { layerSquareStyle, withCheckHighlight } from '../boardSquares';
+import {
+  squareRenderer,
+  useBoardAppearance,
+  type BoardAppearanceOptions,
+} from '../boardAppearance';
+import { LAST_MOVE_STYLE, layerSquareStyle, withCheckHighlight } from '../boardSquares';
 import { useDrawnShapes } from '../drawnShapes';
 
 interface BoardViewProps {
@@ -37,12 +41,11 @@ export function BoardView({
 }: BoardViewProps) {
   const saved = useBoardAppearance();
   const appearance = override ?? saved;
-  const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   const drawing = useDrawnShapes(fen, allowDrawing);
   const marks: Record<string, CSSProperties> = { ...drawing.circles };
   if (lastMove) {
     for (const square of [lastMove.from, lastMove.to]) {
-      marks[square] = layerSquareStyle(highlight, marks[square]);
+      marks[square] = layerSquareStyle(LAST_MOVE_STYLE, marks[square]);
     }
   }
   const squareStyles = withCheckHighlight(fen, marks);
@@ -64,6 +67,7 @@ export function BoardView({
           animationDurationInMs: 150,
           ...appearance,
           squareStyles,
+          squareRenderer: squareRenderer(squareStyles),
         }}
       />
       {overlay}

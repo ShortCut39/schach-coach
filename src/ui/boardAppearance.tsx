@@ -1,5 +1,5 @@
 import { useMemo, type CSSProperties } from 'react';
-import type { ChessboardOptions, PieceRenderObject } from 'react-chessboard';
+import type { ChessboardOptions, PieceRenderObject, SquareRenderer } from 'react-chessboard';
 import type { BoardLook } from '../appearance/boards';
 import type { PieceUrls } from '../appearance/pieces';
 import { useAppearance } from '../appearance/store';
@@ -61,12 +61,17 @@ export function boardAppearanceOptions(
       position: 'absolute',
       bottom: '3%',
       right: '6%',
+      // Über dem Feldinhalt samt Markierungen (`squareRenderer`), nicht anklickbar
+      zIndex: 1,
+      pointerEvents: 'none',
     } as CSSProperties,
     numericNotationStyle: {
       ...notationBase,
       position: 'absolute',
       top: '4%',
       left: '6%',
+      zIndex: 1,
+      pointerEvents: 'none',
     } as CSSProperties,
   };
   if (board.kind === 'image') {
@@ -91,6 +96,26 @@ export function boardAppearanceOptions(
     darkSquareStyle: { backgroundColor: board.dark },
     lightSquareNotationStyle: { color: board.dark },
     darkSquareNotationStyle: { color: board.light },
+  };
+}
+
+/**
+ * Inhalt eines Felds samt Markierungen. react-chessboard legt `squareStyles` auf ein inneres
+ * Element mit `height: 100%` in einem Flex-Feld, dessen Höhe nur aus `aspect-ratio` kommt; WebKit
+ * löst diese Prozentangabe nicht immer auf, dann fehlen Markierungen auf leeren Feldern. Hier
+ * füllt das Element das Feld absolut aus (`inset: 0`), in jedem Browser.
+ */
+export function squareRenderer(styles: Record<string, CSSProperties>): SquareRenderer {
+  return function MarkedSquare({ square, children }) {
+    return (
+      <div
+        // Wie das Standard-Element der Bibliothek (Block, volle Größe), nur absolut verankert;
+        // kein Flex, sonst schrumpfen die Figuren auf ihre Bildgröße
+        style={{ position: 'absolute', inset: 0, ...styles[square] }}
+      >
+        {children}
+      </div>
+    );
   };
 }
 
