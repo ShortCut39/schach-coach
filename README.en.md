@@ -64,7 +64,7 @@ In the **Play** area you play locally against Stockfish or live against people o
   - There is no evaluation, no categories, no arrows and no coach; analysis and training only show a notice.
   - Tests prove this. Everything is back after the game. The app only uses officially documented Lichess API endpoints, with no scraping and no automation of the website.
 - **After the game:** the result card shows the result with its reason, the number of moves and the time control. Every game (except aborted ones) goes straight into the library as “not analysed”. “Analyse game” hands it to the analysis from your point of view, and the setting “Analyse automatically after the game” (off by default) does this by itself. The PGN contains Event, Site (the game link for Lichess), date, players, result, ratings, time control and how the game ended. Locally the opponent is called “Stockfish (level …)”.
-- **Sounds:** move, capture, castling, check, promotion, game start, game end and low time. The app computes them itself; there are no third-party audio files and no Lichess sounds. In the desktop app the Rust part plays them (rodio), because audio in the Linux WebView was either silent (WebAudio) or could freeze the app (`<audio>`). Settings → Play has “Sounds”, “Volume” and “Test sound”.
+- **Sounds:** move, capture, castling, check, promotion, game start, game end (win, loss, draw) and low time. The default is the freely licensed Lichess set “SFX”; there are further free sets and “Simple (synthesised)” (computed by the app itself). In the desktop app the Rust part decodes and plays them (rodio/symphonia), because audio in the Linux WebView was either silent (WebAudio) or could freeze the app (`<audio>`). Settings → Play has “Sounds”, “Volume” and “Test sound”.
 
 ## Setting up the AI
 
@@ -246,7 +246,8 @@ Schach-Coach is licensed under the **GNU General Public License v3.0 or later** 
 - Fonts: IBM Plex (SIL Open Font License), bundled locally via `@fontsource`.
 - Pieces: SVG set from `react-chessboard` (MIT), in the style of the Cburnett pieces from Wikimedia Commons.
 - Chess logic: `chess.js` (BSD-2-Clause).
-- Sounds while playing: computed by the app itself (`src/play/soundSynth.ts`); no third-party audio files and no Lichess sounds. The desktop app plays them via `rodio` (MIT/Apache-2.0).
+- Pieces and sounds from Lichess (only clearly free sets, e.g. cburnett GPLv2+, SFX AGPLv3+): list with author, licence and source in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md), licence texts in `assets/licenses/`. If you redistribute the app, check the terms of these licences yourself (e.g. source availability for GPL/AGPL). The Lichess default sounds are not free and therefore not included.
+- Sound set “Simple (synthesised)”: computed by the app itself (`src/play/soundSynth.ts`). The desktop app plays all sounds via `rodio` (MIT/Apache-2.0), decoded with `symphonia` (MPL-2.0).
 - **Engine: Stockfish.js 19 (GPL-3.0)**, bundled from the npm package `stockfish`, and the **native Stockfish 19** (GPL-3.0) from the official release at github.com/official-stockfish/Stockfish as a sidecar.
 - Opening book: [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), see `data/chess-openings/`. `pnpm build:openings` generates `src/classification/data/openings.json` from it.
 - Test fixture `src/test/fixtures/opera-game-evals-d20.json`: real Stockfish evaluations of the example game (depth 20, Multi-PV 3), generated with `GENERATE_EVAL_FIXTURE=1 pnpm vitest run src/test/tools`.

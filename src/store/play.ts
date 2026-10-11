@@ -20,7 +20,7 @@ import {
   type NowPlaying,
 } from '../play/lichess/mapper';
 import { buildPgn, type PgnInfo } from '../play/pgn';
-import { moveSound, playSound, type SoundKind } from '../play/sound';
+import { endSound, moveSound, playSound, type SoundEvent } from '../play/sound';
 import { getEngine } from './engine';
 import { useGame, type Orientation } from './game';
 import { useLibrary } from './library';
@@ -120,14 +120,14 @@ function resolveColor(color: Color | 'random'): Color {
 }
 
 /** Ton mit der eingestellten Lautstärke (nichts, wenn Töne aus sind) */
-function sound(kind: SoundKind): void {
+function sound(kind: SoundEvent): void {
   const { sounds, volume } = useSettings.getState().play;
   if (sounds) playSound(kind, volume / 100);
 }
 
 /**
- * Ton zum letzten Zug (eigener Zug wie Gegnerzug) bzw. zum Partieende. Welcher Ton, entscheidet
- * der Zug selbst (`moveSound`), nicht die Oberfläche.
+ * Ton zum letzten Zug (eigener Zug wie Gegnerzug) bzw. zum Partieende (Sieg, Niederlage, Remis aus
+ * meiner Sicht). Welcher Ton, entscheidet der Zug bzw. das Ergebnis selbst, nicht die Oberfläche.
  */
 function soundFor(previous: GameViewState | null, next: GameViewState): void {
   const moved = !!previous && next.plies.length > previous.plies.length;
@@ -135,8 +135,9 @@ function soundFor(previous: GameViewState | null, next: GameViewState): void {
   if (moved && last) sound(moveSound(last));
   if (next.status === 'ended' && previous?.status !== 'ended') {
     // Nach dem Zugton (z. B. Matt) kurz warten, damit beide zu hören sind
-    if (moved) setTimeout(() => sound('gameEnd'), 220);
-    else sound('gameEnd');
+    const kind = endSound(next.outcome, next.myColor);
+    if (moved) setTimeout(() => sound(kind), 220);
+    else sound(kind);
   }
 }
 

@@ -60,7 +60,7 @@ Im Bereich **Spielen** spielst du lokal gegen Stockfish oder live gegen Menschen
   - Bewertung, Kategorien, Pfeile und Coach gibt es nicht, Analyse und Training zeigen nur einen Hinweis.
   - Tests belegen das. Nach Partieende ist alles wieder da. Die App nutzt nur offiziell dokumentierte Endpunkte der Lichess-API, kein Scraping und keine Automatisierung der Webseite.
 - **Nach der Partie:** Die Ergebniskarte zeigt Ergebnis mit Grund, Zugzahl und Bedenkzeit. Jede Partie (außer abgebrochenen) landet sofort als „nicht analysiert“ in der Bibliothek. „Partie analysieren“ übergibt sie aus deiner Sicht an die Analyse, die Einstellung „Nach der Partie automatisch analysieren“ (Standard aus) macht das von selbst. Das PGN enthält Event, Site (bei Lichess der Link zur Partie), Datum, Spieler, Ergebnis, Wertungen, Zeitkontrolle und das Partieende. Lokal heißt der Gegner „Stockfish (Stufe …)“.
-- **Töne:** Zug, Schlagen, Rochade, Schach, Umwandlung, Partiebeginn, Partieende und knappe Zeit. Die App berechnet sie selbst, es gibt keine fremden Audiodateien und keine Lichess-Töne. In der Desktop-App spielt sie der Rust-Teil ab (rodio), weil Audio in der Linux-WebView entweder stumm blieb (WebAudio) oder die App einfrieren konnte (`<audio>`). Unter Einstellungen → Spielen gibt es „Töne“, „Lautstärke“ und „Ton testen“.
+- **Töne:** Zug, Schlagen, Rochade, Schach, Umwandlung, Partiebeginn, Partieende (Sieg, Niederlage, Remis) und knappe Zeit. Standard ist das frei lizenzierte Set „SFX“ von Lichess; dazu gibt es weitere freie Sets und „Einfach (synthetisch)“ (von der App selbst berechnet). In der Desktop-App dekodiert und spielt sie der Rust-Teil (rodio/symphonia), weil Audio in der Linux-WebView entweder stumm blieb (WebAudio) oder die App einfrieren konnte (`<audio>`). Unter Einstellungen → Spielen gibt es „Töne“, „Lautstärke“ und „Ton testen“.
 
 ## KI einrichten
 
@@ -242,7 +242,8 @@ Schach-Coach steht unter der **GNU General Public License v3.0 oder später** (s
 - Schriften: IBM Plex (SIL Open Font License), lokal gebündelt über `@fontsource`.
 - Figuren: SVG-Satz aus `react-chessboard` (MIT), im Stil der Cburnett-Figuren von Wikimedia Commons.
 - Schachlogik: `chess.js` (BSD-2-Clause).
-- Töne beim Spielen: von der App selbst berechnet (`src/play/soundSynth.ts`), keine fremden Audiodateien und keine Lichess-Töne. Abgespielt werden sie in der Desktop-App über `rodio` (MIT/Apache-2.0).
+- Figuren und Töne von Lichess (nur eindeutig frei lizenzierte Sätze, z. B. cburnett GPLv2+, SFX AGPLv3+): Liste mit Autor, Lizenz und Quelle in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md), Lizenztexte in `assets/licenses/`. Wer die App weitergibt, sollte die Bedingungen dieser Lizenzen (z. B. Quelloffenheit bei GPL/AGPL) selbst prüfen. Die Lichess-Standardtöne sind nicht frei und deshalb nicht enthalten.
+- Ton-Set „Einfach (synthetisch)“: von der App selbst berechnet (`src/play/soundSynth.ts`). Abgespielt werden alle Töne in der Desktop-App über `rodio` (MIT/Apache-2.0), dekodiert mit `symphonia` (MPL-2.0).
 - **Engine: Stockfish.js 19 (GPL-3.0)**, gebündelt aus dem npm-Paket `stockfish`, und die **native Stockfish 19** (GPL-3.0) aus dem offiziellen Release von github.com/official-stockfish/Stockfish als Sidecar.
 - Eröffnungsbuch: [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), siehe `data/chess-openings/`. `pnpm build:openings` erzeugt daraus `src/classification/data/openings.json`.
 - Test-Fixture `src/test/fixtures/opera-game-evals-d20.json`: echte Stockfish-Bewertungen der Beispielpartie (Tiefe 20, Multi-PV 3), erzeugt mit `GENERATE_EVAL_FIXTURE=1 pnpm vitest run src/test/tools`.

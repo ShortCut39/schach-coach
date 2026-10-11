@@ -61,7 +61,6 @@ export const settingsSchema = z.object({
   /** Sprache der Oberfläche und der KI-Erklärungen */
   language: z.enum(['de', 'en']).catch('de'),
   notation: z.enum(['de', 'en']).catch('de'),
-  boardTheme: z.enum(['standard', 'wood', 'sage']).catch('standard'),
   showArrows: z.boolean().catch(true),
   /** Aus welchen eigenen Fehlern Trainingsaufgaben entstehen */
   training: z
@@ -136,7 +135,6 @@ export function pickSettings(state: Settings): Settings {
     colorScheme: state.colorScheme,
     language: state.language,
     notation: state.notation,
-    boardTheme: state.boardTheme,
     showArrows: state.showArrows,
     online: state.online,
     training: state.training,

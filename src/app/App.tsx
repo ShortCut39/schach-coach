@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAppearance } from '../appearance/store';
 import { useApiKey } from '../store/apiKey';
 import { useLichessAuth } from '../store/lichessAuth';
 import { getEngine } from '../store/engine';
@@ -7,6 +8,7 @@ import { restoreSession, startSessionAutosave } from '../store/session';
 import { useSettings } from '../store/settings';
 import { useNavigation, type Screen } from '../store/navigation';
 import { AppHeader } from '../ui/shared/AppHeader';
+import { AppearanceNotice } from '../ui/shared/AppearanceNotice';
 import { ErrorBoundary } from '../ui/shared/ErrorBoundary';
 import { AnalyseScreen } from '../ui/screens/AnalyseScreen';
 import { ImportScreen } from '../ui/screens/ImportScreen';
@@ -36,6 +38,8 @@ export function App() {
       .getState()
       .load()
       .then(() => useApiKey.getState().loadFor(useSettings.getState().llm.baseUrl));
+    // Figuren, Brett und Töne (eigene Sätze aus dem App-Datenordner; defekte fallen auf den Standard)
+    void useAppearance.getState().load();
     // Gespeicherte Lichess-Anmeldung prüfen (nur, wenn ein Token im Schlüsselbund liegt)
     void useLichessAuth.getState().load();
     // Letzte Partie samt Bewertungen wiederherstellen, danach Änderungen automatisch speichern
@@ -62,6 +66,7 @@ export function App() {
         {t('a11y.skipToContent')}
       </a>
       <AppHeader />
+      <AppearanceNotice />
       <ErrorBoundary resetKey={screen}>
         <ScreenComponent />
       </ErrorBoundary>

@@ -18,7 +18,8 @@ import {
   useSettings,
   type Settings,
 } from '../../store/settings';
-import { BOARD_THEMES, boardColors } from '../boardThemes';
+import { BUILTIN_BOARD_THEMES } from '../../appearance/boards';
+import { useAppearance } from '../../appearance/store';
 import { CategoryIcon } from '../shared/CategoryIcon';
 import { Button } from '../shared/Button';
 import { FieldLabel } from '../shared/FieldLabel';
@@ -94,6 +95,8 @@ export function EinstellungenScreen() {
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
   const [active, setActive] = useState<Section>('ki');
   const engineState = useEngine();
+  const boardThemeId = useAppearance((s) => s.boardThemeId);
+  const selectAppearance = useAppearance((s) => s.select);
   const autoThreads = autoPoolSize();
   const keyOrigin = useRef(originOf(draft.llm.baseUrl));
   const ids = {
@@ -667,21 +670,21 @@ export function EinstellungenScreen() {
               aria-label={t('einstellungen.darstellung.board')}
               className="flex flex-wrap gap-2.5"
             >
-              {BOARD_THEMES.map((theme) => {
-                const colors = boardColors(theme);
-                const isActive = draft.boardTheme === theme;
+              {BUILTIN_BOARD_THEMES.map((theme) => {
+                const isActive = boardThemeId === theme.id;
+                const name = t(`appearance.boards.${theme.nameKey}`);
                 return (
                   <button
-                    key={theme}
+                    key={theme.id}
                     type="button"
                     aria-pressed={isActive}
-                    aria-label={t(`einstellungen.darstellung.boardThemes.${theme}`)}
-                    title={t(`einstellungen.darstellung.boardThemes.${theme}`)}
-                    onClick={() => update({ boardTheme: theme })}
+                    aria-label={name}
+                    title={name}
+                    onClick={() => void selectAppearance('boards', theme.id)}
                     className={`flex h-11 w-[84px] overflow-hidden rounded-control border-2 ${isActive ? 'border-accent' : 'border-border-chip'}`}
                   >
-                    <span className="flex-1" style={{ background: colors.light }} />
-                    <span className="flex-1" style={{ background: colors.dark }} />
+                    <span className="flex-1" style={{ background: theme.look.light }} />
+                    <span className="flex-1" style={{ background: theme.look.dark }} />
                   </button>
                 );
               })}

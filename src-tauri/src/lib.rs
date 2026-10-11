@@ -1,3 +1,4 @@
+mod appearance;
 mod import_file;
 mod library;
 mod lichess;
@@ -37,7 +38,14 @@ pub fn run() {
             lichess::lichess_oauth_cancel,
             lichess::lichess_open,
             sound::sound_register,
-            sound::sound_play
+            sound::sound_register_file,
+            sound::sound_probe,
+            sound::sound_play,
+            appearance::appearance_list,
+            appearance::appearance_read,
+            appearance::appearance_write,
+            appearance::appearance_remove_file,
+            appearance::appearance_delete
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

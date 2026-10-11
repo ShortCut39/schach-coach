@@ -30,3 +30,8 @@ export function accuracyColor(value: number | undefined): string {
   if (value >= 50) return 'var(--sc-cat-mistake)';
   return 'var(--sc-cat-blunder)';
 }
+
+/** Aufzählung im Format der eingestellten Sprache, z. B. „Figuren und Töne“ / „pieces and sounds“ */
+export function formatList(items: string[]): string {
+  return new Intl.ListFormat(currentLocale(), { type: 'conjunction' }).format(items);
+}

@@ -388,11 +388,6 @@
       "notationDe": "German (D, T, L, S)",
       "notationEn": "English (Q, R, B, N)",
       "board": "Board colours",
-      "boardThemes": {
-        "standard": "Blue-grey",
-        "wood": "Wood",
-        "sage": "Sage"
-      },
       "arrows": "Arrows for the move played and the best move",
       "arrowsHint": "Show on the board by default",
       "language": "Language",
@@ -966,6 +961,31 @@
       "cancelled": "Sign-in cancelled.",
       "failed": "The sign-in did not work. Try again or use a personal token.",
       "keyring": "No keyring available: the sign-in only lasts until you close the app."
+    }
+  },
+  "appearance": {
+    "boards": {
+      "app": "App default (blue-grey)",
+      "wood": "Wood",
+      "sage": "Sage",
+      "brown": "Brown",
+      "blue": "Blue",
+      "green": "Green",
+      "grey": "Grey",
+      "purple": "Purple"
+    },
+    "sounds": {
+      "synth": "Simple (synthesised)"
+    },
+    "fallback": {
+      "title": "Appearance reset",
+      "text": "A custom set you chose ({{areas}}) is missing or damaged. The default is used again.",
+      "areas": {
+        "pieces": "pieces",
+        "boards": "board",
+        "sounds": "sounds"
+      },
+      "dismiss": "Got it"
     }
   }
 }

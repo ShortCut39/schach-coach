@@ -388,11 +388,6 @@
       "notationDe": "Deutsch (D, T, L, S)",
       "notationEn": "Englisch (Q, R, B, N)",
       "board": "Brettfarben",
-      "boardThemes": {
-        "standard": "Blaugrau",
-        "wood": "Holz",
-        "sage": "Salbei"
-      },
       "arrows": "Pfeile für gespielten und besten Zug",
       "arrowsHint": "Standardmäßig auf dem Brett anzeigen",
       "language": "Sprache",
@@ -966,6 +961,31 @@
       "cancelled": "Anmeldung abgebrochen.",
       "failed": "Die Anmeldung hat nicht geklappt. Versuche es erneut oder nimm ein persönliches Token.",
       "keyring": "Kein Schlüsselbund verfügbar: Die Anmeldung gilt nur, bis du die App schließt."
+    }
+  },
+  "appearance": {
+    "boards": {
+      "app": "App-Standard (Blaugrau)",
+      "wood": "Holz",
+      "sage": "Salbei",
+      "brown": "Braun",
+      "blue": "Blau",
+      "green": "Grün",
+      "grey": "Grau",
+      "purple": "Lila"
+    },
+    "sounds": {
+      "synth": "Einfach (synthetisch)"
+    },
+    "fallback": {
+      "title": "Darstellung zurückgesetzt",
+      "text": "Ein gewählter eigener Satz ({{areas}}) fehlt oder ist beschädigt. Es gilt wieder der Standard.",
+      "areas": {
+        "pieces": "Figuren",
+        "boards": "Brett",
+        "sounds": "Töne"
+      },
+      "dismiss": "Verstanden"
     }
   }
 }

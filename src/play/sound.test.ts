@@ -1,5 +1,6 @@
 import type { MoveFlags } from '../chess/types';
-import { moveSound, playSound } from './sound';
+import { resetAppearanceForTests, useAppearance } from '../appearance/store';
+import { endSound, moveSound, playSound } from './sound';
 import { encodeWav, renderSound, SAMPLE_RATE, SOUND_KINDS } from './soundSynth';
 
 const flags = (patch: Partial<MoveFlags>): { flags: MoveFlags } => ({
@@ -24,6 +25,17 @@ describe('Ton zum Zug', () => {
     // Schach geht vor: Schlagen mit Schach klingt nach Schach
     expect(moveSound(flags({ capture: true, check: true }))).toBe('check');
     expect(moveSound(flags({ check: true, mate: true }))).toBe('check');
+  });
+});
+
+describe('Ton zum Partieende', () => {
+  it('unterscheidet Sieg, Niederlage, Remis und Abbruch aus meiner Sicht', () => {
+    const win = { result: '1-0', winner: 'w', reason: 'checkmate' } as const;
+    expect(endSound(win, 'w')).toBe('victory');
+    expect(endSound(win, 'b')).toBe('defeat');
+    expect(endSound({ result: '1/2-1/2', winner: null, reason: 'stalemate' }, 'w')).toBe('draw');
+    expect(endSound({ result: '*', winner: null, reason: 'aborted' }, 'w')).toBe('gameEnd');
+    expect(endSound(null, 'b')).toBe('gameEnd');
   });
 });
 
@@ -55,9 +67,29 @@ describe('Selbst erzeugte Töne', () => {
 });
 
 describe('Abspielen', () => {
+  beforeEach(() => resetAppearanceForTests());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('spielt über ein Audio-Element mit der gewünschten Lautstärke', () => {
+  it('spielt Dateien des Standard-Sets über ein Audio-Element', () => {
+    const played: string[] = [];
+    class FakeAudio {
+      volume = 1;
+      constructor(public src: string) {}
+      play() {
+        played.push(this.src);
+        return Promise.resolve();
+      }
+    }
+    vi.stubGlobal('Audio', FakeAudio);
+    playSound('victory', 0.5);
+    playSound('promotion', 0.5);
+    expect(played[0]).toMatch(/sfx\/Victory\.ogg/);
+    // Umwandlung fehlt im Set: Ersatzkette → Zug
+    expect(played[1]).toMatch(/sfx\/Move\.ogg/);
+  });
+
+  it('spielt berechnete Töne über ein Audio-Element mit der gewünschten Lautstärke', async () => {
+    await useAppearance.getState().select('sounds', 'builtin:synth');
     const played: { src: string; volume: number }[] = [];
     class FakeAudio {
       volume = 1;

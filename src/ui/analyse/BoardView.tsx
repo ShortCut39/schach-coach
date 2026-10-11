@@ -1,9 +1,8 @@
 import { Chessboard } from 'react-chessboard';
 import type { CSSProperties, ReactNode } from 'react';
-import { notationBase, prefersReducedMotion } from './boardStyle';
+import { prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
-import { useSettings } from '../../store/settings';
-import { boardColors } from '../boardThemes';
+import { useBoardAppearance } from '../boardAppearance';
 import { withCheckHighlight } from '../boardSquares';
 
 interface BoardViewProps {
@@ -15,9 +14,9 @@ interface BoardViewProps {
   overlay?: ReactNode;
 }
 
-/** Nur-Anzeige-Brett (kein Ziehen). Figuren: SVG-Satz von react-chessboard. */
+/** Nur-Anzeige-Brett (kein Ziehen). Figuren, Felder und Koordinaten aus der Darstellung. */
 export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardViewProps) {
-  const colors = boardColors(useSettings((s) => s.boardTheme));
+  const appearance = useBoardAppearance();
   const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   const squareStyles = withCheckHighlight(
     fen,
@@ -39,12 +38,7 @@ export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardV
           allowDrawingArrows: false,
           showAnimations: !prefersReducedMotion(),
           animationDurationInMs: 150,
-          lightSquareStyle: { backgroundColor: colors.light },
-          darkSquareStyle: { backgroundColor: colors.dark },
-          lightSquareNotationStyle: { color: colors.dark },
-          darkSquareNotationStyle: { color: colors.light },
-          alphaNotationStyle: { ...notationBase, position: 'absolute', bottom: '3%', right: '6%' },
-          numericNotationStyle: { ...notationBase, position: 'absolute', top: '4%', left: '6%' },
+          ...appearance,
           squareStyles,
         }}
       />

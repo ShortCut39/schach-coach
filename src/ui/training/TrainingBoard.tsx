@@ -9,10 +9,9 @@ import {
 } from 'react-chessboard';
 import { resolveBoardMove, targetSquares } from '../../training/boardMoves';
 import type { Orientation } from '../../store/game';
-import { useSettings } from '../../store/settings';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
-import { notationBase, prefersReducedMotion } from '../analyse/boardStyle';
-import { boardColors } from '../boardThemes';
+import { prefersReducedMotion } from '../analyse/boardStyle';
+import { useBoardAppearance } from '../boardAppearance';
 import { withCheckHighlight } from '../boardSquares';
 
 interface TrainingBoardProps {
@@ -48,7 +47,7 @@ export function TrainingBoard({
   id = 'training-board',
 }: TrainingBoardProps) {
   const { t } = useTranslation();
-  const colors = boardColors(useSettings((s) => s.boardTheme));
+  const appearance = useBoardAppearance();
   const [selected, setSelected] = useState<{ fen: string; square: string } | null>(null);
   const [promotion, setPromotion] = useState<{ fen: string; from: string; to: string } | null>(
     null,
@@ -163,12 +162,7 @@ export function TrainingBoard({
           onSquareClick,
           showAnimations: !prefersReducedMotion(),
           animationDurationInMs: 150,
-          lightSquareStyle: { backgroundColor: colors.light },
-          darkSquareStyle: { backgroundColor: colors.dark },
-          lightSquareNotationStyle: { color: colors.dark },
-          darkSquareNotationStyle: { color: colors.light },
-          alphaNotationStyle: { ...notationBase, position: 'absolute', bottom: '3%', right: '6%' },
-          numericNotationStyle: { ...notationBase, position: 'absolute', top: '4%', left: '6%' },
+          ...appearance,
           squareStyles: styles,
         }}
       />
