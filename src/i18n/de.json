@@ -1007,7 +1007,9 @@
       "crop": "Mittig quadratisch zuschneiden",
       "cropFailed": "Zuschneiden hat nicht geklappt. Bitte ein quadratisches Bild wählen.",
       "coordinates": "Koordinaten am Brettrand",
-      "coordinatesHint": "Buchstaben a–h und Zahlen 1–8 auf allen Brettern."
+      "coordinatesHint": "Buchstaben a–h und Zahlen 1–8 auf allen Brettern.",
+      "animation": "Figuren-Animation",
+      "animationHint": "Figuren gleiten beim Zug über das Brett. Ausgeschaltet springen sie sofort ins Zielfeld; das hilft, wenn Züge ruckeln."
     },
     "sounds": {
       "synth": "Einfach (synthetisch)",

@@ -15,6 +15,7 @@ export interface AppearancePreview {
   board: BoardLook;
   sounds: ActiveSounds;
   showCoordinates: boolean;
+  animatePieces: boolean;
 }
 
 /** Aufgelöste Auswahl eines Bereichs im Entwurf; gleich der gespeicherten: deren Werte. */
@@ -64,5 +65,6 @@ export function useAppearancePreview(draft: Appearance): AppearancePreview {
     board: board?.kind === 'boards' ? board.value : saved.board,
     sounds: sounds?.kind === 'sounds' ? sounds.value : saved.sounds,
     showCoordinates: draft.showCoordinates,
+    animatePieces: draft.animatePieces,
   };
 }

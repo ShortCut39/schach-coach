@@ -21,11 +21,15 @@ export function BoardCard({
   onChange,
   showCoordinates,
   onShowCoordinates,
+  animatePieces,
+  onAnimatePieces,
 }: {
   value: string;
   onChange: (id: string) => void;
   showCoordinates: boolean;
   onShowCoordinates: (show: boolean) => void;
+  animatePieces: boolean;
+  onAnimatePieces: (animate: boolean) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -54,6 +58,17 @@ export function BoardCard({
           checked={showCoordinates}
           onChange={onShowCoordinates}
           label={t('appearance.boards.coordinates')}
+        />
+      </div>
+      <div className="flex min-h-hit items-center gap-3">
+        <div className="flex-1">
+          <div className="font-semibold">{t('appearance.boards.animation')}</div>
+          <div className="text-[13px] text-muted">{t('appearance.boards.animationHint')}</div>
+        </div>
+        <Toggle
+          checked={animatePieces}
+          onChange={onAnimatePieces}
+          label={t('appearance.boards.animation')}
         />
       </div>
     </AssetCard>

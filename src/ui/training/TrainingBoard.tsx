@@ -18,7 +18,6 @@ import {
 import { resolveBoardMove, targetSquares } from '../../training/boardMoves';
 import type { Orientation } from '../../store/game';
 import { BoardOverlay, type BoardArrow } from '../analyse/BoardOverlay';
-import { prefersReducedMotion } from '../analyse/boardStyle';
 import { squareRenderer, useBoardAppearance } from '../boardAppearance';
 import { LAST_MOVE_STYLE, layerSquareStyle, withCheckHighlight } from '../boardSquares';
 import { useDrawnShapes } from '../drawnShapes';
@@ -196,7 +195,6 @@ const MemoBoard = memo(function MemoBoard({
           onPieceDrag,
           onPieceDrop,
           onSquareClick,
-          showAnimations: !prefersReducedMotion(),
           animationDurationInMs: 150,
           ...appearance,
           squareStyles: styles,

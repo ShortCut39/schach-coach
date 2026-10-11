@@ -208,7 +208,7 @@ export function BibliothekScreen() {
                     <th scope="col" className="w-[180px] px-2 py-3 text-left font-semibold">
                       {t('bibliothek.columns.accuracy')}
                     </th>
-                    <th scope="col" className="px-2 py-3 text-left font-semibold">
+                    <th scope="col" className="px-2 py-3 text-center font-semibold">
                       {t('bibliothek.columns.errors')}
                     </th>
                     <th scope="col" className="px-4 py-3">
@@ -266,8 +266,17 @@ export function BibliothekScreen() {
                           </div>
                         )}
                       </td>
-                      <td className="px-2 py-3 font-mono text-[13px] font-medium text-body">
-                        {entry.analysed ? `${entry.mistakes} · ${entry.blunders}` : '–'}
+                      <td className="px-2 py-3 text-center font-mono text-[13px] font-medium text-body">
+                        {entry.analysed ? (
+                          // Punkt genau unter dem Punkt der Überschrift, Zahlen links und rechts davon
+                          <span className="grid grid-cols-[1fr_auto_1fr] gap-1.5">
+                            <span className="text-right">{entry.mistakes}</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="text-left">{entry.blunders}</span>
+                          </span>
+                        ) : (
+                          '–'
+                        )}
                       </td>
                       <td className="px-4 py-2 text-right whitespace-nowrap">
                         {confirming === entry.id ? (

@@ -21,6 +21,8 @@ export const appearanceSchema = z.object({
   boardThemeId: z.string().catch(DEFAULT_BOARD_THEME),
   soundSetId: z.string().catch(DEFAULT_SOUND_SET),
   showCoordinates: z.boolean().catch(true),
+  /** Figuren gleiten beim Zug (aus: springen sofort, schneller in WebKitGTK) */
+  animatePieces: z.boolean().catch(true),
 });
 export type Appearance = z.infer<typeof appearanceSchema>;
 export const DEFAULT_APPEARANCE: Appearance = appearanceSchema.parse({});
@@ -267,6 +269,7 @@ export function pickAppearance(state: Appearance): Appearance {
     boardThemeId: state.boardThemeId,
     soundSetId: state.soundSetId,
     showCoordinates: state.showCoordinates,
+    animatePieces: state.animatePieces,
   };
 }
 
@@ -333,6 +336,7 @@ export const useAppearance = create<AppearanceState>()((set, get) => {
       const lists = await Promise.all(ASSET_KINDS.map(listCustom));
       set({
         showCoordinates: saved.showCoordinates,
+        animatePieces: saved.animatePieces,
         custom: { pieces: lists[0] ?? [], boards: lists[1] ?? [], sounds: lists[2] ?? [] },
       });
       const results = await Promise.all(
@@ -358,7 +362,7 @@ export const useAppearance = create<AppearanceState>()((set, get) => {
         const id = next[idField[kind]];
         if (id !== get()[idField[kind]]) await apply(kind, id, false);
       }
-      set({ showCoordinates: next.showCoordinates });
+      set({ showCoordinates: next.showCoordinates, animatePieces: next.animatePieces });
       await persist(get());
       return pickAppearance(get());
     },

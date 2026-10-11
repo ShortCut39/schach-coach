@@ -45,6 +45,7 @@ export function AppearanceSection({ draft, onChange, preview, volume }: Appearan
                 preview.pieces,
                 preview.board,
                 preview.showCoordinates,
+                preview.animatePieces,
               )}
             />
           </div>
@@ -74,6 +75,8 @@ export function AppearanceSection({ draft, onChange, preview, volume }: Appearan
         onChange={(boardThemeId) => onChange({ boardThemeId })}
         showCoordinates={draft.showCoordinates}
         onShowCoordinates={(showCoordinates) => onChange({ showCoordinates })}
+        animatePieces={draft.animatePieces}
+        onAnimatePieces={(animatePieces) => onChange({ animatePieces })}
       />
       <SoundsCard
         value={draft.soundSetId}

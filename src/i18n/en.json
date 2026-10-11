@@ -1007,7 +1007,9 @@
       "crop": "Crop to a centred square",
       "cropFailed": "Cropping did not work. Please choose a square image.",
       "coordinates": "Coordinates on the board edge",
-      "coordinatesHint": "Letters a–h and numbers 1–8 on every board."
+      "coordinatesHint": "Letters a–h and numbers 1–8 on every board.",
+      "animation": "Piece animation",
+      "animationHint": "Pieces glide across the board when moving. Switched off, they jump straight to the target square; this helps if moves stutter."
     },
     "sounds": {
       "synth": "Simple (synthesised)",

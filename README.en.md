@@ -74,7 +74,7 @@ Under **Settings → Appearance** you choose pieces, board and sounds for every 
 
 - **Presets:**
   - Pieces: cburnett (default, as on Lichess), Merida, Chessnut, RhosGFX, Fantasy, Pixel.
-  - Board: app default, wood, sage and Lichess-style colour pairs (brown, blue, green, grey, purple). Coordinates can be switched off.
+  - Board: app default, wood, sage and Lichess-style colour pairs (brown, blue, green, grey, purple). Coordinates can be switched off, and so can **piece animation** (pieces then jump straight to the target square; helps if moves stutter).
   - Sounds: SFX (default), Piano, NES, Futuristic and “Simple (synthesised)”.
   - Each area has “Reset to default”.
 - **Your own pieces:** 12 files (SVG, PNG or WebP, at most 2 MB each), also as a ZIP archive (at most 64 entries and 10 MB unpacked; paths inside the archive are ignored).

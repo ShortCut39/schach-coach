@@ -4,7 +4,7 @@ import type { BoardLook } from '../appearance/boards';
 import type { PieceUrls } from '../appearance/pieces';
 import { useAppearance } from '../appearance/store';
 import { PIECE_CODES } from '../appearance/types';
-import { notationBase } from './analyse/boardStyle';
+import { notationBase, prefersReducedMotion } from './analyse/boardStyle';
 
 /** Was ein Brett von der Darstellung übernimmt (Figuren, Felder bzw. Brettbild, Koordinaten) */
 export type BoardAppearanceOptions = Pick<
@@ -18,6 +18,7 @@ export type BoardAppearanceOptions = Pick<
   | 'alphaNotationStyle'
   | 'numericNotationStyle'
   | 'showNotation'
+  | 'showAnimations'
 >;
 
 const pieceStyle: CSSProperties = {
@@ -52,10 +53,13 @@ export function boardAppearanceOptions(
   pieces: PieceUrls,
   board: BoardLook,
   showCoordinates: boolean,
+  animatePieces = true,
 ): BoardAppearanceOptions {
   const common = {
     pieces: pieceRenderers(pieces),
     showNotation: showCoordinates,
+    // Ausgeschaltet oder bei „Bewegung reduzieren“ im System: Figuren springen sofort
+    showAnimations: animatePieces && !prefersReducedMotion(),
     alphaNotationStyle: {
       ...notationBase,
       position: 'absolute',
@@ -124,9 +128,10 @@ export function useBoardAppearance(): BoardAppearanceOptions {
   const pieces = useAppearance((s) => s.pieces);
   const board = useAppearance((s) => s.board);
   const showCoordinates = useAppearance((s) => s.showCoordinates);
+  const animatePieces = useAppearance((s) => s.animatePieces);
   return useMemo(
-    () => boardAppearanceOptions(pieces, board, showCoordinates),
-    [pieces, board, showCoordinates],
+    () => boardAppearanceOptions(pieces, board, showCoordinates, animatePieces),
+    [pieces, board, showCoordinates, animatePieces],
   );
 }
 

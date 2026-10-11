@@ -3,6 +3,7 @@ import { memoryAppearanceStorage, setAppearanceStorage } from '../../appearance/
 import { resetAppearanceForTests, useAppearance } from '../../appearance/store';
 import { getSettingsStorage } from '../../store/persistence';
 import { clickInCard, clickPageSave, settingsCard } from '../../test/settingsScreen';
+import { boardAppearanceOptions } from '../boardAppearance';
 import { EinstellungenScreen } from '../screens/EinstellungenScreen';
 
 // jsdom lädt keine Bilder: Abmessungen vorgeben (quadratisch bzw. breit)
@@ -33,7 +34,9 @@ describe('Brett', () => {
     // Erst „Speichern“ übernimmt die Auswahl
     expect(useAppearance.getState().boardThemeId).toBe('builtin:app');
     fireEvent.click(screen.getByRole('switch', { name: 'Koordinaten am Brettrand' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Figuren-Animation' }));
     expect(useAppearance.getState().showCoordinates).toBe(true);
+    expect(useAppearance.getState().animatePieces).toBe(true);
     clickPageSave();
     await waitFor(() =>
       expect(useAppearance.getState().board).toEqual({
@@ -43,6 +46,9 @@ describe('Brett', () => {
       }),
     );
     expect(useAppearance.getState().showCoordinates).toBe(false);
+    expect(useAppearance.getState().animatePieces).toBe(false);
+    const { pieces, board } = useAppearance.getState();
+    expect(boardAppearanceOptions(pieces, board, true, false).showAnimations).toBe(false);
     // Zurücksetzen und Verwerfen: der Entwurf geht zurück auf den gespeicherten Stand
     clickInCard('Brett', 'Zurücksetzen auf Standard');
     expect(

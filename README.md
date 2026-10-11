@@ -70,7 +70,7 @@ Unter **Einstellungen → Darstellung** wählst du Figuren, Brett und Töne für
 
 - **Voreinstellungen:**
   - Figuren: cburnett (Standard, wie bei Lichess), Merida, Chessnut, RhosGFX, Fantasy, Pixel.
-  - Brett: App-Standard, Holz, Salbei sowie Farbpaare im Lichess-Stil (braun, blau, grün, grau, lila). Koordinaten lassen sich abschalten.
+  - Brett: App-Standard, Holz, Salbei sowie Farbpaare im Lichess-Stil (braun, blau, grün, grau, lila). Koordinaten lassen sich abschalten, ebenso die **Figuren-Animation** (dann springen die Figuren sofort ins Zielfeld; hilft, wenn Züge ruckeln).
   - Töne: SFX (Standard), Piano, NES, Futuristic und „Einfach (synthetisch)“.
   - „Zurücksetzen auf Standard“ gibt es pro Bereich.
 - **Eigene Figuren:** 12 Dateien (SVG, PNG oder WebP, je höchstens 2 MB), auch als ZIP-Archiv (höchstens 64 Einträge und 10 MB entpackt, Pfade im Archiv werden ignoriert).

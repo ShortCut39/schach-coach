@@ -1,6 +1,5 @@
 import { Chessboard } from 'react-chessboard';
 import type { CSSProperties, ReactNode } from 'react';
-import { prefersReducedMotion } from './boardStyle';
 import type { Orientation } from '../../store/game';
 import {
   squareRenderer,
@@ -63,7 +62,6 @@ export function BoardView({
           boardOrientation: orientation,
           allowDragging: false,
           ...drawing.options,
-          showAnimations: !prefersReducedMotion(),
           animationDurationInMs: 150,
           ...appearance,
           squareStyles,
