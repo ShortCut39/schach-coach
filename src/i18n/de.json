@@ -306,9 +306,10 @@
       "engine": "Engine",
       "analyse": "Analyse & Erklärungen",
       "training": "Training",
-      "darstellung": "Darstellung & Sprache",
+      "darstellung": "Darstellung",
       "spielen": "Spielen",
-      "lichess": "Lichess"
+      "lichess": "Lichess",
+      "oberflaeche": "Oberfläche & Sprache"
     },
     "ki": {
       "subtitle": "Jeder OpenAI-kompatible Endpunkt funktioniert: Cloud oder lokal.",
@@ -986,6 +987,87 @@
         "sounds": "Töne"
       },
       "dismiss": "Verstanden"
+    },
+    "subtitle": "Figuren, Brett und Töne für alle Bretter der App. Änderungen gelten sofort, ohne Speichern.",
+    "preview": {
+      "label": "Vorschau: Beispielstellung aus der Opera-Partie, Schwarz steht im Schach",
+      "text": "Die Vorschau zeigt eine Stellung aus der Opera-Partie (Morphy, 1858): Weiß hat mit dem Läufer auf b5 Schach gegeben. So siehst du sofort, wie Figuren, Brett, letzter Zug und Schach aussehen."
+    },
+    "presets": "Voreinstellungen",
+    "customSets": "Eigene Sätze",
+    "noCustom": "Noch keine eigenen Sätze.",
+    "addCustom": "Eigenen Satz hinzufügen",
+    "reset": "Zurücksetzen auf Standard",
+    "default": "Standard",
+    "own": "Eigener",
+    "broken": "Defekt",
+    "untitled": "Unbenannter Satz",
+    "name": "Name",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "rename": "Umbenennen",
+    "renameNamed": "„{{name}}“ umbenennen",
+    "delete": "Löschen",
+    "deleteNamed": "„{{name}}“ löschen",
+    "confirmDelete": "„{{name}}“ wirklich löschen?",
+    "deleteYes": "Ja, löschen",
+    "saveErrors": {
+      "limit": "Höchstens {{max}} eigene Sätze. Lösche zuerst einen.",
+      "failed": "Speichern fehlgeschlagen. Bitte noch einmal versuchen."
+    },
+    "upload": {
+      "privacy": "Lade nur Dateien hoch, die du verwenden darfst. Nichts verlässt deinen Computer.",
+      "drop": "Dateien hierher ziehen",
+      "release": "Loslassen zum Hinzufügen",
+      "choose": "Dateien auswählen"
+    },
+    "reasons": {
+      "tooLarge": "zu groß",
+      "empty": "Datei ist leer",
+      "type": "kein unterstütztes Format (geprüft wird der Inhalt, nicht die Endung)",
+      "svgUnsafe": "SVG enthält Skripte, eingebettete Inhalte oder externe Verweise und wurde abgelehnt",
+      "unreadable": "Datei ließ sich nicht lesen",
+      "broken": "ZIP-Archiv ist beschädigt",
+      "tooManyFiles": "ZIP-Archiv enthält zu viele Dateien",
+      "unsupported": "dein System kann dieses Format nicht abspielen (Tipp: WAV oder OGG)",
+      "tooLong": "länger als 5 Sekunden"
+    },
+    "warnings": {
+      "notSquare": "nicht quadratisch",
+      "small": "kleiner als 128 × 128 px"
+    },
+    "pieces": {
+      "title": "Figuren",
+      "subtitle": "Gilt für alle Bretter: Spielen, Analyse und Training.",
+      "defaultName": "Eigene Figuren {{n}}",
+      "uploadTitle": "Eigene Figuren hinzufügen",
+      "formats": "SVG, PNG oder WebP, höchstens 2 MB je Datei, auch als ZIP-Archiv. Empfohlen: quadratisch, mindestens 128 × 128 px, transparenter Hintergrund. Namen wie wK.svg, white_king.png oder weisser_koenig.svg werden automatisch zugeordnet.",
+      "slots": "Zuordnung",
+      "slotsHint": "Klicke auf einen Platz, um dafür eine Datei zu wählen. Speichern geht, sobald alle 12 Plätze belegt sind.",
+      "complete": "Alle 12 Figuren zugeordnet.",
+      "missing_one": "Noch {{count}} Platz frei.",
+      "missing_other": "Noch {{count}} Plätze frei.",
+      "chooseFor": "Datei für {{piece}} wählen",
+      "clearSlot": "{{piece}} entfernen",
+      "unassigned": "Nicht zugeordnet",
+      "unassignedHint": "Diese Dateien wurden am Namen nicht erkannt. Wähle den passenden Platz.",
+      "assignTo": "Platz für {{name}} wählen",
+      "assignPlaceholder": "Platz wählen …",
+      "replaces": "ersetzt"
+    },
+    "pieceNames": {
+      "wK": "Weißer König",
+      "wQ": "Weiße Dame",
+      "wR": "Weißer Turm",
+      "wB": "Weißer Läufer",
+      "wN": "Weißer Springer",
+      "wP": "Weißer Bauer",
+      "bK": "Schwarzer König",
+      "bQ": "Schwarze Dame",
+      "bR": "Schwarzer Turm",
+      "bB": "Schwarzer Läufer",
+      "bN": "Schwarzer Springer",
+      "bP": "Schwarzer Bauer"
     }
   }
 }

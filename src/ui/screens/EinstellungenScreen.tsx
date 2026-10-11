@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { currentLocale, supportedLanguages } from '../../i18n';
 import { testConnection } from '../../llm/client';
@@ -26,7 +26,9 @@ import { FieldLabel } from '../shared/FieldLabel';
 import { SelectField, TextField, Toggle, inputClass } from '../shared/form';
 import { IconAlert, IconCheck } from '../shared/icons';
 import { Segmented } from '../shared/Segmented';
+import { SettingsCard } from '../shared/SettingsCard';
 import { LichessCard } from '../play/LichessCard';
+import { AppearanceSection } from '../appearance/AppearanceSection';
 
 const sections = [
   'ki',
@@ -35,6 +37,7 @@ const sections = [
   'training',
   'spielen',
   'lichess',
+  'oberflaeche',
   'darstellung',
 ] as const;
 type Section = (typeof sections)[number];
@@ -51,34 +54,6 @@ function originOf(url: string): string | null {
   } catch {
     return null;
   }
-}
-
-function SettingsCard({
-  id,
-  title,
-  subtitle,
-  children,
-}: {
-  id: string;
-  title: string;
-  subtitle?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      id={`settings-${id}`}
-      aria-labelledby={`settings-${id}-title`}
-      className="flex scroll-mt-5 flex-col gap-4 rounded-panel border border-border bg-panel px-5 pt-[18px] pb-5"
-    >
-      <div>
-        <h2 id={`settings-${id}-title`} className="text-base font-bold">
-          {title}
-        </h2>
-        {subtitle && <p className="mt-0.5 text-[13.5px] text-muted">{subtitle}</p>}
-      </div>
-      {children}
-    </section>
-  );
 }
 
 export function EinstellungenScreen() {
@@ -638,7 +613,7 @@ export function EinstellungenScreen() {
           <LichessCard />
         </SettingsCard>
 
-        <SettingsCard id="darstellung" title={t('einstellungen.sections.darstellung')}>
+        <SettingsCard id="oberflaeche" title={t('einstellungen.sections.oberflaeche')}>
           <div className="flex flex-wrap gap-x-7 gap-y-4">
             <div>
               <FieldLabel>{t('einstellungen.darstellung.scheme')}</FieldLabel>
@@ -748,6 +723,8 @@ export function EinstellungenScreen() {
             {t('einstellungen.save')}
           </Button>
         </div>
+
+        <AppearanceSection />
       </div>
     </main>
   );

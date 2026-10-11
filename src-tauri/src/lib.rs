@@ -45,7 +45,8 @@ pub fn run() {
             appearance::appearance_read,
             appearance::appearance_write,
             appearance::appearance_remove_file,
-            appearance::appearance_delete
+            appearance::appearance_delete,
+            appearance::appearance_read_dropped
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

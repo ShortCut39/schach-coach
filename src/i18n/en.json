@@ -306,9 +306,10 @@
       "engine": "Engine",
       "analyse": "Analysis & explanations",
       "training": "Training",
-      "darstellung": "Appearance & language",
+      "darstellung": "Appearance",
       "spielen": "Play",
-      "lichess": "Lichess"
+      "lichess": "Lichess",
+      "oberflaeche": "Interface & language"
     },
     "ki": {
       "subtitle": "Any OpenAI-compatible endpoint works: cloud or local.",
@@ -986,6 +987,87 @@
         "sounds": "sounds"
       },
       "dismiss": "Got it"
+    },
+    "subtitle": "Pieces, board and sounds for every board in the app. Changes apply immediately, no saving needed.",
+    "preview": {
+      "label": "Preview: example position from the Opera Game, Black is in check",
+      "text": "The preview shows a position from the Opera Game (Morphy, 1858): White has given check with the bishop on b5. You can see right away how pieces, board, last move and check look."
+    },
+    "presets": "Presets",
+    "customSets": "Your own sets",
+    "noCustom": "No sets of your own yet.",
+    "addCustom": "Add your own set",
+    "reset": "Reset to default",
+    "default": "Default",
+    "own": "Own",
+    "broken": "Broken",
+    "untitled": "Untitled set",
+    "name": "Name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "rename": "Rename",
+    "renameNamed": "Rename “{{name}}”",
+    "delete": "Delete",
+    "deleteNamed": "Delete “{{name}}”",
+    "confirmDelete": "Really delete “{{name}}”?",
+    "deleteYes": "Yes, delete",
+    "saveErrors": {
+      "limit": "At most {{max}} sets of your own. Delete one first.",
+      "failed": "Saving failed. Please try again."
+    },
+    "upload": {
+      "privacy": "Only upload files you are allowed to use. Nothing leaves your computer.",
+      "drop": "Drag files here",
+      "release": "Release to add",
+      "choose": "Choose files"
+    },
+    "reasons": {
+      "tooLarge": "too large",
+      "empty": "file is empty",
+      "type": "not a supported format (the content is checked, not the extension)",
+      "svgUnsafe": "SVG contains scripts, embedded content or external references and was rejected",
+      "unreadable": "file could not be read",
+      "broken": "ZIP archive is damaged",
+      "tooManyFiles": "ZIP archive contains too many files",
+      "unsupported": "your system cannot play this format (tip: WAV or OGG)",
+      "tooLong": "longer than 5 seconds"
+    },
+    "warnings": {
+      "notSquare": "not square",
+      "small": "smaller than 128 × 128 px"
+    },
+    "pieces": {
+      "title": "Pieces",
+      "subtitle": "Applies to every board: play, analysis and training.",
+      "defaultName": "My pieces {{n}}",
+      "uploadTitle": "Add your own pieces",
+      "formats": "SVG, PNG or WebP, at most 2 MB per file, also as a ZIP archive. Recommended: square, at least 128 × 128 px, transparent background. Names like wK.svg, white_king.png or weisser_koenig.svg are assigned automatically.",
+      "slots": "Assignment",
+      "slotsHint": "Click a slot to choose a file for it. You can save once all 12 slots are filled.",
+      "complete": "All 12 pieces assigned.",
+      "missing_one": "{{count}} slot left.",
+      "missing_other": "{{count}} slots left.",
+      "chooseFor": "Choose file for {{piece}}",
+      "clearSlot": "Remove {{piece}}",
+      "unassigned": "Not assigned",
+      "unassignedHint": "These files were not recognised by name. Choose the matching slot.",
+      "assignTo": "Choose slot for {{name}}",
+      "assignPlaceholder": "Choose slot …",
+      "replaces": "replaces"
+    },
+    "pieceNames": {
+      "wK": "White king",
+      "wQ": "White queen",
+      "wR": "White rook",
+      "wB": "White bishop",
+      "wN": "White knight",
+      "wP": "White pawn",
+      "bK": "Black king",
+      "bQ": "Black queen",
+      "bR": "Black rook",
+      "bB": "Black bishop",
+      "bN": "Black knight",
+      "bP": "Black pawn"
     }
   }
 }

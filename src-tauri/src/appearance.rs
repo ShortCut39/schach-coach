@@ -251,9 +251,57 @@ pub fn appearance_delete(app: AppHandle, kind: String, id: String) -> Result<(),
     }
 }
 
+/// Endungen, die per Drag & Drop für die Darstellung gelesen werden dürfen
+const DROP_EXTENSIONS: [&str; 10] = [
+    "svg", "png", "webp", "jpg", "jpeg", "ogg", "mp3", "wav", "flac", "zip",
+];
+const MAX_DROP_BYTES: u64 = 20 * 1024 * 1024;
+
+fn read_dropped(path: &std::path::Path) -> Result<Vec<u8>, &'static str> {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(str::to_ascii_lowercase)
+        .unwrap_or_default();
+    if !DROP_EXTENSIONS.contains(&ext.as_str()) {
+        return Err(ERR_TYPE);
+    }
+    let meta = std::fs::metadata(path).map_err(|_| ERR_FAILED)?;
+    if !meta.is_file() {
+        return Err(ERR_FAILED);
+    }
+    if meta.len() > MAX_DROP_BYTES {
+        return Err(ERR_TOO_LARGE);
+    }
+    std::fs::read(path).map_err(|_| ERR_FAILED)
+}
+
+/// Liest eine Datei, die auf das Fenster gezogen wurde (WebKitGTK liefert beim HTML5-Drop keine
+/// Inhalte). Nur Bild-, Ton- und ZIP-Endungen, höchstens 20 MB; geprüft wird danach im Frontend.
+#[tauri::command]
+pub async fn appearance_read_dropped(path: String) -> Result<Response, String> {
+    read_dropped(std::path::Path::new(&path))
+        .map(Response::new)
+        .map_err(String::from)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{check_write, file_type, valid_id};
+    use super::{check_write, file_type, read_dropped, valid_id};
+
+    #[test]
+    fn liest_nur_erlaubte_abgelegte_dateien() {
+        let dir = std::env::temp_dir().join(format!("schach-coach-drop-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let ok = dir.join("Figur.PNG");
+        std::fs::write(&ok, b"x").unwrap();
+        assert_eq!(read_dropped(&ok), Ok(b"x".to_vec()));
+        let bad = dir.join("skript.sh");
+        std::fs::write(&bad, b"x").unwrap();
+        assert_eq!(read_dropped(&bad), Err("type"));
+        assert_eq!(read_dropped(&dir), Err("type"));
+        assert_eq!(read_dropped(&dir.join("fehlt.ogg")), Err("failed"));
+    }
 
     #[test]
     fn erlaubt_nur_uuids() {

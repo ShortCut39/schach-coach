@@ -12,10 +12,19 @@ interface BoardViewProps {
   lastMove?: { from: string; to: string } | undefined;
   label: string;
   overlay?: ReactNode;
+  /** Kennung für react-chessboard (mehrere Bretter brauchen verschiedene) */
+  id?: string;
 }
 
 /** Nur-Anzeige-Brett (kein Ziehen). Figuren, Felder und Koordinaten aus der Darstellung. */
-export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardViewProps) {
+export function BoardView({
+  fen,
+  orientation,
+  lastMove,
+  label,
+  overlay,
+  id = 'analyse-board',
+}: BoardViewProps) {
   const appearance = useBoardAppearance();
   const highlight: CSSProperties = { boxShadow: 'inset 0 0 0 999px var(--sc-last-move)' };
   const squareStyles = withCheckHighlight(
@@ -31,7 +40,7 @@ export function BoardView({ fen, orientation, lastMove, label, overlay }: BoardV
     >
       <Chessboard
         options={{
-          id: 'analyse-board',
+          id,
           position: fen,
           boardOrientation: orientation,
           allowDragging: false,
