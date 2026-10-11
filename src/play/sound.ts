@@ -32,7 +32,7 @@ export function moveSound(ply: Pick<PlyBase, 'flags'>): SoundEvent {
   if (flags.check || flags.mate) return 'check';
   if (flags.promotion) return 'promotion';
   if (flags.castle) return 'castle';
-  if (flags.capture || flags.enPassant) return 'capture';
+  if (flags.capture) return 'capture';
   return 'move';
 }
 

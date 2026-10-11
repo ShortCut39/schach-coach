@@ -16,7 +16,7 @@ const ORDER: readonly CapturedType[] = ['p', 'n', 'b', 'r', 'q'];
 export function capturedPieces(plies: readonly PlyBase[]): Record<Color, CapturedType[]> {
   const result: Record<Color, CapturedType[]> = { w: [], b: [] };
   for (const ply of plies) {
-    if (!ply.flags.capture && !ply.flags.enPassant) continue;
+    if (!ply.flags.capture) continue;
     let type: PieceSymbol | undefined = 'p';
     if (!ply.flags.enPassant) {
       try {

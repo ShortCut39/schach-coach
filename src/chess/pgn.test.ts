@@ -46,6 +46,13 @@ describe('parsePgnGame – Beispielpartie', () => {
 });
 
 describe('parsePgnGame – Sonderfälle', () => {
+  it('zählt en passant als Schlagzug', () => {
+    const game = parseOk('1. e4 a6 2. e5 d5 3. exd6 *');
+    const enPassant = game.plies[4];
+    expect(enPassant?.flags).toMatchObject({ capture: true, enPassant: true });
+    expect(game.plies.slice(0, 4).every((p) => !p.flags.capture)).toBe(true);
+  });
+
   it('ignoriert Kommentare, Varianten, NAGs und Bewertungszeichen', () => {
     const game = parseOk(
       '1. e4 {Königsbauer} (1. d4 d5 (1... Nf6)) e5 $1 2. Nf3!? ; Zeilenkommentar\nNc6 *',

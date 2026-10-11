@@ -149,7 +149,8 @@ export function plyFromMove(move: Move, index: number): PlyBase {
     flags: {
       check: move.san.includes('+') || move.san.includes('#'),
       mate: move.san.includes('#'),
-      capture: move.isCapture(),
+      // chess.js zählt en passant nicht als Schlagzug (`isCapture()` prüft nur das Flag `c`)
+      capture: move.isCapture() || move.isEnPassant(),
       castle: move.isKingsideCastle() || move.isQueensideCastle(),
       promotion: move.isPromotion(),
       enPassant: move.isEnPassant(),
