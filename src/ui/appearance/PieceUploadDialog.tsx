@@ -5,7 +5,13 @@ import { pieceCodeFromName } from '../../appearance/fileNames';
 import { objectUrl, useAppearance } from '../../appearance/store';
 import { PIECE_CODES, type PieceCode } from '../../appearance/types';
 import { expandArchives, readBrowserFiles, type ReadResult } from '../../appearance/uploads';
-import { checkImage, IMAGE_MIME, LIMITS, type ImageType } from '../../appearance/validate';
+import {
+  checkImage,
+  IMAGE_MIME,
+  LIMITS,
+  MAX_CUSTOM_SETS,
+  type ImageType,
+} from '../../appearance/validate';
 import { Button } from '../shared/Button';
 import { TextField } from '../shared/form';
 import { Modal } from '../shared/Modal';
@@ -154,7 +160,7 @@ export function PieceUploadDialog({ onClose }: { onClose: () => void }) {
         <>
           {saveError && (
             <span role="alert" className="mr-auto text-[13px] font-medium text-danger">
-              {t(`appearance.saveErrors.${saveError}`)}
+              {t(`appearance.saveErrors.${saveError}`, { max: MAX_CUSTOM_SETS })}
             </span>
           )}
           <Button variant="secondary" className="min-h-hit" onClick={onClose}>

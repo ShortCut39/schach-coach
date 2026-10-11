@@ -18,8 +18,6 @@ import {
   useSettings,
   type Settings,
 } from '../../store/settings';
-import { BUILTIN_BOARD_THEMES } from '../../appearance/boards';
-import { useAppearance } from '../../appearance/store';
 import { CategoryIcon } from '../shared/CategoryIcon';
 import { Button } from '../shared/Button';
 import { FieldLabel } from '../shared/FieldLabel';
@@ -70,8 +68,6 @@ export function EinstellungenScreen() {
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
   const [active, setActive] = useState<Section>('ki');
   const engineState = useEngine();
-  const boardThemeId = useAppearance((s) => s.boardThemeId);
-  const selectAppearance = useAppearance((s) => s.select);
   const autoThreads = autoPoolSize();
   const keyOrigin = useRef(originOf(draft.llm.baseUrl));
   const ids = {
@@ -637,33 +633,6 @@ export function EinstellungenScreen() {
               <option value="de">{t('einstellungen.darstellung.notationDe')}</option>
               <option value="en">{t('einstellungen.darstellung.notationEn')}</option>
             </SelectField>
-          </div>
-          <div>
-            <FieldLabel>{t('einstellungen.darstellung.board')}</FieldLabel>
-            <div
-              role="group"
-              aria-label={t('einstellungen.darstellung.board')}
-              className="flex flex-wrap gap-2.5"
-            >
-              {BUILTIN_BOARD_THEMES.map((theme) => {
-                const isActive = boardThemeId === theme.id;
-                const name = t(`appearance.boards.${theme.nameKey}`);
-                return (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    aria-pressed={isActive}
-                    aria-label={name}
-                    title={name}
-                    onClick={() => void selectAppearance('boards', theme.id)}
-                    className={`flex h-11 w-[84px] overflow-hidden rounded-control border-2 ${isActive ? 'border-accent' : 'border-border-chip'}`}
-                  >
-                    <span className="flex-1" style={{ background: theme.look.light }} />
-                    <span className="flex-1" style={{ background: theme.look.dark }} />
-                  </button>
-                );
-              })}
-            </div>
           </div>
           <div className="flex min-h-hit items-center gap-3">
             <div className="flex-1">

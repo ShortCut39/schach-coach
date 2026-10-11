@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { BoardView } from '../analyse/BoardView';
 import { SettingsCard } from '../shared/SettingsCard';
+import { BoardCard } from './BoardCard';
 import { PiecesCard } from './PiecesCard';
 import { PREVIEW_FEN, PREVIEW_LAST_MOVE } from './preview';
 
@@ -30,6 +31,7 @@ export function AppearanceSection() {
         </div>
       </SettingsCard>
       <PiecesCard />
+      <BoardCard />
     </>
   );
 }
