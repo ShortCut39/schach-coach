@@ -922,6 +922,22 @@
       },
       "incomingTitle": "Herausforderung erhalten",
       "incoming": "{{name}} ({{rating}}) fordert dich heraus: {{time}}, {{kind}}"
+    },
+    "material": {
+      "captured": "Geschlagen: {{pieces}}",
+      "advantage": "Materialvorteil +{{value}}",
+      "pieces": {
+        "p_one": "{{count}} Bauer",
+        "p_other": "{{count}} Bauern",
+        "n_one": "{{count}} Springer",
+        "n_other": "{{count}} Springer",
+        "b_one": "{{count}} Läufer",
+        "b_other": "{{count}} Läufer",
+        "r_one": "{{count}} Turm",
+        "r_other": "{{count}} Türme",
+        "q_one": "{{count}} Dame",
+        "q_other": "{{count}} Damen"
+      }
     }
   },
   "lichess": {

@@ -922,6 +922,22 @@
       },
       "incomingTitle": "Challenge received",
       "incoming": "{{name}} ({{rating}}) challenges you: {{time}}, {{kind}}"
+    },
+    "material": {
+      "captured": "Captured: {{pieces}}",
+      "advantage": "material advantage +{{value}}",
+      "pieces": {
+        "p_one": "{{count}} pawn",
+        "p_other": "{{count}} pawns",
+        "n_one": "{{count}} knight",
+        "n_other": "{{count}} knights",
+        "b_one": "{{count}} bishop",
+        "b_other": "{{count}} bishops",
+        "r_one": "{{count}} rook",
+        "r_other": "{{count}} rooks",
+        "q_one": "{{count}} queen",
+        "q_other": "{{count}} queens"
+      }
     }
   },
   "lichess": {

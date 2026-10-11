@@ -20,6 +20,8 @@ describe('Ton zum Zug', () => {
     expect(moveSound(flags({}))).toBe('move');
     expect(moveSound(flags({ capture: true }))).toBe('capture');
     expect(moveSound(flags({ capture: true, enPassant: true }))).toBe('capture');
+    // chess.js meldet en passant nicht als Schlagzug (`isCapture()` ist dort falsch)
+    expect(moveSound(flags({ enPassant: true }))).toBe('capture');
     expect(moveSound(flags({ castle: true }))).toBe('castle');
     expect(moveSound(flags({ promotion: true, capture: true }))).toBe('promotion');
     // Schach geht vor: Schlagen mit Schach klingt nach Schach

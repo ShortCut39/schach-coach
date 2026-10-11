@@ -1,6 +1,7 @@
 import { DEFAULT_POSITION } from 'chess.js';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
+import { capturedPieces, whiteMaterialAdvantage } from '../../chess/captures';
 import type { Color } from '../../chess/types';
 import { LichessSession } from '../../play/session/LichessSession';
 import { LocalSession } from '../../play/session/LocalSession';
@@ -82,6 +83,16 @@ export function PlayScreen() {
       : [];
   const showEvalBar = !!session?.capabilities.evalBar && evalBarOn && !!view;
 
+  // Geschlagene Figuren und Materialvorteil (nur aus den Zügen, keine Engine; zeigt Lichess auch)
+  const plies = view?.plies;
+  const material = useMemo(
+    () => ({
+      captured: plies ? capturedPieces(plies) : { w: [], b: [] },
+      white: whiteMaterialAdvantage(fen),
+    }),
+    [plies, fen],
+  );
+
   const topColor: Color = orientation === 'white' ? 'b' : 'w';
   const bottomColor: Color = topColor === 'w' ? 'b' : 'w';
   const turnName = colorName(t, view?.turn ?? 'w');
@@ -126,6 +137,8 @@ export function PlayScreen() {
               isMe={topColor === view.myColor}
               clock={view.clock}
               toMove={view.status === 'playing' && view.turn === topColor}
+              captured={material.captured[topColor]}
+              advantage={topColor === 'w' ? material.white : -material.white}
             />
             <PlayMoveList plies={view.plies} />
             <PlayerCard
@@ -134,6 +147,8 @@ export function PlayScreen() {
               isMe={bottomColor === view.myColor}
               clock={view.clock}
               toMove={view.status === 'playing' && view.turn === bottomColor}
+              captured={material.captured[bottomColor]}
+              advantage={bottomColor === 'w' ? material.white : -material.white}
             />
             <p role="status" className="min-h-5 px-1 text-[13px] text-muted">
               {notice

@@ -4,7 +4,9 @@ import { formatClock, remainingAt, type ClockSnapshot } from '../../play/clock/c
 import type { PlayerInfo } from '../../play/session/types';
 import { colorName } from '../chessText';
 import { PieceColorChip } from '../shared/PieceColorChip';
+import { CapturedPieces } from './CapturedPieces';
 import { ClockView } from './ClockView';
+import type { CapturedType } from '../../chess/captures';
 
 interface PlayerCardProps {
   color: Color;
@@ -13,10 +15,22 @@ interface PlayerCardProps {
   clock: ClockSnapshot | null;
   /** Diese Seite ist am Zug */
   toMove: boolean;
+  /** Von dieser Seite geschlagene Figuren des Gegners */
+  captured?: readonly CapturedType[];
+  /** Materialvorteil dieser Seite (Bauerneinheiten, negativ = Nachteil) */
+  advantage?: number;
 }
 
-/** Spieler über bzw. unter der Zugliste: Farbe, Name, Titel, Wertung und Uhr. */
-export function PlayerCard({ color, player, isMe, clock, toMove }: PlayerCardProps) {
+/** Spieler über bzw. unter der Zugliste: Farbe, Name, Titel, geschlagene Figuren, Wertung und Uhr. */
+export function PlayerCard({
+  color,
+  player,
+  isMe,
+  clock,
+  toMove,
+  captured = [],
+  advantage = 0,
+}: PlayerCardProps) {
   const { t } = useTranslation();
   const name = isMe ? t('play.players.you') : player.name || t('play.players.opponent');
   const rating =
@@ -39,6 +53,11 @@ export function PlayerCard({ color, player, isMe, clock, toMove }: PlayerCardPro
           <span className="min-w-0 truncate font-semibold" title={name}>
             {name}
           </span>
+          <CapturedPieces
+            pieces={captured}
+            pieceColor={color === 'w' ? 'b' : 'w'}
+            advantage={advantage}
+          />
         </div>
         <div className="flex items-center gap-2 text-[12.5px] text-muted">
           <span>{colorName(t, color)}</span>
