@@ -21,15 +21,20 @@ Tauri-2-Desktop-App: Partien (PGN/FEN, Lichess, Chess.com) laden, Stockfish 19 b
 
 ```bash
 pnpm tauri dev        # Desktop-App (lädt vorher die native Engine: pnpm fetch:engine)
+pnpm tauri build      # Installationspakete bauen (CI: .github/workflows/build.yml)
 pnpm dev              # nur Frontend im Browser, Port 1420 (.claude/launch.json: "vite")
 pnpm typecheck && pnpm lint && pnpm test && pnpm format:check
 pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binaries/ (nicht im Git)
+pnpm build:openings   # Eröffnungsbuch aus data/chess-openings neu erzeugen
+cd src-tauri && cargo test   # Rust-Tests (Pfadprüfung, Tondaten)
 ```
 
 ## Aufbau
 
 - `src/play/` Spielen: `session/` (GameSession, LocalSession, LichessSession), `clock/`, `rules/`, `opponent/` (Stufen, Gegner-Engine), `lichess/` (Client, OAuth/PKCE, NDJSON, Lobby, Mapper), `liveGuard.ts`, `sound*.ts` · `src/store/play.ts`, `src/store/lichessAuth.ts` · `src/ui/play/`, `src/ui/screens/PlayScreen.tsx`.
-- `src/chess/` PGN/FEN, Notation · `src/engine/` UCI, Engine-Pool (native Sidecar oder WASM) · `src/classification/` Gewinnchance, Kategorien, Motive, Muster · `src/llm/` Prompts, Client, Fakten · `src/training/` Aufgaben, Zugprüfung, Leitner · `src/online/` Lichess/Chess.com · `src/store/` Zustand-Stores · `src/ui/` Komponenten · `src-tauri/` Rust (Datei-Import, Schlüsselbund inkl. Lichess-Token, Bibliothek, Lichess-Loopback für OAuth `lichess.rs`, Töne über rodio `sound.rs`).
+- `src/chess/` PGN/FEN, Notation · `src/engine/` UCI, Engine-Pool (native Sidecar oder WASM) · `src/classification/` Gewinnchance, Kategorien, Motive, Muster, Eröffnungsbuch (`data/chess-openings` → `scripts/build-opening-book.mjs`) · `src/llm/` Prompts, Client, Fakten · `src/training/` Aufgaben, Zugprüfung, Leitner · `src/online/` Lichess/Chess.com · `src/store/` Zustand-Stores · `src/app/` Gesamttests über die ganze App · `src/test/` Test-Helfer und Fixtures.
+- `src/ui/`: `screens/` (je Bereich ein Bildschirm), `analyse/` (Brett `BoardView`, Zugliste, Graph), `training/TrainingBoard.tsx` (ziehbares Brett, auch beim Spielen), `summary/`, `library/`, `import/`, `play/`, `shared/` (Knöpfe, Formulare, Icons). Die Einstellungen arbeiten mit Entwurf und „Speichern“-Knopf (`EinstellungenScreen.tsx`).
+- `src-tauri/` Rust (Datei-Import, Schlüsselbund inkl. Lichess-Token, Bibliothek, Lichess-Loopback für OAuth `lichess.rs`, Töne über rodio `sound.rs`).
 - KI-Texte gibt es in beiden Sprachen (`ExplanationLanguage`); die **Feldnamen der Fakten und Antworten bleiben deutsch** (`zug_in_worten`, `was`/`warum`/…), damit gespeicherte Analysen gültig bleiben – der englische Prompt erklärt sie.
 - Gespeicherte Formate (Einstellungen, Sitzung, Bibliothek, `trainingCards`, `trainingExplanations`, `trainingPlan`) werden mit zod und `.catch(...)` gelesen; neue Felder immer abwärtskompatibel ergänzen.
 
@@ -57,3 +62,12 @@ pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binar
 
 - Die E-Mail für dieses Repository ist die GitHub-noreply-Adresse (`git config user.email`, nur lokal) – die private Adresse darf nicht in die öffentliche Historie.
 - `docs/mockups/` (Design-Vorlagen) bleibt lokal und ist in `.gitignore`.
+
+## CLAUDE.md selbst pflegen (gilt dauerhaft)
+
+Diese Datei ist das Gedächtnis des Projekts. Claude Code hält sie ohne Aufforderung aktuell:
+
+- Nach jeder größeren Änderung (Architektur, Entscheidungen, Befehle, Regeln) im selben Commit oder direkt danach („docs: CLAUDE.md aktualisiert“); im Bericht eine Zeile dazu.
+- Hinein gehört kurz und konkret: Überblick und Ordner (ein Satz je Bereich), Befehle, Entscheidungen mit Grund, harte Regeln, Konventionen, bekannte Einschränkungen, Verweise auf `README.md` / `THIRD_PARTY_ASSETS.md` statt Kopien.
+- Nicht hinein: Geheimnisse, Zwischenstände, Logs, Kurzlebiges, was schon klar im Code steht.
+- Schlank halten (unter ca. 250 Zeilen, sonst Details nach `docs/` auslagern). Veraltetes entfernen statt anhängen; keine Widersprüche zu README und Code.
