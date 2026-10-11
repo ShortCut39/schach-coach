@@ -2,6 +2,7 @@ import { DEFAULT_POSITION } from 'chess.js';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Color } from '../../chess/types';
+import { LichessSession } from '../../play/session/LichessSession';
 import { LocalSession } from '../../play/session/LocalSession';
 import type { BoardMoveInput, GameViewState, SessionNotice } from '../../play/session/types';
 import { usePlay } from '../../store/play';
@@ -12,7 +13,13 @@ import { EvalBar } from '../analyse/EvalBar';
 import { colorName } from '../chessText';
 import { ActionBar } from '../play/ActionBar';
 import { HelpersCard } from '../play/HelpersCard';
-import { DrawOfferCard, LiveBand, OpponentGoneCard, TakebackOfferCard } from '../play/LiveCards';
+import {
+  ChatCard,
+  DrawOfferCard,
+  LiveBand,
+  OpponentGoneCard,
+  TakebackOfferCard,
+} from '../play/LiveCards';
 import { NewGamePanel } from '../play/NewGamePanel';
 import { PlayerCard } from '../play/PlayerCard';
 import { PlayMoveList } from '../play/PlayMoveList';
@@ -57,6 +64,7 @@ export function PlayScreen() {
   const finishedGame = usePlay((s) => s.finishedGame);
   const analyseFinished = usePlay((s) => s.analyseFinished);
   const evalBarOn = useSettings((s) => s.play.evalBar);
+  const chatOn = useSettings((s) => s.play.lichessChat);
   const notice = useNotice(view);
 
   const fen = view?.fen ?? DEFAULT_POSITION;
@@ -163,6 +171,9 @@ export function PlayScreen() {
               <ActionBar
                 view={view}
                 canAbort={session?.canAbort() ?? false}
+                canProposeTakeback={
+                  session instanceof LichessSession && session.canProposeTakeback()
+                }
                 canOfferDraw={
                   local
                     ? local.canOfferDraw()
@@ -170,6 +181,7 @@ export function PlayScreen() {
                 }
               />
             )}
+            {view.live && chatOn && <ChatCard view={view} />}
             {local && local.capabilities.hints && view.status === 'playing' && (
               <HelpersCard view={view} canTakeback={local.canTakeback()} />
             )}

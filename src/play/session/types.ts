@@ -45,6 +45,15 @@ export interface LiveInfo {
   opponentGone: { claimWinAt: number | null } | null;
   /** Offener Rücknahmewunsch und von wem */
   takebackOffer: Color | null;
+  /** Chat mit dem Gegner (Raum „player“), neueste zuletzt */
+  chat: ChatMessage[];
+}
+
+export interface ChatMessage {
+  username: string;
+  text: string;
+  /** Meldung von Lichess selbst (z. B. „Takeback sent“) */
+  system: boolean;
 }
 
 /** Alles, was die Spielen-Seite anzeigt. Unveränderlich: jede Änderung ist ein neues Objekt. */

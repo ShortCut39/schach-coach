@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MAX_CHAT_LENGTH } from '../../play/session/LichessSession';
 import type { GameViewState } from '../../play/session/types';
 import { usePlay } from '../../store/play';
 import { Button } from '../shared/Button';
+import { inputClass } from '../shared/form';
 
 /** Deutlicher Hinweis während einer Lichess-Partie: Hilfen sind aus, dazu der Verbindungsstatus. */
 export function LiveBand({ view }: { view: GameViewState }) {
@@ -127,5 +129,70 @@ export function OpponentGoneCard({ view }: { view: GameViewState }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Einfacher Chat mit dem Gegner (Spielerraum). Abschaltbar in den Einstellungen. */
+export function ChatCard({ view }: { view: GameViewState }) {
+  const { t } = useTranslation();
+  const sendChat = usePlay((s) => s.sendChat);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const inputId = useId();
+  const listRef = useRef<HTMLOListElement>(null);
+  const messages = view.live?.chat ?? [];
+
+  useEffect(() => {
+    listRef.current?.lastElementChild?.scrollIntoView?.({ block: 'nearest' });
+  }, [messages.length]);
+
+  if (!view.live) return null;
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!draft.trim() || sending) return;
+    setSending(true);
+    if (await sendChat(draft)) setDraft('');
+    setSending(false);
+  }
+
+  return (
+    <section
+      aria-label={t('play.chat.title')}
+      className="flex flex-col gap-2 rounded-panel border border-border bg-panel px-4 py-3"
+    >
+      <h2 className="text-[13px] font-semibold text-muted">{t('play.chat.title')}</h2>
+      <ol
+        ref={listRef}
+        aria-live="polite"
+        className="flex max-h-[180px] min-h-[48px] flex-col gap-1 overflow-y-auto text-[13px]"
+      >
+        {messages.length === 0 && <li className="text-faint">{t('play.chat.empty')}</li>}
+        {messages.map((message, index) => (
+          <li key={index} className={message.system ? 'text-faint italic' : 'text-text-body'}>
+            {!message.system && <strong className="mr-1.5">{message.username}:</strong>}
+            {message.text}
+          </li>
+        ))}
+      </ol>
+      {view.status === 'playing' && (
+        <form onSubmit={(event) => void submit(event)} className="flex gap-2">
+          <label htmlFor={inputId} className="sr-only">
+            {t('play.chat.input')}
+          </label>
+          <input
+            id={inputId}
+            value={draft}
+            maxLength={MAX_CHAT_LENGTH}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={t('play.chat.placeholder')}
+            className={`${inputClass} min-h-hit min-w-0 flex-1 text-sm`}
+          />
+          <Button type="submit" variant="ghost" disabled={sending || !draft.trim()}>
+            {t('play.chat.send')}
+          </Button>
+        </form>
+      )}
+    </section>
   );
 }

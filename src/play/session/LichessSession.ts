@@ -23,6 +23,7 @@ import type {
   ConnectionState,
   GameSession,
   GameViewState,
+  LiveInfo,
   SessionCapabilities,
   SessionNotice,
 } from './types';
@@ -43,6 +44,10 @@ export interface LichessSessionOptions {
 
 const DEFAULT_DELAYS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000];
 const DEFAULT_IDLE_MS = 20_000;
+/** So viele Chatzeilen werden behalten */
+const MAX_CHAT = 100;
+/** Längste Chatnachricht (wie auf Lichess) */
+export const MAX_CHAT_LENGTH = 140;
 
 const defaultWait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve) => {
@@ -107,6 +112,7 @@ export class LichessSession implements GameSession {
         connection: 'connecting',
         opponentGone: null,
         takebackOffer: null,
+        chat: [],
       },
     };
   }
@@ -197,21 +203,30 @@ export class LichessSession implements GameSession {
           },
         });
         break;
-      case 'chatLine':
-        // Chat folgt in L6
+      case 'chatLine': {
+        // Nur der Spielerraum; Zuschauerchat zeigt die App nicht
+        if (message.room !== 'player' || !message.text) break;
+        const system = message.username.toLowerCase() === 'lichess';
+        const chat = [
+          ...this.live().chat,
+          { username: message.username, text: message.text, system },
+        ].slice(-MAX_CHAT);
+        this.update({ live: { ...this.live(), chat } });
         break;
+      }
     }
   }
 
-  private live() {
+  private live(): LiveInfo {
     return (
       this.current.live ?? {
         gameId: this.options.gameId,
         rated: false,
         speed: 'unknown',
-        connection: 'connected' as ConnectionState,
+        connection: 'connected',
         opponentGone: null,
         takebackOffer: null,
+        chat: [],
       }
     );
   }
@@ -350,6 +365,40 @@ export class LichessSession implements GameSession {
     if (this.current.status !== 'playing') return;
     if (await this.action(`takeback/${accept ? 'yes' : 'no'}`)) {
       this.update({ live: { ...this.live(), takebackOffer: null } });
+    }
+  }
+
+  /** Rücknahme beim Gegner anfragen (Lichess-Funktion; der Gegner muss zustimmen) */
+  canProposeTakeback(): boolean {
+    const state = this.current;
+    return (
+      state.status === 'playing' &&
+      !state.waiting &&
+      state.live?.takebackOffer !== state.myColor &&
+      state.plies.some((ply) => ply.color === state.myColor)
+    );
+  }
+
+  async proposeTakeback(): Promise<void> {
+    if (!this.canProposeTakeback()) return;
+    if (await this.action('takeback/yes')) {
+      this.update({ live: { ...this.live(), takebackOffer: this.current.myColor } });
+    }
+  }
+
+  /** Nachricht an den Gegner (Spielerraum) */
+  async sendChat(text: string): Promise<boolean> {
+    const message = text.trim().slice(0, MAX_CHAT_LENGTH);
+    if (!message || this.ended()) return false;
+    try {
+      await this.options.client.request(
+        `/api/board/game/${encodeURIComponent(this.options.gameId)}/chat`,
+        { method: 'POST', form: { room: 'player', text: message } },
+      );
+      return true;
+    } catch {
+      this.update({}, 'actionFailed');
+      return false;
     }
   }
 

@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS, type Level } from '../../play/opponent/levels';
 import { ratingOf } from '../../play/lichess/client';
@@ -16,6 +16,7 @@ import { Button } from '../shared/Button';
 import { FieldLabel } from '../shared/FieldLabel';
 import { Segmented } from '../shared/Segmented';
 import { inputClass, Toggle } from '../shared/form';
+import { ChallengeFriend, IncomingChallenges } from './LichessChallenges';
 
 type PlaySettings = Settings['play'];
 
@@ -280,6 +281,12 @@ function LichessSeek() {
   const setScreen = useNavigation((s) => s.setScreen);
   const control = timeControl(play.minutes, play.increment);
   const allowed = allowedForLichessSeek(control);
+  const connectLobby = usePlay((s) => s.connectLobby);
+
+  // Ereignisstrom offen halten, damit Herausforderungen von Freunden ankommen
+  useEffect(() => {
+    if (auth === 'loggedIn') connectLobby();
+  }, [auth, connectLobby]);
 
   if (auth !== 'loggedIn' || !account) {
     return (
@@ -294,6 +301,7 @@ function LichessSeek() {
 
   return (
     <div className="flex flex-col gap-4">
+      <IncomingChallenges />
       <p className="text-[13px] text-muted">
         {t('play.lichess.account', {
           name: account.username,
@@ -364,6 +372,7 @@ function LichessSeek() {
           {t('play.lichess.seek')}
         </Button>
       )}
+      {play.lichessNoticeSeen && <ChallengeFriend />}
     </div>
   );
 }

@@ -414,7 +414,9 @@
       "volume": "Volume",
       "testSound": "Test sound",
       "autoAnalyse": "Analyse automatically after the game",
-      "autoAnalyseHint": "Switches straight to the analysis after the game, from your point of view."
+      "autoAnalyseHint": "Switches straight to the analysis after the game, from your point of view.",
+      "chat": "Chat in live games",
+      "chatHint": "Shows the chat with your opponent on Lichess. When switched off it stays hidden."
     }
   },
   "categories": {
@@ -817,7 +819,9 @@
       "keepPlaying": "Keep playing",
       "offerDraw": "Offer draw",
       "abort": "Abort",
-      "flip": "Flip board"
+      "flip": "Flip board",
+      "proposeTakeback": "Ask for takeback",
+      "takebackRequested": "Takeback requested"
     },
     "helpers": {
       "title": "Assistance",
@@ -897,6 +901,31 @@
       "claimIn": "You can claim victory in {{seconds}} s.",
       "claimVictory": "Claim victory",
       "claimDraw": "Claim draw"
+    },
+    "chat": {
+      "title": "Chat",
+      "empty": "No messages yet.",
+      "input": "Message to your opponent",
+      "placeholder": "Message …",
+      "send": "Send"
+    },
+    "challenge": {
+      "title": "Challenge a friend",
+      "hint": "Challenges a Lichess user directly, with the time control and colour chosen above. Blitz is allowed here too.",
+      "username": "Lichess username",
+      "send": "Challenge",
+      "clock": "Time control {{time}} ({{speed}}).",
+      "clockInvalid": "For challenges Lichess only allows whole minutes (1–180) and 0–60 seconds increment.",
+      "waiting": "Waiting for {{name}} to accept …",
+      "cancel": "Withdraw challenge",
+      "result": {
+        "waiting": "Waiting for {{name}} …",
+        "declined": "{{name}} declined.",
+        "canceled": "The challenge to {{name}} is no longer open.",
+        "failed": "The challenge to {{name}} did not work."
+      },
+      "incomingTitle": "Challenge received",
+      "incoming": "{{name}} ({{rating}}) challenges you: {{time}}, {{kind}}"
     }
   },
   "lichess": {

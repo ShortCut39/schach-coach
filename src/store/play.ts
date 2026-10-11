@@ -11,8 +11,14 @@ import { LocalSession } from '../play/session/LocalSession';
 import type { BoardMoveInput, GameSession, GameViewState } from '../play/session/types';
 import { activateLiveGuard, releaseLiveGuard } from '../play/liveGuard';
 import { LichessError, type LichessErrorCode } from '../play/lichess/client';
-import { LichessLobby, type SeekParams } from '../play/lichess/lobby';
-import { nowPlayingSchema, type LichessEventGame, type NowPlaying } from '../play/lichess/mapper';
+import { LichessLobby, type ChallengeParams, type SeekParams } from '../play/lichess/lobby';
+import {
+  nowPlayingSchema,
+  playableChallenge,
+  type LichessChallenge,
+  type LichessEventGame,
+  type NowPlaying,
+} from '../play/lichess/mapper';
 import { buildPgn, type PgnInfo } from '../play/pgn';
 import { moveSound, playSound, type SoundKind } from '../play/sound';
 import { getEngine } from './engine';
@@ -56,6 +62,13 @@ interface PlayState {
     seeking: SeekParams | null;
     error: { code: LichessErrorCode; detail?: string | undefined } | null;
     ongoing: NowPlaying[];
+    /** Eigene Herausforderung an einen Freund */
+    challenge: {
+      username: string;
+      status: 'waiting' | 'declined' | 'canceled' | 'failed';
+    } | null;
+    /** Eingehende Herausforderungen (nur spielbare) */
+    incoming: LichessChallenge[];
   };
 
   startLocal: (setup: LocalSetup) => void;
@@ -73,6 +86,14 @@ interface PlayState {
   refreshOngoing: () => Promise<void>;
   /** Laufende Lichess-Partie fortsetzen */
   resumeLichess: (gameId: string) => void;
+  /** Ereignisstrom öffnen (für eingehende Herausforderungen), solange der Lichess-Dialog offen ist */
+  connectLobby: () => void;
+  sendChallenge: (username: string, params: ChallengeParams) => Promise<void>;
+  cancelChallenge: () => void;
+  acceptChallenge: (id: string) => Promise<void>;
+  declineChallenge: (id: string) => Promise<void>;
+  proposeTakeback: () => Promise<void>;
+  sendChat: (text: string) => Promise<boolean>;
   respondTakeback: (accept: boolean) => Promise<void>;
   claimVictory: () => Promise<void>;
   claimDraw: () => Promise<void>;
@@ -143,6 +164,8 @@ function playableHere(game: Pick<LichessEventGame, 'variant' | 'speed' | 'compat
 }
 
 let lobby: LichessLobby | null = null;
+/** Partien, die gleich starten sollen (eigene oder angenommene Herausforderung) */
+const expectedGames = new Set<string>();
 
 export const usePlay = create<PlayState>()((set, get) => {
   /**
@@ -224,7 +247,9 @@ export const usePlay = create<PlayState>()((set, get) => {
         ...s.lichess,
         seeking: null,
         error: null,
+        challenge: null,
         ongoing: s.lichess.ongoing.filter((g) => g.gameId !== gameId),
+        incoming: s.lichess.incoming.filter((c) => c.id !== gameId),
       },
     }));
     useNavigation.getState().setScreen('spielen');
@@ -234,9 +259,33 @@ export const usePlay = create<PlayState>()((set, get) => {
   function getLobby(): LichessLobby {
     lobby ??= new LichessLobby(lichessClient(), {
       onGameStart: (game) => {
-        // Nur während einer Suche automatisch übernehmen (sonst über „Fortsetzen“)
-        if (get().lichess.seeking && playableHere(game)) attachLichess(game.gameId);
+        // Nur erwartete Partien automatisch übernehmen (Suche, Herausforderung); sonst „Fortsetzen“
+        const { seeking, challenge } = get().lichess;
+        const expected =
+          !!seeking || expectedGames.has(game.gameId) || challenge?.status === 'waiting';
+        expectedGames.delete(game.gameId);
+        if (expected && playableHere(game)) attachLichess(game.gameId);
         else void get().refreshOngoing();
+      },
+      onChallenge: (challenge) => {
+        const me = useLichessAuth.getState().account?.id.toLowerCase();
+        const incoming =
+          challenge.direction === 'in' || (!!me && challenge.destUser?.id?.toLowerCase() === me);
+        if (!incoming || challenge.status !== 'created' || !playableChallenge(challenge)) return;
+        set((s) => ({
+          lichess: {
+            ...s.lichess,
+            incoming: [...s.lichess.incoming.filter((c) => c.id !== challenge.id), challenge],
+          },
+        }));
+      },
+      onChallengeGone: (challenge) => {
+        set((s) => ({
+          lichess: {
+            ...s.lichess,
+            incoming: s.lichess.incoming.filter((c) => c.id !== challenge.id),
+          },
+        }));
       },
       onGameFinish: (game) => {
         const session = get().session;
@@ -258,7 +307,78 @@ export const usePlay = create<PlayState>()((set, get) => {
     evaluation: null,
     pgnInfo: null,
     finishedGame: null,
-    lichess: { seeking: null, error: null, ongoing: [] },
+    lichess: { seeking: null, error: null, ongoing: [], challenge: null, incoming: [] },
+
+    connectLobby: () => {
+      if (useLichessAuth.getState().status !== 'loggedIn') return;
+      void getLobby()
+        .connect()
+        .catch(() => undefined);
+    },
+
+    sendChallenge: async (username, params) => {
+      if (get().lichess.challenge?.status === 'waiting') return;
+      set((s) => ({
+        lichess: { ...s.lichess, error: null, challenge: { username, status: 'waiting' } },
+      }));
+      const update = (status: 'declined' | 'canceled' | 'failed') =>
+        set((s) => ({
+          lichess: {
+            ...s.lichess,
+            challenge: s.lichess.challenge ? { ...s.lichess.challenge, status } : null,
+          },
+        }));
+      try {
+        const result = await getLobby().challenge(username, params, (id) => expectedGames.add(id));
+        // Angenommen: Die Partie startet über den Ereignisstrom (gameStart)
+        if (result === 'declined') update('declined');
+        else if (result !== 'accepted' && get().lichess.challenge) update('canceled');
+      } catch (error) {
+        const code = error instanceof LichessError ? error.code : 'unreachable';
+        const detail = error instanceof LichessError ? error.detail : undefined;
+        set((s) => ({ lichess: { ...s.lichess, error: { code, detail } } }));
+        update('failed');
+      }
+    },
+
+    cancelChallenge: () => {
+      lobby?.cancelChallenge();
+      set((s) => ({ lichess: { ...s.lichess, challenge: null } }));
+    },
+
+    acceptChallenge: async (id) => {
+      expectedGames.add(id);
+      try {
+        await getLobby().acceptChallenge(id);
+      } catch (error) {
+        expectedGames.delete(id);
+        const code = error instanceof LichessError ? error.code : 'unreachable';
+        const detail = error instanceof LichessError ? error.detail : undefined;
+        set((s) => ({ lichess: { ...s.lichess, error: { code, detail } } }));
+      }
+      set((s) => ({
+        lichess: { ...s.lichess, incoming: s.lichess.incoming.filter((c) => c.id !== id) },
+      }));
+    },
+
+    declineChallenge: async (id) => {
+      set((s) => ({
+        lichess: { ...s.lichess, incoming: s.lichess.incoming.filter((c) => c.id !== id) },
+      }));
+      await getLobby()
+        .declineChallenge(id)
+        .catch(() => undefined);
+    },
+
+    proposeTakeback: async () => {
+      const { session } = get();
+      if (session instanceof LichessSession) await session.proposeTakeback();
+    },
+
+    sendChat: async (text) => {
+      const { session } = get();
+      return session instanceof LichessSession ? session.sendChat(text) : false;
+    },
 
     startSeek: async (params) => {
       if (get().lichess.seeking) return;
@@ -459,6 +579,8 @@ useLichessAuth.subscribe((state, previous) => {
   if (state.status === 'loggedOut') {
     lobby?.close();
     lobby = null;
-    usePlay.setState((s) => ({ lichess: { ...s.lichess, seeking: null, ongoing: [] } }));
+    usePlay.setState((s) => ({
+      lichess: { ...s.lichess, seeking: null, ongoing: [], challenge: null, incoming: [] },
+    }));
   }
 });

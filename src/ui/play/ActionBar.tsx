@@ -9,12 +9,19 @@ interface ActionBarProps {
   view: GameViewState;
   canAbort: boolean;
   canOfferDraw: boolean;
+  /** Lichess: Rücknahme beim Gegner anfragen (keine eigene Hilfe, Lichess fragt den Gegner) */
+  canProposeTakeback?: boolean;
 }
 
 /** Aufgeben (mit Rückfrage), Remis anbieten, Abbrechen (nur ganz am Anfang), Brett drehen. */
-export function ActionBar({ view, canAbort, canOfferDraw }: ActionBarProps) {
+export function ActionBar({
+  view,
+  canAbort,
+  canOfferDraw,
+  canProposeTakeback = false,
+}: ActionBarProps) {
   const { t } = useTranslation();
-  const { resign, offerDraw, abort, flip } = usePlay.getState();
+  const { resign, offerDraw, abort, flip, proposeTakeback } = usePlay.getState();
   const [confirmResign, setConfirmResign] = useState(false);
   const playing = view.status === 'playing';
 
@@ -69,6 +76,18 @@ export function ActionBar({ view, canAbort, canOfferDraw }: ActionBarProps) {
       >
         {t('play.actions.offerDraw')}
       </Button>
+      {view.live && (
+        <Button
+          variant="ghost"
+          className="flex-1"
+          disabled={!canProposeTakeback}
+          onClick={() => void proposeTakeback()}
+        >
+          {view.live.takebackOffer === view.myColor
+            ? t('play.actions.takebackRequested')
+            : t('play.actions.proposeTakeback')}
+        </Button>
+      )}
       <Button
         variant="ghost"
         onClick={flip}

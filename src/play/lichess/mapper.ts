@@ -100,10 +100,49 @@ const eventGameSchema = z.object({
     .optional()
     .catch(undefined),
 });
+const challengeUserSchema = z
+  .object({
+    id: z.string().optional().catch(undefined),
+    name: z.string().catch('?'),
+    rating: z.number().nullable().optional().catch(undefined),
+    title: z.string().nullable().optional().catch(undefined),
+  })
+  .nullable()
+  .catch(null);
+
+/** Herausforderung (eingehend oder ausgehend), nur die nötigen Felder */
+export const challengeSchema = z.object({
+  id: z.string(),
+  status: z.string().catch('created'),
+  challenger: challengeUserSchema,
+  destUser: challengeUserSchema,
+  variant: z.object({ key: z.string() }).catch({ key: 'unknown' }),
+  rated: z.boolean().catch(false),
+  speed: z.string().catch('unknown'),
+  timeControl: z
+    .object({
+      type: z.string(),
+      limit: z.number().optional().catch(undefined),
+      increment: z.number().optional().catch(undefined),
+    })
+    .catch({ type: 'unknown' }),
+  color: z.string().catch('random'),
+  direction: z.enum(['in', 'out']).optional().catch(undefined),
+});
+export type LichessChallenge = z.infer<typeof challengeSchema>;
+
 export const lichessEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('gameStart'), game: eventGameSchema }),
   z.object({ type: z.literal('gameFinish'), game: eventGameSchema }),
+  z.object({ type: z.literal('challenge'), challenge: challengeSchema }),
+  z.object({ type: z.literal('challengeCanceled'), challenge: challengeSchema }),
+  z.object({ type: z.literal('challengeDeclined'), challenge: challengeSchema }),
 ]);
+
+/** Kann die App diese Herausforderung spielen? (normales Schach mit Uhr, kein Fernschach) */
+export function playableChallenge(challenge: LichessChallenge): boolean {
+  return challenge.variant.key === 'standard' && challenge.timeControl.type === 'clock';
+}
 export type LichessEvent = z.infer<typeof lichessEventSchema>;
 export type LichessEventGame = z.infer<typeof eventGameSchema>;
 

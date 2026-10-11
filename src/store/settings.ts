@@ -30,6 +30,7 @@ const DEFAULT_PLAY = {
   rated: false,
   mode: 'local' as const,
   lichessNoticeSeen: false,
+  lichessChat: true,
 };
 
 /**
@@ -94,6 +95,8 @@ export const settingsSchema = z.object({
       mode: z.enum(['local', 'lichess']).catch(DEFAULT_PLAY.mode),
       /** Fair-Play-Hinweis vor der ersten Lichess-Partie bestätigt */
       lichessNoticeSeen: z.boolean().catch(DEFAULT_PLAY.lichessNoticeSeen),
+      /** Chat mit dem Gegner in Live-Partien anzeigen */
+      lichessChat: z.boolean().catch(DEFAULT_PLAY.lichessChat),
     })
     .catch(DEFAULT_PLAY),
   /** Zuletzt genutztes Konto für den Online-Import */

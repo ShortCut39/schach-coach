@@ -168,6 +168,60 @@ export class FakeLichess {
     this.gameStreams.set(id, []);
   }
 
+  chats: string[] = [];
+  outgoing: { id: string; stream: OpenStream } | null = null;
+  lastChallengeForm: URLSearchParams | null = null;
+
+  /** Partie anlegen und `gameStart` im Ereignisstrom melden */
+  startGame(id: string, myColor: 'white' | 'black'): void {
+    this.addGame(id, myColor);
+    for (const events of this.eventStreams) {
+      events.push({
+        type: 'gameStart',
+        game: {
+          gameId: id,
+          color: myColor,
+          variant: { key: 'standard' },
+          speed: 'blitz',
+          compat: { board: true },
+        },
+      });
+    }
+  }
+
+  /** Der Freund nimmt die eigene Herausforderung an bzw. lehnt ab */
+  answerOutgoing(answer: 'accepted' | 'declined'): void {
+    const outgoing = this.outgoing;
+    if (!outgoing) return;
+    outgoing.stream.push({ done: answer });
+    outgoing.stream.close();
+    this.outgoing = null;
+    if (answer === 'accepted') this.startGame(outgoing.id, 'white');
+  }
+
+  /** Jemand fordert mich heraus */
+  incomingChallenge(id: string): void {
+    for (const events of this.eventStreams) {
+      events.push({
+        type: 'challenge',
+        challenge: {
+          id,
+          url: `https://lichess.org/${id}`,
+          status: 'created',
+          challenger: { id: 'freund', name: 'Freund', rating: 1600 },
+          destUser: { id: 'ich', name: 'Ich', rating: 1500 },
+          variant: { key: 'standard', name: 'Standard' },
+          rated: false,
+          speed: 'blitz',
+          timeControl: { type: 'clock', limit: 300, increment: 3, show: '5+3' },
+          color: 'random',
+          perf: { icon: '', name: 'Blitz' },
+          direction: 'in',
+        },
+      });
+    }
+  }
+
   /** Suche paaren: Partie anlegen, `gameStart` senden, Suche schließen */
   pairSeek(id: string, myColor: 'white' | 'black' = 'white'): void {
     this.addGame(id, myColor);
@@ -289,11 +343,27 @@ export class FakeLichess {
           this.broadcast(game.id);
           return json({ ok: true });
         }
-        case 'takeback':
-          game.wtakeback = game.btakeback = false;
-          if (arg === 'yes') game.moves.splice(-2, 2);
+        case 'takeback': {
+          const theirRequest = other === 'white' ? game.wtakeback : game.btakeback;
+          if (arg === 'yes' && !theirRequest) {
+            // Eigene Anfrage: Lichess fragt den Gegner
+            if (myColor === 'white') game.wtakeback = true;
+            else game.btakeback = true;
+          } else {
+            if (arg === 'yes') game.moves.splice(-2, 2);
+            game.wtakeback = game.btakeback = false;
+          }
           this.broadcast(game.id);
           return json({ ok: true });
+        }
+        case 'chat': {
+          const text = new URLSearchParams(String(init.body)).get('text') ?? '';
+          this.chats.push(text);
+          for (const stream of this.gameStreams.get(game.id) ?? []) {
+            stream.push({ type: 'chatLine', room: 'player', username: 'Ich', text });
+          }
+          return json({ ok: true });
+        }
         case 'claim-victory':
           game.status = 'timeout';
           game.winner = myColor;
@@ -302,6 +372,20 @@ export class FakeLichess {
         default:
           return json({ error: 'unbekannt' }, 400);
       }
+    }
+    const challengeAction = /^\/api\/challenge\/(\w+)\/(accept|decline)$/.exec(path);
+    if (challengeAction && method === 'POST') {
+      const id = challengeAction[1] ?? '';
+      if (challengeAction[2] === 'accept') this.startGame(id, 'black');
+      return json({ ok: true });
+    }
+    const challengeCreate = /^\/api\/challenge\/([\w-]+)$/.exec(path);
+    if (challengeCreate && method === 'POST') {
+      this.lastChallengeForm = new URLSearchParams(String(init.body));
+      return ndjsonResponse((stream) => {
+        this.outgoing = { id: 'chal0001', stream };
+        stream.push({ id: 'chal0001', status: 'created', direction: 'out' });
+      }, init.signal);
     }
     if (path === '/api/token' && method === 'DELETE') return new Response(null, { status: 204 });
     return json({ error: 'Not found' }, 404);

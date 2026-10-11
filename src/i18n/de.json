@@ -414,7 +414,9 @@
       "volume": "Lautstärke",
       "testSound": "Ton testen",
       "autoAnalyse": "Nach der Partie automatisch analysieren",
-      "autoAnalyseHint": "Wechselt nach Partieende direkt zur Analyse, aus deiner Sicht."
+      "autoAnalyseHint": "Wechselt nach Partieende direkt zur Analyse, aus deiner Sicht.",
+      "chat": "Chat in Live-Partien",
+      "chatHint": "Zeigt den Chat mit deinem Gegner auf Lichess. Ausgeschaltet bleibt er verborgen."
     }
   },
   "categories": {
@@ -817,7 +819,9 @@
       "keepPlaying": "Weiterspielen",
       "offerDraw": "Remis anbieten",
       "abort": "Abbrechen",
-      "flip": "Brett drehen"
+      "flip": "Brett drehen",
+      "proposeTakeback": "Rücknahme anfragen",
+      "takebackRequested": "Rücknahme angefragt"
     },
     "helpers": {
       "title": "Hilfen",
@@ -897,6 +901,31 @@
       "claimIn": "Du kannst in {{seconds}} s den Sieg beanspruchen.",
       "claimVictory": "Sieg beanspruchen",
       "claimDraw": "Remis beanspruchen"
+    },
+    "chat": {
+      "title": "Chat",
+      "empty": "Noch keine Nachrichten.",
+      "input": "Nachricht an deinen Gegner",
+      "placeholder": "Nachricht …",
+      "send": "Senden"
+    },
+    "challenge": {
+      "title": "Freund herausfordern",
+      "hint": "Fordert einen Lichess-Benutzer direkt heraus, mit der oben gewählten Bedenkzeit und Farbe. Hier ist auch Blitz erlaubt.",
+      "username": "Benutzername auf Lichess",
+      "send": "Herausfordern",
+      "clock": "Bedenkzeit {{time}} ({{speed}}).",
+      "clockInvalid": "Für Herausforderungen erlaubt Lichess nur ganze Minuten (1–180) und 0–60 Sekunden Inkrement.",
+      "waiting": "Warte, bis {{name}} annimmt …",
+      "cancel": "Herausforderung zurückziehen",
+      "result": {
+        "waiting": "Warte auf {{name}} …",
+        "declined": "{{name}} hat abgelehnt.",
+        "canceled": "Die Herausforderung an {{name}} ist nicht mehr offen.",
+        "failed": "Die Herausforderung an {{name}} hat nicht geklappt."
+      },
+      "incomingTitle": "Herausforderung erhalten",
+      "incoming": "{{name}} ({{rating}}) fordert dich heraus: {{time}}, {{kind}}"
     }
   },
   "lichess": {
