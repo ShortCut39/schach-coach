@@ -4,7 +4,7 @@
 
 A desktop app for analysing your own chess games: Stockfish evaluates every position, the app classifies every move (Brilliant to Blunder), and an LLM behind an OpenAI-compatible endpoint explains the important moves in plain words, in English or German – the good ones too.
 
-> **Status: version 3.** Load games, evaluate them with Stockfish 19 (native as a sidecar, otherwise WASM), classify them and have an AI explain them. There is also a summary with tips, Markdown export, a library, a chat about the position, import from Lichess and Chess.com and a light colour scheme. Plus **patterns across many games** (typical errors, accuracy over time, openings, AI training plan), **training from your own errors** with spaced repetition, and an **English** interface and AI explanations. Plus **packages for Windows and macOS** (macOS experimental), built by GitHub Actions. New: **Play** – locally against Stockfish with learning aids or live on Lichess (without any assistance), then analyse with one click.
+> **Status: version 3.** Load games, evaluate them with Stockfish 19 (native as a sidecar, otherwise WASM), classify them and have an AI explain them. There is also a summary with tips, Markdown export, a library, a chat about the position, import from Lichess and Chess.com and a light colour scheme. Plus **patterns across many games** (typical errors, accuracy over time, openings, AI training plan), **training from your own errors** with spaced repetition, and an **English** interface and AI explanations. Plus **packages for Windows and macOS** (macOS experimental), built by GitHub Actions. Plus **Play** – locally against Stockfish with learning aids or live on Lichess (without any assistance), then analyse with one click. New: **customise the look** – choose pieces, board and sounds or upload your own.
 
 The app name stays “Schach-Coach” (German for “chess coach”) in both languages.
 
@@ -12,7 +12,7 @@ The app name stays “Schach-Coach” (German for “chess coach”) in both lan
 
 Ready-made packages for Linux (AppImage, deb), Windows (installer) and macOS (DMG, experimental) are available under [Releases](https://github.com/ShortCut39/schach-coach/releases). Notes on the first launch on Windows and macOS are in the section [Windows and macOS](#windows-and-macos).
 
-The app starts in German. Switch to English under **Einstellungen → Darstellung & Sprache → Sprache → English**, then click **Speichern**.
+The app starts in German. Switch to English under **Einstellungen → Oberfläche & Sprache → Sprache → English**, then click **Speichern**.
 
 ## Usage
 
@@ -36,8 +36,8 @@ The app starts in German. Switch to English under **Einstellungen → Darstellun
   - **Practise a pattern:** on the patterns page, “Train this pattern” starts training with puzzles of that motif only.
 - **Lichess / Chess.com:** in the import, pick the platform and enter a username → “Load games” fetches the last 20 games (standard chess only, no variants). “You play” is set to your colour automatically. Only the username is sent, to the platform's public API.
 - **Chat about the position:** right-hand “Chat” tab. Every question automatically includes the engine data of the position shown (lines and pieces in danger in words, plus the last move). The AI is told to answer only from that.
-- **Colour scheme:** Settings → Appearance & language → Dark or Light.
-- **Language:** Settings → Appearance & language → Deutsch or English. The language applies to the interface, number and date formats and the AI explanations. Switching also changes the notation (D/T/L/S ↔ Q/R/B/N); afterwards you can still set it separately.
+- **Colour scheme:** Settings → Interface & language → Dark or Light.
+- **Language:** Settings → Interface & language → Deutsch or English. The language applies to the interface, number and date formats and the AI explanations. Switching also changes the notation (D/T/L/S ↔ Q/R/B/N); afterwards you can still set it separately.
 - **Large windows:** the board in analysis and training grows with the window height (about twice as large at 1440p), the columns next to it get wider, and everything is centred. Library, patterns and summary use up to 1800 px of width; the pattern cards then sit three side by side.
 - **Pick up where you left off:** the last game is restored on start, with evaluations, explanations, summary and position. Saving is automatic.
 - **Keyboard:** in tab bars, ← / → switch tabs. The “Skip to content” link appears at the very top when you press Tab.
@@ -65,6 +65,41 @@ In the **Play** area you play locally against Stockfish or live against people o
   - Tests prove this. Everything is back after the game. The app only uses officially documented Lichess API endpoints, with no scraping and no automation of the website.
 - **After the game:** the result card shows the result with its reason, the number of moves and the time control. Every game (except aborted ones) goes straight into the library as “not analysed”. “Analyse game” hands it to the analysis from your point of view, and the setting “Analyse automatically after the game” (off by default) does this by itself. The PGN contains Event, Site (the game link for Lichess), date, players, result, ratings, time control and how the game ended. Locally the opponent is called “Stockfish (level …)”.
 - **Sounds:** move, capture, castling, check, promotion, game start, game end (win, loss, draw) and low time. The default is the freely licensed Lichess set “SFX”; there are further free sets and “Simple (synthesised)” (computed by the app itself). In the desktop app the Rust part decodes and plays them (rodio/symphonia), because audio in the Linux WebView was either silent (WebAudio) or could freeze the app (`<audio>`). Settings → Play has “Sounds”, “Volume” and “Test sound”.
+
+## Customising the look
+
+Under **Settings → Appearance** you choose pieces, board and sounds for every board in the app (play, analysis, training). The preview at the top shows your choice right away, using a position from the Opera Game with a check. Like all settings it is only applied with **“Save”** at the very bottom. “Test sound” plays move, capture, check and game end. Uploading, renaming and deleting your own sets, by contrast, take effect immediately.
+
+- **Presets:**
+  - Pieces: cburnett (default, as on Lichess), Merida, Chessnut, RhosGFX, Fantasy, Pixel.
+  - Board: app default, wood, sage and Lichess-style colour pairs (brown, blue, green, grey, purple). Coordinates can be switched off.
+  - Sounds: SFX (default), Piano, NES, Futuristic and “Simple (synthesised)”.
+  - Each area has “Reset to default”.
+- **Your own pieces:** 12 files (SVG, PNG or WebP, at most 2 MB each), also as a ZIP archive (at most 64 entries and 10 MB unpacked; paths inside the archive are ignored).
+  - Names like `wK.svg`, `white_king.png`, `WhiteKing.png` or `weisser_koenig.svg` are assigned automatically, the rest by clicking.
+  - Recommended: square, at least 128 × 128 px, transparent background.
+- **Your own board:** two colours (colour picker or hex code, with a warning if the contrast is too low) or a square board image (PNG, JPG, WebP or SVG, at most 5 MB).
+  - Non-square images can be cropped to the centre.
+  - Last move, possible moves and check are always drawn on top.
+- **Your own sounds:** one slot per event (move, capture, castling, check, promotion, game start, game end, win, loss, draw, low time).
+  - Formats: MP3, OGG, WAV or FLAC, at most 2 MB and 5 seconds each.
+  - Every file is test-decoded on upload. If it cannot be played, the app says so (tip: WAV or OGG).
+  - Empty slots use the SFX sounds, so a set may consist of a single sound.
+  - File names like `move.ogg`, `Capture.mp3` (Lichess names) or `schach.wav` are assigned automatically.
+- **Limits and safety:**
+  - At most 20 sets of your own per area.
+  - The content is checked (magic bytes), not the extension.
+  - SVGs with scripts, `<foreignObject>` or external references are rejected and in any case only shown as images.
+  - Nothing is uploaded or shared.
+  - If a chosen set is missing or damaged, the app uses the default and tells you once.
+- **Storage location:** your own sets live in the app data folder, in the subfolder `appearance`. You can back them up there, and they survive updates.
+  - Linux: `~/.local/share/de.schachcoach.desktop/`
+  - Windows: `%APPDATA%\de.schachcoach.desktop\`
+  - macOS: `~/Library/Application Support/de.schachcoach.desktop/`
+- **Lichess default sounds just for you:** the familiar Lichess default sounds (`public/sound/standard` in the [Lichess source code](https://github.com/lichess-org/lila)) are not freely licensed and therefore not part of the app.
+  - You can download them yourself (e.g. `Move.ogg`, `Capture.ogg`, `Check.ogg`, `GenericNotify.ogg`, `Victory.ogg`, `Defeat.ogg`, `Draw.ogg`, `LowTime.ogg`) and drag them all at once into “Sounds → Add your own set”. The names are assigned automatically.
+  - These files are for your own use only. Do not pass them on, neither on their own nor inside a modified app.
+- Only upload files you are allowed to use. Bundled sets with author, licence and source are listed in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) and in the app under “Licences and sources”.
 
 ## Setting up the AI
 
@@ -192,7 +227,7 @@ pnpm format         # Prettier
 ## Architecture
 
 The app is a Tauri 2 program: a slim Rust part (`src-tauri/`) opens a window, and the entire interface is React + TypeScript (`src/`).
-Domain logic lives in UI-free modules – `chess/` (PGN/FEN, notation), `engine/` (Stockfish as a sidecar or in a web worker), `classification/` (winning chance, move categories, motifs), `llm/` (prompts, client), `online/` (Lichess/Chess.com) and `training/` (puzzles, move checking, spaced repetition) – each tested with Vitest.
+Domain logic lives in UI-free modules – `chess/` (PGN/FEN, notation), `engine/` (Stockfish as a sidecar or in a web worker), `classification/` (winning chance, move categories, motifs), `llm/` (prompts, client), `online/` (Lichess/Chess.com), `training/` (puzzles, move checking, spaced repetition), `play/` (playing, Lichess) and `appearance/` (pieces, board, sounds, checking your own files) – each tested with Vitest.
 State lives in Zustand stores (`store/`, including settings, session and the engine → AI pipeline); components are under `ui/` (`shared/` for building blocks, `screens/` for the four screens, `analyse/`, `import/` and `summary/` for their parts).
 All visible texts are in `src/i18n/de.json` and `src/i18n/en.json` and are loaded through i18next. The keys are typed: a wrong key or a missing English text is caught by the type check, and a test also checks that both languages have the same keys and placeholders. The AI texts (prompts and the move descriptions in words from `llm/describe.ts`) exist in both languages as well; the field names of the data stay German so that stored analyses remain valid, and the English prompt explains them. Another language needs a JSON file, an entry in `src/i18n/index.ts` and the AI texts in `src/llm/`.
 Colours, radii and fonts are design tokens as CSS variables in `src/styles/tokens.css` and are used as Tailwind classes (`bg-panel`, `text-muted`, `rounded-panel` …).

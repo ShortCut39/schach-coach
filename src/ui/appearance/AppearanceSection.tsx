@@ -4,6 +4,7 @@ import { BoardView } from '../analyse/BoardView';
 import { boardAppearanceOptions } from '../boardAppearance';
 import { SettingsCard } from '../shared/SettingsCard';
 import { BoardCard } from './BoardCard';
+import { LicensesCard } from './LicensesCard';
 import { PiecesCard } from './PiecesCard';
 import { PREVIEW_FEN, PREVIEW_LAST_MOVE } from './preview';
 import { playTestSequence } from './soundTest';
@@ -78,6 +79,7 @@ export function AppearanceSection({ draft, onChange, preview, volume }: Appearan
         onChange={(soundSetId) => onChange({ soundSetId })}
         volume={volume}
       />
+      <LicensesCard />
     </>
   );
 }

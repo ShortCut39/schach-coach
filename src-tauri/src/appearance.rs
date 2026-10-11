@@ -285,9 +285,49 @@ pub async fn appearance_read_dropped(path: String) -> Result<Response, String> {
         .map_err(String::from)
 }
 
+/// Quellen der mitgelieferten Sätze (Lizenzseite): nur Ordner im Lichess-Repository
+const SOURCE_PREFIX: &str = "https://github.com/lichess-org/lila/tree/master/public/";
+
+fn is_source_url(url: &str) -> bool {
+    url.strip_prefix(SOURCE_PREFIX).is_some_and(|rest| {
+        !rest.is_empty()
+            && rest
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '-' | '_'))
+            && !rest.contains("//")
+    })
+}
+
+/// Öffnet die Quelle eines mitgelieferten Satzes im Browser (nur Lichess-Ordner auf GitHub).
+#[tauri::command]
+pub fn appearance_open_source(url: String) -> Result<(), String> {
+    if !is_source_url(&url) {
+        return Err(ERR_INVALID.into());
+    }
+    #[allow(deprecated)]
+    tauri_plugin_shell::open::open(None, &url, None).map_err(|_| ERR_FAILED.to_string())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{check_write, file_type, read_dropped, valid_id};
+    use super::{check_write, file_type, is_source_url, read_dropped, valid_id};
+
+    #[test]
+    fn oeffnet_nur_lichess_quellen() {
+        assert!(is_source_url(
+            "https://github.com/lichess-org/lila/tree/master/public/piece/cburnett"
+        ));
+        assert!(!is_source_url(
+            "https://github.com/lichess-org/lila/tree/master/public/"
+        ));
+        assert!(!is_source_url("https://example.org/piece"));
+        assert!(!is_source_url(
+            "https://github.com/lichess-org/lila/tree/master/public/../x?y"
+        ));
+        assert!(!is_source_url(
+            "https://github.com/lichess-org/lila/tree/master/public/a b"
+        ));
+    }
 
     #[test]
     fn liest_nur_erlaubte_abgelegte_dateien() {

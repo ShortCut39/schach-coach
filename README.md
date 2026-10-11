@@ -4,7 +4,7 @@
 
 Desktop-App für die Analyse eigener Schachpartien: Stockfish bewertet jede Stellung, die App klassifiziert jeden Zug (Brillant bis Patzer), und ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt die wichtigen Züge in einfachen Worten, auf Deutsch oder Englisch – auch die guten.
 
-> **Stand: Version 3.** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Dazu **Pakete für Windows und macOS** (macOS experimentell), gebaut von GitHub Actions. Neu: **Spielen** – lokal gegen Stockfish mit Lern-Hilfen oder live auf Lichess (ohne jede Hilfe), danach mit einem Klick analysieren.
+> **Stand: Version 3.** Partien laden, mit Stockfish 19 bewerten (nativ als Sidecar, sonst WASM), klassifizieren und von einer KI erklären lassen. Dazu gibt es Zusammenfassung mit Tipps, Markdown-Export, Bibliothek, Chat zur Stellung, Import von Lichess und Chess.com und ein helles Farbschema. Dazu **Muster über viele Partien** (typische Fehler, Genauigkeit über die Zeit, Eröffnungen, KI-Trainingsplan). Dazu **Training aus eigenen Fehlern** mit Wiederholung. Dazu **Englisch** für Oberfläche und KI-Erklärungen. Dazu **Pakete für Windows und macOS** (macOS experimentell), gebaut von GitHub Actions. Dazu **Spielen** – lokal gegen Stockfish mit Lern-Hilfen oder live auf Lichess (ohne jede Hilfe), danach mit einem Klick analysieren. Neu: **Aussehen anpassen** – Figuren, Brett und Töne wählen oder eigene hochladen.
 
 ## Download
 
@@ -32,8 +32,8 @@ Fertige Pakete für Linux (AppImage, deb), Windows (Installationsprogramm) und m
   - **Muster gezielt üben:** Auf der Muster-Seite startet „Dieses Muster trainieren“ das Training nur mit Aufgaben dieses Motivs.
 - **Lichess / Chess.com:** Im Import Plattform wählen und Benutzernamen eingeben → „Partien laden“ holt die letzten 20 Partien (nur normales Schach, keine Varianten). „Du spielst“ wird automatisch auf deine Farbe gestellt. Gesendet wird nur der Benutzername, an die öffentliche Schnittstelle der Plattform.
 - **Chat zur Stellung:** Rechter Reiter „Chat“. Jede Frage bekommt automatisch die Engine-Daten der angezeigten Stellung mit (Linien und Figuren in Gefahr in Worten, dazu der letzte Zug). Die KI soll nur damit antworten.
-- **Farbschema:** Einstellungen → Darstellung → Dunkel oder Hell.
-- **Sprache:** Einstellungen → Darstellung & Sprache → Deutsch oder English. Die Sprache gilt für Oberfläche, Zahlen- und Datumsformat und die KI-Erklärungen. Beim Umschalten wechselt die Notation mit (D/T/L/S ↔ Q/R/B/N), danach ist sie weiter frei einstellbar.
+- **Farbschema:** Einstellungen → Oberfläche & Sprache → Dunkel oder Hell.
+- **Sprache:** Einstellungen → Oberfläche & Sprache → Deutsch oder English. Die Sprache gilt für Oberfläche, Zahlen- und Datumsformat und die KI-Erklärungen. Beim Umschalten wechselt die Notation mit (D/T/L/S ↔ Q/R/B/N), danach ist sie weiter frei einstellbar.
 - **Große Fenster:** Das Brett in Analyse und Training wächst mit der Fensterhöhe (bei 1440p etwa doppelt so groß), die Spalten daneben werden breiter, und alles steht mittig. Bibliothek, Muster und Zusammenfassung nutzen bis zu 1800 px Breite; die Muster-Karten stehen dann zu dritt nebeneinander.
 - **Weitermachen:** Die letzte Partie wird beim Start wiederhergestellt, mit Bewertungen, Erklärungen, Zusammenfassung und Stellung. Gespeichert wird automatisch.
 - **Tastatur:** In Reiterleisten wechseln ← / → den Reiter. Der Link „Zum Inhalt springen“ erscheint mit der Tab-Taste ganz oben.
@@ -61,6 +61,41 @@ Im Bereich **Spielen** spielst du lokal gegen Stockfish oder live gegen Menschen
   - Tests belegen das. Nach Partieende ist alles wieder da. Die App nutzt nur offiziell dokumentierte Endpunkte der Lichess-API, kein Scraping und keine Automatisierung der Webseite.
 - **Nach der Partie:** Die Ergebniskarte zeigt Ergebnis mit Grund, Zugzahl und Bedenkzeit. Jede Partie (außer abgebrochenen) landet sofort als „nicht analysiert“ in der Bibliothek. „Partie analysieren“ übergibt sie aus deiner Sicht an die Analyse, die Einstellung „Nach der Partie automatisch analysieren“ (Standard aus) macht das von selbst. Das PGN enthält Event, Site (bei Lichess der Link zur Partie), Datum, Spieler, Ergebnis, Wertungen, Zeitkontrolle und das Partieende. Lokal heißt der Gegner „Stockfish (Stufe …)“.
 - **Töne:** Zug, Schlagen, Rochade, Schach, Umwandlung, Partiebeginn, Partieende (Sieg, Niederlage, Remis) und knappe Zeit. Standard ist das frei lizenzierte Set „SFX“ von Lichess; dazu gibt es weitere freie Sets und „Einfach (synthetisch)“ (von der App selbst berechnet). In der Desktop-App dekodiert und spielt sie der Rust-Teil (rodio/symphonia), weil Audio in der Linux-WebView entweder stumm blieb (WebAudio) oder die App einfrieren konnte (`<audio>`). Unter Einstellungen → Spielen gibt es „Töne“, „Lautstärke“ und „Ton testen“.
+
+## Aussehen anpassen
+
+Unter **Einstellungen → Darstellung** wählst du Figuren, Brett und Töne für alle Bretter der App (Spielen, Analyse, Training). Die Vorschau oben zeigt deine Auswahl sofort, mit einer Stellung aus der Opera-Partie samt Schach. Übernommen wird sie wie alle Einstellungen erst mit **„Speichern“** ganz unten. „Ton testen“ spielt Zug, Schlagzug, Schach und Partieende. Hochladen, Umbenennen und Löschen eigener Sätze wirken dagegen sofort.
+
+- **Voreinstellungen:**
+  - Figuren: cburnett (Standard, wie bei Lichess), Merida, Chessnut, RhosGFX, Fantasy, Pixel.
+  - Brett: App-Standard, Holz, Salbei sowie Farbpaare im Lichess-Stil (braun, blau, grün, grau, lila). Koordinaten lassen sich abschalten.
+  - Töne: SFX (Standard), Piano, NES, Futuristic und „Einfach (synthetisch)“.
+  - „Zurücksetzen auf Standard“ gibt es pro Bereich.
+- **Eigene Figuren:** 12 Dateien (SVG, PNG oder WebP, je höchstens 2 MB), auch als ZIP-Archiv (höchstens 64 Einträge und 10 MB entpackt, Pfade im Archiv werden ignoriert).
+  - Namen wie `wK.svg`, `white_king.png`, `WhiteKing.png` oder `weisser_koenig.svg` werden automatisch zugeordnet, der Rest per Klick.
+  - Empfohlen: quadratisch, mindestens 128 × 128 px, transparenter Hintergrund.
+- **Eigenes Brett:** zwei Farben (Farbwähler oder Hex-Code, mit Warnung bei zu wenig Kontrast) oder ein quadratisches Brettbild (PNG, JPG, WebP oder SVG, höchstens 5 MB).
+  - Nicht quadratische Bilder lassen sich mittig zuschneiden.
+  - Letzter Zug, mögliche Züge und Schach liegen immer darüber.
+- **Eigene Töne:** ein Platz je Ereignis (Zug, Schlagzug, Rochade, Schach, Umwandlung, Partiebeginn, Partieende, Sieg, Niederlage, Remis, wenig Zeit).
+  - Formate: MP3, OGG, WAV oder FLAC, je höchstens 2 MB und 5 Sekunden.
+  - Jede Datei wird beim Hochladen probeweise dekodiert. Lässt sie sich nicht abspielen, sagt die App das (Tipp: WAV oder OGG).
+  - Freie Plätze nutzen die Töne von SFX, ein Set darf also auch aus einem einzigen Ton bestehen.
+  - Dateinamen wie `move.ogg`, `Capture.mp3` (Lichess-Namen) oder `schach.wav` werden automatisch zugeordnet.
+- **Grenzen und Sicherheit:**
+  - Höchstens 20 eigene Sätze je Bereich.
+  - Geprüft wird der Inhalt (Magic Bytes), nicht die Endung.
+  - SVGs mit Skripten, `<foreignObject>` oder externen Verweisen werden abgelehnt und auch sonst nur als Bild angezeigt.
+  - Nichts wird hochgeladen oder weitergegeben.
+  - Fehlt ein gewählter Satz oder ist er beschädigt, nutzt die App den Standard und sagt es einmal.
+- **Speicherort:** Eigene Sätze liegen im App-Datenordner im Unterordner `appearance`. Dort lassen sie sich mitsichern, und sie überstehen Updates.
+  - Linux: `~/.local/share/de.schachcoach.desktop/`
+  - Windows: `%APPDATA%\de.schachcoach.desktop\`
+  - macOS: `~/Library/Application Support/de.schachcoach.desktop/`
+- **Lichess-Standardtöne nur für dich:** Die bekannten Standardtöne von Lichess (`public/sound/standard` im [Lichess-Quellcode](https://github.com/lichess-org/lila)) sind nicht frei lizenziert und deshalb nicht in der App.
+  - Du kannst sie selbst herunterladen (z. B. `Move.ogg`, `Capture.ogg`, `Check.ogg`, `GenericNotify.ogg`, `Victory.ogg`, `Defeat.ogg`, `Draw.ogg`, `LowTime.ogg`) und unter „Töne → Eigenen Satz hinzufügen“ auf einmal hineinziehen. Die Namen werden automatisch zugeordnet.
+  - Diese Dateien sind nur für deinen eigenen Gebrauch. Gib sie nicht weiter, weder einzeln noch in einer veränderten App.
+- Lade nur Dateien hoch, die du verwenden darfst. Mitgelieferte Sätze mit Autor, Lizenz und Quelle stehen in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) und in der App unter „Lizenzen und Quellen“.
 
 ## KI einrichten
 
@@ -188,7 +223,7 @@ pnpm format         # Prettier
 ## Architektur
 
 Die App ist ein Tauri-2-Programm: ein schlanker Rust-Teil (`src-tauri/`) öffnet ein Fenster, die gesamte Oberfläche ist React + TypeScript (`src/`).
-Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish als Sidecar oder im Web Worker), `classification/` (Gewinnchance, Zugkategorien, Motive), `llm/` (Prompts, Client), `online/` (Lichess/Chess.com) und `training/` (Aufgaben, Zugprüfung, Wiederholung) – die einzeln mit Vitest getestet werden.
+Fachlogik liegt in UI-freien Modulen – `chess/` (PGN/FEN, Notation), `engine/` (Stockfish als Sidecar oder im Web Worker), `classification/` (Gewinnchance, Zugkategorien, Motive), `llm/` (Prompts, Client), `online/` (Lichess/Chess.com), `training/` (Aufgaben, Zugprüfung, Wiederholung), `play/` (Spielen, Lichess) und `appearance/` (Figuren, Brett, Töne, Prüfung eigener Dateien) – die einzeln mit Vitest getestet werden.
 Zustand liegt in Zustand-Stores (`store/`, inklusive Einstellungen, Sitzung und dem Ablauf Engine → KI), Komponenten liegen unter `ui/` (`shared/` für Bausteine, `screens/` für die vier Screens, `analyse/`, `import/` und `summary/` für deren Teile).
 Alle sichtbaren Texte stehen in `src/i18n/de.json` und `src/i18n/en.json` und werden über i18next geladen. Die Schlüssel sind typisiert: Ein falscher Schlüssel oder ein fehlender englischer Text fällt beim Typecheck auf, ein Test prüft zusätzlich gleiche Schlüssel und Platzhalter in beiden Sprachen. Die KI-Texte (Prompts und die Zugbeschreibungen in Worten aus `llm/describe.ts`) gibt es ebenfalls in beiden Sprachen; die Feldnamen der Daten bleiben deutsch, damit gespeicherte Analysen gültig bleiben, und der englische Prompt erklärt sie. Eine weitere Sprache braucht eine JSON-Datei, einen Eintrag in `src/i18n/index.ts` und die KI-Texte in `src/llm/`.
 Farben, Radien und Schriften sind Design-Tokens als CSS-Variablen in `src/styles/tokens.css` und werden als Tailwind-Klassen (`bg-panel`, `text-muted`, `rounded-panel` …) verwendet.

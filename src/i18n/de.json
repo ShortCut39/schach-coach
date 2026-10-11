@@ -1125,6 +1125,20 @@
       "defeat": "Niederlage",
       "draw": "Remis",
       "lowTime": "Wenig Zeit"
+    },
+    "licenses": {
+      "title": "Lizenzen und Quellen",
+      "toggle": "Mitgelieferte Figuren und Töne anzeigen",
+      "intro": "Diese Figuren und Töne stammen von Lichess und sind frei lizenziert. Sie sind unverändert enthalten; die Liste steht auch in THIRD_PARTY_ASSETS.md im Quellcode.",
+      "set": "Satz",
+      "author": "Autor",
+      "license": "Lizenz",
+      "source": "Quelle",
+      "synth": "„Einfach (synthetisch)“ berechnet die App selbst, ohne fremde Dateien.",
+      "notIncluded": "Die Standardtöne von Lichess sind nicht frei lizenziert und deshalb nicht enthalten.",
+      "own": "Für eigene hochgeladene Dateien bist du selbst verantwortlich. Sie bleiben auf deinem Computer.",
+      "showText": "Lizenztext {{file}}",
+      "loading": "Wird geladen …"
     }
   }
 }

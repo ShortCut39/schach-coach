@@ -1125,6 +1125,20 @@
       "defeat": "Loss",
       "draw": "Draw",
       "lowTime": "Low time"
+    },
+    "licenses": {
+      "title": "Licences and sources",
+      "toggle": "Show bundled pieces and sounds",
+      "intro": "These pieces and sounds come from Lichess and are freely licensed. They are included unmodified; the list is also in THIRD_PARTY_ASSETS.md in the source code.",
+      "set": "Set",
+      "author": "Author",
+      "license": "Licence",
+      "source": "Source",
+      "synth": "“Simple (synthesised)” is computed by the app itself, without third-party files.",
+      "notIncluded": "The Lichess default sounds are not freely licensed and therefore not included.",
+      "own": "You are responsible for files you upload yourself. They stay on your computer.",
+      "showText": "Licence text {{file}}",
+      "loading": "Loading …"
     }
   }
 }
