@@ -1,6 +1,6 @@
 # Schach-Coach – Hinweise für Claude
 
-Tauri-2-Desktop-App: Partien (PGN/FEN, Lichess, Chess.com) laden, Stockfish 19 bewertet jede Stellung, jeder Zug wird klassifiziert (Brillant bis Patzer), ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt. Dazu Bibliothek, Muster über viele Partien, Training aus eigenen Fehlern, Deutsch/Englisch. Alle geplanten Features (M0–M6, Version 3) sind fertig; Releases v0.1.0–v0.1.3 sind auf GitHub (öffentlich: ShortCut39/schach-coach). Details für Nutzer: `README.md` / `README.en.md`.
+Tauri-2-Desktop-App: Partien (PGN/FEN, Lichess, Chess.com) laden, Stockfish 19 bewertet jede Stellung, jeder Zug wird klassifiziert (Brillant bis Patzer), ein LLM über einen OpenAI-kompatiblen Endpunkt erklärt. Dazu Bibliothek, Muster über viele Partien, Training aus eigenen Fehlern, Deutsch/Englisch und der Bereich **Spielen** (lokal gegen Stockfish mit Hilfen, live auf Lichess über die Board-API ohne Hilfen). Alle geplanten Features (M0–M6, Version 3) sind fertig; Releases v0.1.0–v0.1.3 sind auf GitHub (öffentlich: ShortCut39/schach-coach). Details für Nutzer: `README.md` / `README.en.md`.
 
 ## Arbeitsweise
 
@@ -15,6 +15,7 @@ Tauri-2-Desktop-App: Partien (PGN/FEN, Lichess, Chess.com) laden, Stockfish 19 b
 3. Keine festen Texte in Komponenten: alles in `src/i18n/de.json` **und** `src/i18n/en.json` (gleiche Schlüssel und Platzhalter – Typecheck und `src/i18n/i18n.test.ts` prüfen das). Zahlen/Datum über `currentLocale()` bzw. `src/ui/format.ts`, nie `'de-DE'` fest.
 4. Keine erfundenen Daten in der echten App (nur Tests/Fixtures).
 5. Der API-Key wird nie geloggt, nie in Code geschrieben und nur an den eingestellten Endpunkt gesendet (Schlüsselbund, getrennt pro Origin: `src-tauri/src/secrets.rs`).
+6. **Fair Play bei Lichess:** Während einer Live-Partie ist die Sperre `src/play/liveGuard.ts` aktiv. Durchgesetzt wird sie nur zentral (`UciEngine`, `getEngines`/`startStandaloneEngine`, `chatCompletion`), nie per `if` in Komponenten. Neue Engine- oder KI-Wege müssen dort durch. Der Lichess-Token geht nur an `https://lichess.org` (fester Host in `src/play/lichess/client.ts`), nur offizielle API-Endpunkte.
 
 ## Befehle
 
@@ -27,7 +28,8 @@ pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binar
 
 ## Aufbau
 
-- `src/chess/` PGN/FEN, Notation · `src/engine/` UCI, Engine-Pool (native Sidecar oder WASM) · `src/classification/` Gewinnchance, Kategorien, Motive, Muster · `src/llm/` Prompts, Client, Fakten · `src/training/` Aufgaben, Zugprüfung, Leitner · `src/online/` Lichess/Chess.com · `src/store/` Zustand-Stores · `src/ui/` Komponenten · `src-tauri/` Rust (Datei-Import, Schlüsselbund, Bibliothek).
+- `src/play/` Spielen: `session/` (GameSession, LocalSession, LichessSession), `clock/`, `rules/`, `opponent/` (Stufen, Gegner-Engine), `lichess/` (Client, OAuth/PKCE, NDJSON, Lobby, Mapper), `liveGuard.ts`, `sound*.ts` · `src/store/play.ts`, `src/store/lichessAuth.ts` · `src/ui/play/`, `src/ui/screens/PlayScreen.tsx`.
+- `src/chess/` PGN/FEN, Notation · `src/engine/` UCI, Engine-Pool (native Sidecar oder WASM) · `src/classification/` Gewinnchance, Kategorien, Motive, Muster · `src/llm/` Prompts, Client, Fakten · `src/training/` Aufgaben, Zugprüfung, Leitner · `src/online/` Lichess/Chess.com · `src/store/` Zustand-Stores · `src/ui/` Komponenten · `src-tauri/` Rust (Datei-Import, Schlüsselbund inkl. Lichess-Token, Bibliothek, Lichess-Loopback für OAuth `lichess.rs`, Töne über rodio `sound.rs`).
 - KI-Texte gibt es in beiden Sprachen (`ExplanationLanguage`); die **Feldnamen der Fakten und Antworten bleiben deutsch** (`zug_in_worten`, `was`/`warum`/…), damit gespeicherte Analysen gültig bleiben – der englische Prompt erklärt sie.
 - Gespeicherte Formate (Einstellungen, Sitzung, Bibliothek, `trainingCards`, `trainingExplanations`, `trainingPlan`) werden mit zod und `.catch(...)` gelesen; neue Felder immer abwärtskompatibel ergänzen.
 
@@ -41,6 +43,7 @@ pnpm fetch:engine --target <triple>   # Stockfish-19-Binary nach src-tauri/binar
 - **Töne unter WebKitGTK:** WebAudio liefert in der WebView nur Stille (am PipeWire-Monitor gemessen), und `<audio>` kann die WebView einfrieren (GStreamer-Deadlock, WebKit beendet dann den Prozess). Töne deshalb in der Desktop-App über Rust abspielen (`src-tauri/src/sound.rs`, rodio); `<audio>` nur im Browser-Modus.
 - **react-chessboard:** `squareStyles` landen auf dem inneren Element des Felds. Die englischen dnd-kit-Screenreader-Texte sind per CSS ausgeblendet; die App sagt Züge selbst an.
 - **Tests:** jsdom braucht den `getBoundingClientRect`-Stub aus `src/test/setup.ts`; Test-Engine `src/test/fakeEngine.ts`, Test-KI `src/test/fakeLlm.ts` (erkennt deutsche und englische Prompts an ihren Markern); Bibliotheks-Fixture `src/test/libraryFixtures.ts`. Tests mit der nativen Engine werden übersprungen, wenn die Binary fehlt.
+- **Lichess:** nur ein Ereignisstrom pro Token (ein neuer schließt den alten), ihn vor der Suche öffnen. Rochaden kommen in der Zugliste auch als König-auf-Turm (`e1h1`). Serverstand ist die Wahrheit, Zeitüberschreitung entscheidet nur der Server. Tests mit dem simulierten Server `src/test/fakeLichess.ts`; Warte-Funktionen in Tests müssen an die Timer abgeben (`setTimeout`), sonst hängt die Neuverbinden-Schleife.
 - **pnpm:** `pnpm-workspace.yaml` schaltet das `postinstall` von `stockfish` bewusst ab (`allowBuilds`).
 - **Sichtprüfung großer Fenster** im Vorschau-Browser: Viewport per `resize_window` setzen, für Übersichtsbilder `document.documentElement.style.transform = 'scale(…)'` (ändert das Layout nicht), Maße per `getBoundingClientRect` ohne Transform. Testdaten im Vorschau-Speicher danach wieder löschen.
 

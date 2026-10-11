@@ -13,6 +13,9 @@ interface ActionBarProps {
   canProposeTakeback?: boolean;
 }
 
+/** Textknöpfe der Leiste: schmaler Innenabstand, damit drei nebeneinander passen */
+const TEXT_BUTTON = 'px-2 text-[13.5px] leading-tight';
+
 /** Aufgeben (mit Rückfrage), Remis anbieten, Abbrechen (nur ganz am Anfang), Brett drehen. */
 export function ActionBar({
   view,
@@ -53,15 +56,20 @@ export function ActionBar({
   }
 
   return (
-    <div role="group" aria-label={t('play.actions.label')} className="flex flex-wrap gap-2">
+    <div
+      role="group"
+      aria-label={t('play.actions.label')}
+      // Feste Spalten: Textknöpfe teilen sich die Breite, „Brett drehen“ bleibt rechts daneben
+      className={`grid gap-2 ${view.live ? 'grid-cols-[1fr_1fr_1fr_auto]' : 'grid-cols-[1fr_1fr_auto]'}`}
+    >
       {canAbort ? (
-        <Button variant="ghost" className="flex-1" onClick={() => void abort()}>
+        <Button variant="ghost" className={TEXT_BUTTON} onClick={() => void abort()}>
           {t('play.actions.abort')}
         </Button>
       ) : (
         <Button
           variant="ghost"
-          className="flex-1"
+          className={TEXT_BUTTON}
           disabled={!playing}
           onClick={() => setConfirmResign(true)}
         >
@@ -70,7 +78,7 @@ export function ActionBar({
       )}
       <Button
         variant="ghost"
-        className="flex-1"
+        className={TEXT_BUTTON}
         disabled={!canOfferDraw}
         onClick={() => void offerDraw()}
       >
@@ -79,7 +87,7 @@ export function ActionBar({
       {view.live && (
         <Button
           variant="ghost"
-          className="flex-1"
+          className={TEXT_BUTTON}
           disabled={!canProposeTakeback}
           onClick={() => void proposeTakeback()}
         >
@@ -93,7 +101,7 @@ export function ActionBar({
         onClick={flip}
         aria-label={t('play.actions.flip')}
         title={t('play.actions.flip')}
-        className="flex items-center justify-center px-3.5"
+        className="flex items-center justify-center px-3"
       >
         <IconFlip />
       </Button>

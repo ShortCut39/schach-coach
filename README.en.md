@@ -4,7 +4,7 @@
 
 A desktop app for analysing your own chess games: Stockfish evaluates every position, the app classifies every move (Brilliant to Blunder), and an LLM behind an OpenAI-compatible endpoint explains the important moves in plain words, in English or German – the good ones too.
 
-> **Status: version 3.** Load games, evaluate them with Stockfish 19 (native as a sidecar, otherwise WASM), classify them and have an AI explain them. There is also a summary with tips, Markdown export, a library, a chat about the position, import from Lichess and Chess.com and a light colour scheme. Plus **patterns across many games** (typical errors, accuracy over time, openings, AI training plan), **training from your own errors** with spaced repetition, and an **English** interface and AI explanations. New: **packages for Windows and macOS** (macOS experimental), built by GitHub Actions.
+> **Status: version 3.** Load games, evaluate them with Stockfish 19 (native as a sidecar, otherwise WASM), classify them and have an AI explain them. There is also a summary with tips, Markdown export, a library, a chat about the position, import from Lichess and Chess.com and a light colour scheme. Plus **patterns across many games** (typical errors, accuracy over time, openings, AI training plan), **training from your own errors** with spaced repetition, and an **English** interface and AI explanations. Plus **packages for Windows and macOS** (macOS experimental), built by GitHub Actions. New: **Play** – locally against Stockfish with learning aids or live on Lichess (without any assistance), then analyse with one click.
 
 The app name stays “Schach-Coach” (German for “chess coach”) in both languages.
 
@@ -19,7 +19,7 @@ The app starts in German. Switch to English under **Einstellungen → Darstellun
 - **Import:** paste a PGN (checked live below the field), a FEN in the “FEN” tab, or drag a `.pgn` file into the window or pick one. If the text contains several games, a list appears on the right. “You play” decides which side is at the bottom.
 - **Analysis:** click a move in the list or use the keyboard: **← / →** one move, **Home / End** start/end, **F** flip the board. Clicking the evaluation graph jumps to that move.
 - **Summary:** on the right of the analysis screen, tab “Summary” → “Open summary”. It shows accuracy per phase, move categories, turning points (clickable), the opening, the evaluation graph and the AI's three most important tips. “Export as Markdown” saves everything including the move list and explanations as a `.md` file.
-- **Library:** every fully evaluated game ends up here automatically, with explanations, tips and chat. You can search by opening, player or title, filter by “As White”, “As Black” and “Losses”, and sort. “Open” loads the game without recalculating; deleting asks once. If you import the same game again at the same depth, the app reuses the stored evaluations. It only reuses explanations if you picked the same colour again.
+- **Library:** every fully evaluated game ends up here automatically (played games even before that, as “not analysed”), with explanations, tips and chat. You can search by opening, player or title, filter by “As White”, “As Black” and “Losses”, and sort. “Open” loads the game without recalculating; deleting asks once. If you import the same game again at the same depth, the app reuses the stored evaluations. It only reuses explanations if you picked the same colour again.
 - **Patterns across many games:** Library → “Patterns” tab, visible from 3 analysed games.
   - **Typical errors:** each of your errors gets a motif: hung material, missed threat, missed capture, allowed mate, missed mate or other. With frequency and clickable examples that open the game at exactly that move.
   - **Accuracy over time:** a graph across your games, the trend of the last 5 games against the earlier ones, and the phases with accuracy and errors per 10 of your moves.
@@ -42,6 +42,29 @@ The app starts in German. Switch to English under **Einstellungen → Darstellun
 - **Pick up where you left off:** the last game is restored on start, with evaluations, explanations, summary and position. Saving is automatic.
 - **Keyboard:** in tab bars, ← / → switch tabs. The “Skip to content” link appears at the very top when you press Tab.
 - **Engine:** the desktop app runs **native Stockfish 19** as a sidecar; several processes evaluate different positions at the same time. If the binary is missing, the app automatically uses the built-in WASM version. Settings → Engine lets you choose “Native” or “Built-in” and the threads, i.e. how many positions are evaluated at once (Automatic = half the cores, at most 4). The engine starts when the app opens (header: “Stockfish 19 · depth 20” with a green dot). “Analyse” evaluates every position while you can already click through. The engine lines show what was best before the current move; all evaluations are from White's point of view.
+
+## Playing and Lichess
+
+In the **Play** area you play locally against Stockfish or live against people on Lichess. Afterwards every game can be analysed with one click.
+
+- **Against Stockfish:** time control (10+0, 10+5, 15+10, custom or no clock), colour (white, random, black) and strength (Beginner, Easy, Medium, Strong, Maximum). The opponent is its own engine instance, separate from the analysis. Its thinking time follows its remaining time (remaining time / 30 plus 80 % of the increment, capped per level), plus a short artificial pause so moves do not appear instantly. If your time runs out you lose, unless the opponent has no mating material left (then it is a draw).
+  - **Assistance** (only here): “Hint” shows the best move as an arrow (calculated by the analysis engine; the result card shows how many hints you used), “Take back move” takes back your move and the reply (the clock gets no time back), and the evaluation bar can be switched on and off (off by default).
+  - **Draws:** Stockfish accepts when it is at most slightly better itself (≤ +0.30) and never offers one. A new offer is possible three moves later at the earliest.
+  - **The levels are rough estimates, not verified Elo ratings.** Beginner and Easy use `Skill Level` with depth and time limits, Medium and Strong use `UCI_LimitStrength` with `UCI_Elo` 1500 and 2000 (Stockfish 19 only allows 1320 and up), Maximum is full strength. Only the order is verified: in engine-vs-engine games the higher level won the majority.
+- **Lichess:** sign in under Settings → Lichess.
+  - **Sign-in:** via the browser (OAuth 2 with PKCE, no client secret, redirect to a small receiver on `127.0.0.1` with a random port) or with a personal token you create on Lichess. Only the permission `board:play` is needed. According to the Lichess source code it also covers challenges.
+  - **Token:** stored in the system keyring, only sent to `https://lichess.org` (the address is fixed in the code), and it never appears in a log or error message. “Sign out” deletes it and revokes it on Lichess (`DELETE /api/token`).
+  - **Find opponent:** open seek via the Board API, rated or casual. Lichess only allows this from rapid upwards (base time + 40 × increment at least 8 minutes), and the app shows this in advance. “Cancel seek” closes the connection, and Lichess then deletes the seek.
+  - **Challenge a friend** by username. Blitz is allowed here too (whole minutes, 0–60 s increment). Incoming challenges appear in the Lichess dialog to accept or decline.
+  - **During the game:** the clock comes from the server, and only Lichess decides whether time has run out. You can resign (with confirmation), offer and accept draws, abort (until each side has moved once) and “Ask for takeback” (Lichess asks your opponent). If the opponent leaves the game, you can claim victory or a draw once the waiting time is over. A simple chat with the opponent can be switched off. If the connection drops, the app reconnects by itself. After a restart it offers to resume ongoing games.
+- **Fair play:** Lichess forbids any assistance in live games – engine, opening book, endgame tablebases and outside tips – including for third-party clients. So from the start of the game a central lock applies (`src/play/liveGuard.ts`):
+  - The analysis engines are shut down, not just hidden.
+  - No engine starts, not even for other games.
+  - The AI is locked, and running requests are cancelled.
+  - There is no evaluation, no categories, no arrows and no coach; analysis and training only show a notice.
+  - Tests prove this. Everything is back after the game. The app only uses officially documented Lichess API endpoints, with no scraping and no automation of the website.
+- **After the game:** the result card shows the result with its reason, the number of moves and the time control. Every game (except aborted ones) goes straight into the library as “not analysed”. “Analyse game” hands it to the analysis from your point of view, and the setting “Analyse automatically after the game” (off by default) does this by itself. The PGN contains Event, Site (the game link for Lichess), date, players, result, ratings, time control and how the game ended. Locally the opponent is called “Stockfish (level …)”.
+- **Sounds:** move, capture, castling, check, promotion, game start, game end and low time. The app computes them itself; there are no third-party audio files and no Lichess sounds. In the desktop app the Rust part plays them (rodio), because audio in the Linux WebView was either silent (WebAudio) or could freeze the app (`<audio>`). Settings → Play has “Sounds”, “Volume” and “Test sound”.
 
 ## Setting up the AI
 
@@ -181,7 +204,7 @@ Design mockups: `docs/mockups/` (local only, not in the repository).
 - **NVIDIA + Wayland:** WebKitGTK otherwise crashes there with “Error 71 (Protocol error)”. On Linux the app therefore sets `WEBKIT_DISABLE_DMABUF_RENDERER=1` on start, unless the variable is already set (`src-tauri/src/main.rs`).
 - **TypeScript 6.0 instead of 7:** `typescript-eslint` does not support TypeScript 7 yet. Switching is planned as soon as it does.
 - **Content Security Policy:** set strictly in `src-tauri/tauri.conf.json` (own files only, WASM allowed, network only through the Tauri HTTP plugin). Dev mode uses a separate, looser `devCsp` for Vite's hot reload. `style-src` is exempt from Tauri's automatic nonces because React and react-chessboard use inline styles.
-- **HTTP permissions:** the app may contact any `https://` address as well as `http://localhost` and `http://127.0.0.1` (`src-tauri/capabilities/default.json`). An LLM server on your home network via `http://192.168…` is therefore not reachable.
+- **HTTP permissions:** the app may contact any `https://` address as well as `http://localhost` and `http://127.0.0.1` (`src-tauri/capabilities/default.json`). An LLM server on your home network via `http://192.168…` is therefore not reachable. The AI connection needs any `https://` address. The app still only sends the Lichess token to `https://lichess.org`, because that address is fixed in the Lichess client.
 - In browser mode (`pnpm dev` without Tauri) there is no keyring: the key only lasts until the page is reloaded. CORS rules may also block requests.
 - **Library on disk:** on Linux `~/.local/share/de.schachcoach.desktop/library/` (one metadata and one data file per game; Windows and macOS see above). In browser mode it lives in the browser's `localStorage`.
 - **Online import:** Lichess and Chess.com block requests without a suitable user agent. The app sends the user agent of the Tauri HTTP plugin, and both APIs accept it (tested in October 2026). If a platform changes its rules, the app reports “could not be used” or “cannot be reached”.
@@ -211,6 +234,8 @@ Design mockups: `docs/mockups/` (local only, not in the repository).
 - Opening names come from the Lichess book and are English (e.g. “Philidor Defense”).
 - At low depth (e.g. 14), Stockfish evaluates some positions noticeably differently than at depth 20. This also changes the categories.
 - The app is tested on Linux and Windows; macOS is built but untested.
+- **Lichess:** games via Lichess are tested with a simulated server (normal game, rejected move, dropped connection, draw, time-out, resignation, challenges, chat) and with one real casual game. The Lichess docs do not say whether the game stream sends regular keep-alives. If it stays silent for 20 s, the app reconnects as a precaution (harmless). The Lichess client sends requests one at a time and waits a minute after “too many requests” (HTTP 429).
+- **Sounds:** if the audio device changes while the app is running (e.g. Bluetooth headphones off and on again), it may stay silent until the app is restarted.
 
 ## Licence
 
