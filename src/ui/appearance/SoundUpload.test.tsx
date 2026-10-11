@@ -80,6 +80,28 @@ describe('Töne', () => {
     expect(soundSourceFor('defeat')?.key).toBe('sfx:Defeat');
   });
 
+  it('übernimmt Lichess-Ordner mit Git-Verweisen (Sieg → GenericNotify)', async () => {
+    render(<EinstellungenScreen />);
+    clickInCard('Töne', 'Eigenen Satz hinzufügen');
+    const dialog = await screen.findByRole('dialog');
+    const link = (target: string) => new TextEncoder().encode(target) as Uint8Array<ArrayBuffer>;
+    fireEvent.change(within(dialog).getByTestId('upload-input'), {
+      target: {
+        files: [
+          file('Move.ogg', ogg(2)),
+          file('GenericNotify.ogg', ogg(6)),
+          file('Victory.ogg', link('GenericNotify.ogg')),
+          file('Check.ogg', link('../Silence.ogg')),
+        ],
+      },
+    });
+    expect(await within(dialog).findByText('4 von 11 eigene')).toBeInTheDocument();
+    expect(within(dialog).getByText('Victory.ogg')).toBeInTheDocument();
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'Check.ogg: ist kein Ton und kein Bild, sondern nur ein Verweis auf „Silence.ogg“',
+    );
+  });
+
   it('bearbeitet ein eigenes Set: Platz leeren und speichern', async () => {
     const storage = memoryAppearanceStorage();
     setAppearanceStorage(storage);

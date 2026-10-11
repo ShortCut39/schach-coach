@@ -68,6 +68,7 @@ export function PieceUploadDialog({
     const found: FileProblem[] = [...result.errors, ...expanded.errors].map((e) => ({
       name: e.name,
       reason: e.error,
+      ...(e.target ? { target: e.target } : {}),
     }));
     const candidates: Candidate[] = [];
     for (const file of expanded.files) {

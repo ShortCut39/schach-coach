@@ -1074,7 +1074,8 @@
       "tooManyFiles": "ZIP archive contains too many files",
       "unsupported": "your system cannot play this format (tip: WAV or OGG)",
       "tooLong": "longer than 5 seconds",
-      "unassigned": "event not recognised from the file name – choose the slot below with “Choose file”"
+      "unassigned": "event not recognised from the file name – choose the slot below with “Choose file”",
+      "link": "is neither a sound nor an image, just a reference to “{{target}}” (this is how Git stores links). Add “{{target}}” as well and it is used automatically."
     },
     "warnings": {
       "notSquare": "not square",

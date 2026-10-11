@@ -98,6 +98,7 @@ Under **Settings → Appearance** you choose pieces, board and sounds for every 
   - macOS: `~/Library/Application Support/de.schachcoach.desktop/`
 - **Lichess default sounds just for you:** the familiar Lichess default sounds (`public/sound/standard` in the [Lichess source code](https://github.com/lichess-org/lila)) are not freely licensed and therefore not part of the app.
   - You can download them yourself (e.g. `Move.ogg`, `Capture.ogg`, `Check.ogg`, `GenericNotify.ogg`, `Victory.ogg`, `Defeat.ogg`, `Draw.ogg`, `LowTime.ogg`) and drag them all at once into “Sounds → Add your own set”. The names are assigned automatically.
+  - In the Lichess source code some of these files are only links: `Victory`, `Defeat` and `Draw` point to `GenericNotify`, `Check` to silence (Lichess has no check sound of its own). Depending on the download they arrive as tiny text files. The app then uses the target file if it is included. Check keeps the SFX sound.
   - These files are for your own use only. Do not pass them on, neither on their own nor inside a modified app.
 - Only upload files you are allowed to use. Bundled sets with author, licence and source are listed in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) and in the app under “Licences and sources”.
 

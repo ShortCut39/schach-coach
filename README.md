@@ -94,6 +94,7 @@ Unter **Einstellungen → Darstellung** wählst du Figuren, Brett und Töne für
   - macOS: `~/Library/Application Support/de.schachcoach.desktop/`
 - **Lichess-Standardtöne nur für dich:** Die bekannten Standardtöne von Lichess (`public/sound/standard` im [Lichess-Quellcode](https://github.com/lichess-org/lila)) sind nicht frei lizenziert und deshalb nicht in der App.
   - Du kannst sie selbst herunterladen (z. B. `Move.ogg`, `Capture.ogg`, `Check.ogg`, `GenericNotify.ogg`, `Victory.ogg`, `Defeat.ogg`, `Draw.ogg`, `LowTime.ogg`) und unter „Töne → Eigenen Satz hinzufügen“ auf einmal hineinziehen. Die Namen werden automatisch zugeordnet.
+  - Im Lichess-Quellcode sind manche dieser Dateien nur Verweise: `Victory`, `Defeat` und `Draw` zeigen auf `GenericNotify`, `Check` auf Stille (Lichess hat keinen eigenen Schach-Ton). Je nach Download kommen sie als winzige Textdateien an. Die App übernimmt dann die Zieldatei, wenn sie mit dabei ist. Für Schach bleibt der Ton aus SFX.
   - Diese Dateien sind nur für deinen eigenen Gebrauch. Gib sie nicht weiter, weder einzeln noch in einer veränderten App.
 - Lade nur Dateien hoch, die du verwenden darfst. Mitgelieferte Sätze mit Autor, Lizenz und Quelle stehen in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) und in der App unter „Lizenzen und Quellen“.
 

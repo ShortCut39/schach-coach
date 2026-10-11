@@ -122,6 +122,7 @@ export function BoardUploadDialog({
     const found: FileProblem[] = [...result.errors, ...expanded.errors].map((e) => ({
       name: e.name,
       reason: e.error,
+      ...(e.target ? { target: e.target } : {}),
     }));
     const [file] = expanded.files;
     setCropFailed(false);

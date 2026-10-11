@@ -12,11 +12,14 @@ export type FileReason =
   | 'tooManyFiles'
   | 'unsupported'
   | 'tooLong'
-  | 'unassigned';
+  | 'unassigned'
+  | 'link';
 
 export interface FileProblem {
   name: string;
   reason: FileReason;
+  /** Bei `link`: Datei, auf die verwiesen wird */
+  target?: string;
 }
 
 /** Hinweis in jedem Upload-Dialog */
@@ -42,7 +45,7 @@ export function FileProblems({ problems }: { problems: FileProblem[] }) {
           </span>
           <span>
             <span className="font-mono font-medium break-all">{problem.name}</span>:{' '}
-            {t(`appearance.reasons.${problem.reason}`)}
+            {t(`appearance.reasons.${problem.reason}`, { target: problem.target ?? '' })}
           </span>
         </li>
       ))}

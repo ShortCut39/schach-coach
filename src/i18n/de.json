@@ -1074,7 +1074,8 @@
       "tooManyFiles": "ZIP-Archiv enthält zu viele Dateien",
       "unsupported": "dein System kann dieses Format nicht abspielen (Tipp: WAV oder OGG)",
       "tooLong": "länger als 5 Sekunden",
-      "unassigned": "Ereignis am Dateinamen nicht erkannt – wähle den Platz unten mit „Datei wählen“"
+      "unassigned": "Ereignis am Dateinamen nicht erkannt – wähle den Platz unten mit „Datei wählen“",
+      "link": "ist kein Ton und kein Bild, sondern nur ein Verweis auf „{{target}}“ (so speichert Git Verknüpfungen). Lege „{{target}}“ mit dazu, dann wird es automatisch übernommen."
     },
     "warnings": {
       "notSquare": "nicht quadratisch",

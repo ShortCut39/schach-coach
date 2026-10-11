@@ -114,6 +114,7 @@ export function SoundUploadDialog({ onClose, onCreated, edit, volume }: SoundUpl
     const found: FileProblem[] = [...result.errors, ...expanded.errors].map((e) => ({
       name: e.name,
       reason: e.error,
+      ...(e.target ? { target: e.target } : {}),
     }));
     const valid: SoundFile[] = [];
     for (const file of expanded.files) {

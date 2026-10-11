@@ -5,11 +5,48 @@ import { MB } from './validate';
 export type { UploadFile } from './zip';
 
 /** Fehler beim Einlesen (vor der inhaltlichen Prüfung) */
-export type ReadError = ZipError | 'unreadable' | 'type';
+export type ReadError = ZipError | 'unreadable' | 'type' | 'link';
 
 export interface ReadResult {
   files: UploadFile[];
-  errors: { name: string; error: ReadError }[];
+  /** `target`: bei `link` die Datei, auf die verwiesen wird */
+  errors: { name: string; error: ReadError; target?: string }[];
+}
+
+/**
+ * Git-Verweis (Symlink), der beim Herunterladen als winzige Textdatei angekommen ist, z. B.
+ * `Victory.ogg` mit dem Inhalt `GenericNotify.ogg` (so im Lichess-Quellcode). Liefert das Ziel.
+ */
+export function linkTarget(bytes: Uint8Array): string | null {
+  if (bytes.length === 0 || bytes.length > 200) return null;
+  let text: string;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true }).decode(bytes).trim();
+  } catch {
+    return null;
+  }
+  return /^[\w.\-/]+\.(ogg|oga|mp3|wav|flac|svg|png|webp|jpe?g)$/i.test(text) ? text : null;
+}
+
+/**
+ * Ersetzt Verweis-Dateien durch die Datei, auf die sie zeigen, wenn diese mit hochgeladen wurde
+ * (der Name bleibt, damit `Victory.ogg` den Platz „Sieg“ belegt). Sonst ein verständlicher Fehler.
+ */
+export function resolveLinks(result: ReadResult): ReadResult {
+  const byName = new Map(result.files.map((file) => [file.name, file]));
+  const resolved: ReadResult = { files: [], errors: [...result.errors] };
+  for (const file of result.files) {
+    const target = linkTarget(file.bytes);
+    if (!target) {
+      resolved.files.push(file);
+      continue;
+    }
+    const found = byName.get(nameOf(target));
+    if (found && !linkTarget(found.bytes))
+      resolved.files.push({ name: file.name, bytes: found.bytes });
+    else resolved.errors.push({ name: file.name, error: 'link', target: nameOf(target) });
+  }
+  return resolved;
 }
 
 /** Größte Datei, die überhaupt eingelesen wird (ZIP-Archive; Einzeldateien prüft `validate.ts`) */
@@ -31,7 +68,7 @@ export function expandArchives(input: UploadFile[], accept: (name: string) => bo
       result.files.push(file);
     }
   }
-  return result;
+  return resolveLinks(result);
 }
 
 /** Dateien aus dem Datei-Dialog oder einem HTML5-Drop (Browser-Modus) */
